@@ -5,6 +5,8 @@ if (CHOLMOD_INCLUDE_DIR AND CHOLMOD_LIBRARIES)
   set(CHOLMOD_FIND_QUIETLY TRUE)
 endif (CHOLMOD_INCLUDE_DIR AND CHOLMOD_LIBRARIES)
 
+include_directories(/usr/include/suitesparse)
+
 find_path(CHOLMOD_INCLUDE_DIR
   NAMES
   cholmod.h

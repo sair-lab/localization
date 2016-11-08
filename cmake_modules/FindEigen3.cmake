@@ -85,3 +85,10 @@ else (EIGEN3_INCLUDE_DIR)
 
 endif(EIGEN3_INCLUDE_DIR)
 
+if(EIGEN3_FOUND)
+  include_directories(${EIGEN3_INCLUDE_DIR})
+  link_directories(${EIGEN3_LIBRARIES})
+else(EIGEN3_FOUND)
+  MESSAGE(FATAL_ERROR "Eigen3 library not found")
+endif(EIGEN3_FOUND)
+

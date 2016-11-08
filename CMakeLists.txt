@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(localization)
 
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules )
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-
 find_package(catkin REQUIRED COMPONENTS
   # eigen_conversions
   geometry_msgs
@@ -16,11 +17,8 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED COMPONENTS system)
-
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules )
 find_package(G2O REQUIRED)
 find_package(Eigen3 3.2 REQUIRED)
-include_directories(/usr/include/suitesparse /usr/local/include/eigen3/)
 find_package(Cholmod REQUIRED)
 
 set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -O2 -march=native")
