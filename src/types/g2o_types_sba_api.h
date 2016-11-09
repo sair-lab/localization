@@ -1,12 +1,3 @@
-/***************************************************************************
- *  Description: import/export macros for creating DLLS with Microsoft
- *	compiler. Any exported function needs to be declared with the
- *  appropriate G2O_XXXX_API macro. Also, there must be separate macros
- *  for each DLL (arrrrrgh!!!)
- *
- *  17 Jan 2012
- *  Email: pupilli@cs.bris.ac.uk
- ****************************************************************************/
 #ifndef G2O_TYPES_SBA_API_H
 #define G2O_TYPES_SBA_API_H
 

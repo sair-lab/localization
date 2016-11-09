@@ -34,7 +34,7 @@
 
 #include <ros/ros.h>
 #include <boost/concept_check.hpp>
-// for g2o
+
 #include <g2o/core/sparse_optimizer.h>
 #include <g2o/core/block_solver.h>
 #include <g2o/core/factory.h>
@@ -71,26 +71,26 @@ int main(int argc, char** argv)
         v->setId(i);
         if (i==0)
         {
-            v->setEstimate(g2o::SBACam(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(10,10,10)));
+            v->setEstimate(g2o::SE3Quat(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(10,10,10)));
         }
         if (i==1)
         {
-            v->setEstimate(g2o::SBACam(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(0,0,0)));
+            v->setEstimate(g2o::SE3Quat(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(0,0,0)));
             v->setFixed(true);
         }
         if (i==2)
         {
-            v->setEstimate(g2o::SBACam(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(1,0,0)));
+            v->setEstimate(g2o::SE3Quat(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(1,0,0)));
             v->setFixed(true);
         }
         if (i==3)
         {
-            v->setEstimate(g2o::SBACam(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(0,1,0)));
+            v->setEstimate(g2o::SE3Quat(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(0,1,0)));
             v->setFixed(true);
         }
         if (i==4)
         {
-            v->setEstimate(g2o::SBACam(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(0,0,1)));
+            v->setEstimate(g2o::SE3Quat(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(0,0,1)));
             v->setFixed(true);
         }
         optimizer.addVertex(v);

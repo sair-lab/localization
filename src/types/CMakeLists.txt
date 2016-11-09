@@ -1,8 +1,6 @@
 ADD_LIBRARY(types_sba ${G2O_LIB_TYPE}
   types_sba.h
-  types_six_dof_expmap.h
   types_sba.cpp
-  types_six_dof_expmap.cpp
   g2o_types_sba_api.h
 )
 
