@@ -46,106 +46,116 @@
 #include <g2o/solvers/cholmod/linear_solver_cholmod.h>
 #include <g2o/solvers/csparse/linear_solver_csparse.h>
 #include <g2o/types/slam3d/types_slam3d.h>
-
+#include "types/types_sba.h"
 
 using namespace std;
-// int main()
-// {
-//     return 0;
-// }
 
-int main( int argc, char** argv )
+typedef g2o::BlockSolver_6_3 SE3BlockSolver;
+typedef g2o::LinearSolverCholmod<SE3BlockSolver::PoseMatrixType> Solver;
+
+int main(int argc, char** argv)
 {
-    typedef g2o::BlockSolver_6_3 SlamBlockSolver;
-    typedef g2o::LinearSolverCholmod<SlamBlockSolver::PoseMatrixType> SlamLinearSolver;
-
-    SlamLinearSolver *linearSolver = new SlamLinearSolver();
-    linearSolver->setBlockOrdering(false);
-    SlamBlockSolver *blockSolver = new SlamBlockSolver(linearSolver);
-    g2o::OptimizationAlgorithmLevenberg *solver = new g2o::OptimizationAlgorithmLevenberg(blockSolver);
-    // g2o::OptimizationAlgorithmGaussNewton *solver = new g2o::OptimizationAlgorithmGaussNewton(blockSolver);
-
-
+    Solver *solver = new Solver();
+    solver->setBlockOrdering(false);
+    SE3BlockSolver *se3blockSolver = new SE3BlockSolver(solver);
+    g2o::OptimizationAlgorithmLevenberg *optimizationsolver = new g2o::OptimizationAlgorithmLevenberg(se3blockSolver);
     g2o::SparseOptimizer optimizer;
-    optimizer.setAlgorithm(solver);
-    optimizer.setVerbose( true );
+    optimizer.setAlgorithm(optimizationsolver);
+    optimizer.setVerbose(true);
 
-    size_t num = 100;
+
+    size_t num = 5;
     for (size_t i = 0; i < num; i++)
     {
-        g2o::VertexSE3 *v = new g2o::VertexSE3();
+        g2o::VertexSE3* v = new g2o::VertexSE3();
         v->setId(i);
-        v->setEstimate(Eigen::Isometry3d::Identity());
         if (i==0)
-            v->setFixed(true);
-        optimizer.addVertex( v );
+        {
+            v->setEstimate(g2o::SBACam(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(10,10,0)));
+        }
+        if (i==1)
+        {
+            v->setEstimate(g2o::SBACam(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(-1,0,1)));
+            // v->setFixed(true);
+        }
+        if (i==2)
+        {
+            v->setEstimate(g2o::SBACam(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(0,1,0)));
+            // v->setFixed(true);
+        }
+        if (i==3)
+        {
+            v->setEstimate(g2o::SBACam(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(1,0,0)));
+            // v->setFixed(true);
+        }
+        if (i==4)
+        {
+            v->setEstimate(g2o::SBACam(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(0,-1,0)));
+            // v->setFixed(true);
+        }
+        optimizer.addVertex(v);
     }
-
-
-//    g2o::ParameterSE3Offset* parameterse3offset = new g2o::ParameterSE3Offset();
-//    parameterse3offset->setOffset(g2o::Isometry3D::Identity());
-//    parameterse3offset->setId(0);
-//    optimizer.addParameter(parameterse3offset);
-
-    vector<g2o::EdgeSE3 *> edges;
-    for (size_t i = 0; i < num-1; ++i)
+    vector<g2o::EdgeSE3Range*> edges;
+    for (size_t i = 1; i <=8 ; ++i)
     {
-        g2o::EdgeSE3 *edge = new g2o::EdgeSE3();
-        edge->vertices()[0] = optimizer.vertex(i);
-        edge->vertices()[1] = optimizer.vertex(i + 1);
-//        edge->setVertex(0, dynamic_cast<g2o::VertexSE3 *>   (optimizer.vertex(i)));
-//        edge->setVertex(1, dynamic_cast<g2o::VertexSE3 *>   (optimizer.vertex((i + 1) % num)));
+        g2o::EdgeSE3Range *edge = new g2o::EdgeSE3Range();
 
-        Eigen::Isometry3d pose;
-        pose.setIdentity();
-        pose.translate(g2o::Vector3D(1, 0, 0) + 0.1 * g2o::Vector3D::Random());
+        if (i<=4)
+        {
+            edge->vertices()[0] = optimizer.vertex(0);
+            edge->vertices()[1] = optimizer.vertex(i);
+            edge->setMeasurement(1.414);
+        }
 
-        cout << "measurement id " << i << " Pose=" << endl << pose.matrix() << endl;
-        edge->setMeasurement(pose);
-        Eigen::MatrixXd information = Eigen::MatrixXd::Identity(6, 6) * 0.01;
-        information(3,3) = 0.0001;
-        information(4,4) = 0.0001;
-        information(5,5) = 0.0001;
+        if (i==5)
+        {
+            edge->vertices()[0] = optimizer.vertex(1);
+            edge->vertices()[1] = optimizer.vertex(2);
+            edge->setMeasurement(1.414);
+        }
 
+        if (i==6)
+        {
+            edge->vertices()[0] = optimizer.vertex(2);
+            edge->vertices()[1] = optimizer.vertex(3);
+            edge->setMeasurement(1.414);
+        }
+
+        if (i==7)
+        {
+            edge->vertices()[0] = optimizer.vertex(3);
+            edge->vertices()[1] = optimizer.vertex(4);
+            edge->setMeasurement(1.414);
+        }
+
+        if (i==8)
+        {
+            edge->vertices()[0] = optimizer.vertex(4);
+            edge->vertices()[1] = optimizer.vertex(1);
+            edge->setMeasurement(1.414);
+        }
+        
+        Eigen::MatrixXd information = Eigen::MatrixXd::Zero(1, 1);
+        information(0,0) = 0.1;
         edge->setInformation(information.inverse());
-        cout << "information id " << i << " information=" << endl << information.inverse() << endl;
 
-//        edge->setParameterId(0, parameterse3offset->id());
         edge->setRobustKernel( new g2o::RobustKernelHuber() );
         optimizer.addEdge( edge );
         edges.push_back(edge);
     }
 
-    g2o::EdgeSE3 *edge = new g2o::EdgeSE3();
-    edge->vertices()[0] = optimizer.vertex(0);
-    edge->vertices()[1] = optimizer.vertex(99);
-    Eigen::Isometry3d pose;
-    pose.setIdentity();
-    pose.translate(g2o::Vector3D(99, 0, 0));// + 0.01 * g2o::Vector3D::Random());
-    edge->setMeasurement(pose);
-    Eigen::MatrixXd information = Eigen::MatrixXd::Identity(6, 6) * 0.01;
-    information(3,3) = 0.0001;
-    information(4,4) = 0.0001;
-    information(5,5) = 0.0001;
-    edge->setInformation(information.inverse());
-    optimizer.addEdge( edge );
-    edges.push_back(edge);
-
-    optimizer.save( "result_before.g2o" );
+    // optimizer.save( "result_before.g2o" );
     optimizer.setVerbose(true);
     optimizer.initializeOptimization();
     optimizer.optimize(100);
-    optimizer.save( "result_after.g2o" );
-
+    // optimizer.save( "result_after.g2o" );
 
     for (size_t i = 0; i < num; i++)
     {
         g2o::VertexSE3 *v = dynamic_cast<g2o::VertexSE3 *> (optimizer.vertex(i));
-        Eigen::Isometry3d pos = v->estimate();
-        cout << "vertex id " << i << " Pose=" << endl << pos.matrix() << endl;
+        // g2o::SBACam pos = v->estimate();
+        cout << "vertex id " << i << " Pose=" << endl << v->estimate().matrix()<< endl;
     }
-
-    cout <<"vertex done."<<endl;
 
     int inliers = 0;
     for ( auto e:edges )
@@ -163,5 +173,113 @@ int main( int argc, char** argv )
     }
 
     cout << "inliers in total points: " << inliers << "/" << edges.size() << endl;
+
+
     return 0;
 }
+
+// int main( int argc, char** argv )
+// {
+//     typedef g2o::BlockSolver_6_3 SlamBlockSolver;
+//     typedef g2o::LinearSolverCholmod<SlamBlockSolver::PoseMatrixType> SlamLinearSolver;
+
+//     SlamLinearSolver *linearSolver = new SlamLinearSolver();
+//     linearSolver->setBlockOrdering(false);
+//     SlamBlockSolver *blockSolver = new SlamBlockSolver(linearSolver);
+//     g2o::OptimizationAlgorithmLevenberg *solver = new g2o::OptimizationAlgorithmLevenberg(blockSolver);
+
+//     g2o::SparseOptimizer optimizer;
+//     optimizer.setAlgorithm(solver);
+//     optimizer.setVerbose( true );
+
+//     size_t num = 100;
+//     for (size_t i = 0; i < num; i++)
+//     {
+//         g2o::VertexSE3 *v = new g2o::VertexSE3();
+//         v->setId(i);
+//         v->setEstimate(Eigen::Isometry3d::Identity());
+//         if (i==0)
+//             v->setFixed(true);
+//         optimizer.addVertex( v );
+//     }
+
+
+
+//     vector<g2o::EdgeSE3 *> edges;
+//     for (size_t i = 0; i < num-1; ++i)
+//     {
+//         g2o::EdgeSE3 *edge = new g2o::EdgeSE3();
+//         // edge->vertices()[0] = optimizer.vertex(i);
+//         // edge->vertices()[1] = optimizer.vertex(i + 1);
+//        edge->setVertex(0, dynamic_cast<g2o::VertexSE3 *>   (optimizer.vertex(i)));
+//        edge->setVertex(1, dynamic_cast<g2o::VertexSE3 *>   (optimizer.vertex(i + 1)));
+
+//         Eigen::Isometry3d pose;
+//         pose.setIdentity();
+//         pose.translate(g2o::Vector3D(1, 0, 0) + 0.1 * g2o::Vector3D::Random());
+
+//         cout << "measurement id " << i << " Pose=" << endl << pose.matrix() << endl;
+//         edge->setMeasurement(pose);
+//         Eigen::MatrixXd information = Eigen::MatrixXd::Identity(6, 6) * 0.01;
+//         information(3,3) = 0.0001;
+//         information(4,4) = 0.0001;
+//         information(5,5) = 0.0001;
+
+//         edge->setInformation(information.inverse());
+//         cout << "information id " << i << " information=" << endl << information.inverse() << endl;
+
+// //        edge->setParameterId(0, parameterse3offset->id());
+//         edge->setRobustKernel( new g2o::RobustKernelHuber() );
+//         optimizer.addEdge( edge );
+//         edges.push_back(edge);
+//     }
+
+//     g2o::EdgeSE3 *edge = new g2o::EdgeSE3();
+//     edge->vertices()[0] = optimizer.vertex(0);
+//     edge->vertices()[1] = optimizer.vertex(99);
+//     Eigen::Isometry3d pose;
+//     pose.setIdentity();
+//     pose.translate(g2o::Vector3D(99, 0, 0));// + 0.01 * g2o::Vector3D::Random());
+//     edge->setMeasurement(pose);
+//     Eigen::MatrixXd information = Eigen::MatrixXd::Identity(6, 6) * 0.01;
+//     information(3,3) = 0.0001;
+//     information(4,4) = 0.0001;
+//     information(5,5) = 0.0001;
+//     edge->setInformation(information.inverse());
+//     optimizer.addEdge( edge );
+//     edges.push_back(edge);
+
+//     optimizer.save( "result_before.g2o" );
+//     optimizer.setVerbose(true);
+//     optimizer.initializeOptimization();
+//     optimizer.optimize(100);
+//     optimizer.save( "result_after.g2o" );
+
+
+//     for (size_t i = 0; i < num; i++)
+//     {
+//         g2o::VertexSE3 *v = dynamic_cast<g2o::VertexSE3 *> (optimizer.vertex(i));
+//         Eigen::Isometry3d pos = v->estimate();
+//         cout << "vertex id " << i << " Pose=" << endl << pos.matrix() << endl;
+//     }
+
+//     cout <<"vertex done."<<endl;
+
+//     int inliers = 0;
+//     for ( auto e:edges )
+//     {
+//         e->computeError();
+//         cout<<"error = "<<e->chi2()<<endl;
+//         if ( e->chi2() > 1 )
+//         {
+//             cout<<"error = "<<e->chi2()<<endl;
+//         }
+//         else
+//         {
+//             inliers++;
+//         }
+//     }
+
+//     cout << "inliers in total points: " << inliers << "/" << edges.size() << endl;
+//     return 0;
+// }

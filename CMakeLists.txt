@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
 )
+set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -O2 -march=native")
 
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED COMPONENTS system)
@@ -21,7 +22,8 @@ find_package(G2O REQUIRED)
 find_package(Eigen3 3.2 REQUIRED)
 find_package(Cholmod REQUIRED)
 
-set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -O2 -march=native")
+add_subdirectory(${PROJECT_SOURCE_DIR}/src/types)
+
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -146,7 +148,8 @@ add_dependencies(localization_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_
 ## Specify libraries to link a library or executable target against
 target_link_libraries(localization_node
     ${catkin_LIBRARIES}
-    g2o_core g2o_types_slam3d g2o_solver_csparse g2o_stuff g2o_csparse_extension g2o_types_sba csparse
+    g2o_core g2o_types_slam3d g2o_solver_csparse g2o_stuff g2o_csparse_extension csparse
+    types_sba
     ${CHOLMOD_LIBRARIES}
     ${EIGEN3_LIBRARIES}
 )
