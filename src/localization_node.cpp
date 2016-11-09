@@ -71,72 +71,78 @@ int main(int argc, char** argv)
         v->setId(i);
         if (i==0)
         {
-            v->setEstimate(g2o::SBACam(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(10,10,0)));
+            v->setEstimate(g2o::SBACam(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(10,10,10)));
         }
         if (i==1)
         {
-            v->setEstimate(g2o::SBACam(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(-1,0,1)));
-            // v->setFixed(true);
+            v->setEstimate(g2o::SBACam(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(0,0,0)));
+            v->setFixed(true);
         }
         if (i==2)
         {
-            v->setEstimate(g2o::SBACam(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(0,1,0)));
-            // v->setFixed(true);
+            v->setEstimate(g2o::SBACam(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(1,0,0)));
+            v->setFixed(true);
         }
         if (i==3)
         {
-            v->setEstimate(g2o::SBACam(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(1,0,0)));
-            // v->setFixed(true);
+            v->setEstimate(g2o::SBACam(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(0,1,0)));
+            v->setFixed(true);
         }
         if (i==4)
         {
-            v->setEstimate(g2o::SBACam(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(0,-1,0)));
-            // v->setFixed(true);
+            v->setEstimate(g2o::SBACam(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(0,0,1)));
+            v->setFixed(true);
         }
         optimizer.addVertex(v);
     }
     vector<g2o::EdgeSE3Range*> edges;
-    for (size_t i = 1; i <=8 ; ++i)
+    for (size_t i = 1; i <=4 ; ++i)
     {
         g2o::EdgeSE3Range *edge = new g2o::EdgeSE3Range();
 
-        if (i<=4)
+        if(i==1)
         {
             edge->vertices()[0] = optimizer.vertex(0);
             edge->vertices()[1] = optimizer.vertex(i);
-            edge->setMeasurement(1.414);
+            edge->setMeasurement(sqrt(3));
+        }
+        if (i>1&&i<=4)
+        {
+            edge->vertices()[0] = optimizer.vertex(0);
+            edge->vertices()[1] = optimizer.vertex(i);
+            edge->setMeasurement(sqrt(2));
         }
 
-        if (i==5)
-        {
-            edge->vertices()[0] = optimizer.vertex(1);
-            edge->vertices()[1] = optimizer.vertex(2);
-            edge->setMeasurement(1.414);
-        }
+        // if (i==5)
+        // {
+        //     edge->vertices()[0] = optimizer.vertex(1);
+        //     edge->vertices()[1] = optimizer.vertex(2);
+        //     edge->setMeasurement(1.414);
+        // }
 
-        if (i==6)
-        {
-            edge->vertices()[0] = optimizer.vertex(2);
-            edge->vertices()[1] = optimizer.vertex(3);
-            edge->setMeasurement(1.414);
-        }
+        // if (i==6)
+        // {
+        //     edge->vertices()[0] = optimizer.vertex(2);
+        //     edge->vertices()[1] = optimizer.vertex(3);
+        //     edge->setMeasurement(1.414);
+        // }
 
-        if (i==7)
-        {
-            edge->vertices()[0] = optimizer.vertex(3);
-            edge->vertices()[1] = optimizer.vertex(4);
-            edge->setMeasurement(1.414);
-        }
+        // if (i==7)
+        // {
+        //     edge->vertices()[0] = optimizer.vertex(3);
+        //     edge->vertices()[1] = optimizer.vertex(4);
+        //     edge->setMeasurement(1.414);
+        // }
 
-        if (i==8)
-        {
-            edge->vertices()[0] = optimizer.vertex(4);
-            edge->vertices()[1] = optimizer.vertex(1);
-            edge->setMeasurement(1.414);
-        }
+        // if (i==8)
+        // {
+        //     edge->vertices()[0] = optimizer.vertex(4);
+        //     edge->vertices()[1] = optimizer.vertex(1);
+        //     edge->setMeasurement(1.414);
+        // }
         
         Eigen::MatrixXd information = Eigen::MatrixXd::Zero(1, 1);
-        information(0,0) = 0.1;
+        information(0,0) = 0.01;
         edge->setInformation(information.inverse());
 
         edge->setRobustKernel( new g2o::RobustKernelHuber() );
