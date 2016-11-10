@@ -1,18 +1,23 @@
-ADD_LIBRARY(types_edge_se3range SHARED
+ADD_LIBRARY(localization SHARED
 	${G2O_LIB_TYPE}
- 	types_edge_se3range.h
- 	types_edge_se3range.cpp
- 	g2o_types_api.h
+  	localization.h
+  	localization.cpp
 )
 
-SET_TARGET_PROPERTIES(types_edge_se3range PROPERTIES OUTPUT_NAME types_edge_se3range)
+SET_TARGET_PROPERTIES(localization PROPERTIES OUTPUT_NAME localization)
 
-TARGET_LINK_LIBRARIES(types_edge_se3range
+TARGET_LINK_LIBRARIES(localization
+	${CHOLMOD_LIBRARIES}
+	types_edge_se3range
 	g2o_core
 	g2o_types_slam3d
+	g2o_solver_csparse
+	g2o_stuff
+	g2o_csparse_extension
+	csparse
 )
 
-# INSTALL(TARGETS types_se3_edge
+# INSTALL(TARGETS localization
 #   RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
 #   LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
 #   ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib

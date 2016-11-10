@@ -22,8 +22,16 @@ find_package(G2O REQUIRED)
 find_package(Eigen3 3.2 REQUIRED)
 find_package(Cholmod REQUIRED)
 
-add_subdirectory(${PROJECT_SOURCE_DIR}/src/types)
+# Specify additional locations of header files
+## Your package locations should be listed before other locations
+include_directories(
+    ${catkin_INCLUDE_DIRS}
+    ${PROJECT_SOURCE_DIR}/src/types
+    ${PROJECT_SOURCE_DIR}/src/localization
+)
 
+add_subdirectory(${PROJECT_SOURCE_DIR}/src/types)
+add_subdirectory(${PROJECT_SOURCE_DIR}/src/localization)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -121,12 +129,6 @@ catkin_package(
 ## Build ##
 ###########
 
-## Specify additional locations of header files
-## Your package locations should be listed before other locations
-# include_directories(include)
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-)
 
 ## Declare a C++ library
 #add_library(localization
@@ -141,17 +143,12 @@ include_directories(
 ## Declare a C++ executable
 add_executable(localization_node src/localization_node.cpp)
 
-## Add cmake target dependencies of the executable
-## same as for the library above
 add_dependencies(localization_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-## Specify libraries to link a library or executable target against
 target_link_libraries(localization_node
     ${catkin_LIBRARIES}
-    g2o_core g2o_types_slam3d g2o_solver_csparse g2o_stuff g2o_csparse_extension csparse
-    types_sba
-    ${CHOLMOD_LIBRARIES}
-    ${EIGEN3_LIBRARIES}
+    localization
+    # ${EIGEN3_LIBRARIES}
 )
 
 #############

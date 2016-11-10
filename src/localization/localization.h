@@ -25,12 +25,33 @@
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
+#ifndef LOCALIZATION_H
+#define LOCALIZATION_H
+#include <iostream>
+#include <sstream>
+#include <string.h>
+#include <fstream>
+#include <math.h>
+#include <time.h>
+#include <boost/concept_check.hpp>
 
-#include "localization.h"
+#include <g2o/core/sparse_optimizer.h>
+#include <g2o/core/block_solver.h>
+#include <g2o/core/factory.h>
+#include <g2o/core/robust_kernel.h>
+#include <g2o/core/robust_kernel_impl.h>
+#include <g2o/core/robust_kernel_factory.h>
+#include <g2o/core/optimization_algorithm_levenberg.h>
+#include <g2o/core/optimization_algorithm_gauss_newton.h>
+#include <g2o/solvers/cholmod/linear_solver_cholmod.h>
+#include <g2o/solvers/csparse/linear_solver_csparse.h>
+#include <g2o/types/slam3d/types_slam3d.h>
+#include "types_edge_se3range.h"
 
 using namespace std;
 
-int main(int argc, char** argv)
-{
-    test();
-}
+typedef g2o::BlockSolver_6_3 SE3BlockSolver;
+typedef g2o::LinearSolverCholmod<SE3BlockSolver::PoseMatrixType> Solver;
+
+int test();
+#endif

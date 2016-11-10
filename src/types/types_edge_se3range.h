@@ -40,12 +40,12 @@
 #include "g2o/types/slam3d/se3quat.h"
 #include "g2o/types/slam3d/types_slam3d.h"
 
-#include "g2o_types_sba_api.h"
+#include "g2o_types_api.h"
 
 namespace g2o
 {
 
-    class G2O_TYPES_SBA_API EdgeSE3Range : public BaseBinaryEdge<1, double, VertexSE3, VertexSE3>
+    class G2O_TYPES_API EdgeSE3Range : public BaseBinaryEdge<1, double, VertexSE3, VertexSE3>
     {
     public:
 
