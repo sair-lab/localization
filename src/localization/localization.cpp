@@ -55,8 +55,11 @@ void Localization::solve()
 }
 
 
-void Localization::addSlamEdge(geometry_msgs::PoseWithCovarianceStamped pose_cov)
+void Localization::addSlamEdge(const geometry_msgs::PoseWithCovarianceStamped& pose_cov_)
 {
+    cout<<"adding one slam edge"<<endl;
+
+    geometry_msgs::PoseWithCovarianceStamped pose_cov(pose_cov_);
 
     g2o::EdgeSE3 *edge = new g2o::EdgeSE3();
 
@@ -80,8 +83,7 @@ void Localization::addSlamEdge(geometry_msgs::PoseWithCovarianceStamped pose_cov
 
     edges_slam.push_back(edge);
 
-    // cout << "measurement" << *edge << endl;
-
+    cout<<"add one slam edge"<<endl;
 }
 
 

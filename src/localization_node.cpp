@@ -26,13 +26,23 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+#include <ros/ros.h>
+
 #include "localization.h"
 
 using namespace std;
 
 int main(int argc, char** argv)
 {
-    test();
+    ros::init(argc, argv, "ni_slam_node");
 
-    Localization localization();
+    ros::NodeHandle n("~");
+
+    Localization localization;
+
+    ros::Subscriber sub = n.subscribe("/ni_slam_node/incremental_pose_cov", 10, &Localization::addSlamEdge, &localization);
+
+    ros::spin();
+
+    return 0;
 }

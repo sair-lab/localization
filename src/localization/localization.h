@@ -25,6 +25,7 @@
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
+
 #ifndef LOCALIZATION_H
 #define LOCALIZATION_H
 #include <iostream>
@@ -33,7 +34,6 @@
 #include <fstream>
 #include <math.h>
 #include <time.h>
-#include <ros/ros.h>
 #include <Eigen/Dense>
 #include <eigen_conversions/eigen_msg.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
@@ -69,7 +69,7 @@ public:
 
     void addUwbEdge();
 
-    void addSlamEdge(geometry_msgs::PoseWithCovarianceStamped);
+    void addSlamEdge(const geometry_msgs::PoseWithCovarianceStamped&);
 
     void addOpticalFlowEdge();
 
