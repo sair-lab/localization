@@ -33,8 +33,11 @@
 #include <fstream>
 #include <math.h>
 #include <time.h>
+#include <ros/ros.h>
+#include <Eigen/Dense>
+#include <eigen_conversions/eigen_msg.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <boost/concept_check.hpp>
-
 #include <g2o/core/sparse_optimizer.h>
 #include <g2o/core/block_solver.h>
 #include <g2o/core/factory.h>
@@ -51,7 +54,46 @@
 using namespace std;
 
 typedef g2o::BlockSolver_6_3 SE3BlockSolver;
+
 typedef g2o::LinearSolverCholmod<SE3BlockSolver::PoseMatrixType> Solver;
 
 int test();
+
+class Localization
+{
+public:
+
+    Localization();
+
+    void solve();
+
+    void addUwbEdge();
+
+    void addSlamEdge(geometry_msgs::PoseWithCovarianceStamped);
+
+    void addOpticalFlowEdge();
+
+private:
+
+    Solver *solver;
+
+    SE3BlockSolver *se3blockSolver;
+
+    g2o::OptimizationAlgorithmLevenberg *optimizationsolver;
+
+    g2o::SparseOptimizer optimizer;
+
+    vector<g2o::VertexSE3*> poses;
+
+    vector<g2o::EdgeSE3Range*> edges_uwb;
+
+    vector<g2o::EdgeSE3*> edges_slam;
+
+    vector<g2o::EdgeSE3*> edges_optical_flow; //edges for optical flow
+
+private:
+
+    int iteration_max;
+};
+
 #endif

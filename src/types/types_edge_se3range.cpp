@@ -33,21 +33,25 @@
 namespace g2o
 {
     using namespace std;
+
     using namespace Eigen;
 
     G2O_REGISTER_TYPE(EDGE_RANGE, EdgeSE3Range);
 
-
-    EdgeSE3Range::EdgeSE3Range():BaseBinaryEdge<1, double, VertexSE3, VertexSE3>(){}
-  
+    EdgeSE3Range::EdgeSE3Range():BaseBinaryEdge<1, double, VertexSE3, VertexSE3>(){}  
 
     bool EdgeSE3Range::read(std::istream& is)
     {
         double meas;
+
         is >> meas;
+
         setMeasurement(meas);
+
         information().setIdentity();
+
         is >> information()(0,0);
+
         return true;
     }
 
@@ -55,6 +59,7 @@ namespace g2o
     bool EdgeSE3Range::write(std::ostream& os) const
     {
         os  << measurement() << " " << information()(0,0);
+
         return os.good();
     }
 
@@ -62,25 +67,32 @@ namespace g2o
     void EdgeSE3Range::initialEstimate(const OptimizableGraph::VertexSet& from_, OptimizableGraph::Vertex* /*to_*/)
     {
         VertexSE3* v1 = dynamic_cast<VertexSE3*>(_vertices[0]);
+
         VertexSE3* v2 = dynamic_cast<VertexSE3*>(_vertices[1]);
 
         if (from_.count(v1) == 1)
         {
-          Eigen::Transform<double, 3, 1> delta = (v1->estimate().inverse()*v2->estimate());
-          double norm =  delta.translation().norm();
-          double alpha = _measurement/norm;
-          // delta = delta.translation()*alpha;
-          delta.translation()=(delta.translation()*alpha);
-          v2->setEstimate(v1->estimate()*delta);
-        } 
+            Eigen::Transform<double, 3, 1> delta = (v1->estimate().inverse()*v2->estimate());
+
+            double norm =  delta.translation().norm();
+
+            double alpha = _measurement/norm;
+
+            delta.translation()=(delta.translation()*alpha);
+
+            v2->setEstimate(v1->estimate()*delta);
+        }
         else
         {
-          Eigen::Transform<double, 3, 1> delta = (v2->estimate().inverse()*v1->estimate());
-          double norm =  delta.translation().norm();
-          double alpha = _measurement/norm;
-          // delta = delta.translation()*alpha;
-          delta.translation()=(delta.translation()*alpha);
-          v1->setEstimate(v2->estimate()*delta);
+            Eigen::Transform<double, 3, 1> delta = (v2->estimate().inverse()*v1->estimate());
+
+            double norm =  delta.translation().norm();
+
+            double alpha = _measurement/norm;
+
+            delta.translation()=(delta.translation()*alpha);
+
+            v1->setEstimate(v2->estimate()*delta);
         }
     }
 

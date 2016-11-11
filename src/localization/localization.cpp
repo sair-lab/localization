@@ -28,6 +28,63 @@
 
 #include "localization.h"
 
+
+Localization::Localization()
+{
+    solver = new Solver();
+
+    solver->setBlockOrdering(false);
+
+    se3blockSolver = new SE3BlockSolver(solver);
+
+    optimizationsolver = new g2o::OptimizationAlgorithmLevenberg(se3blockSolver);
+
+    optimizer.setAlgorithm(optimizationsolver);
+
+    optimizer.setVerbose(true);
+
+    iteration_max = 100;
+}
+
+
+void Localization::solve()
+{
+    optimizer.initializeOptimization();
+
+    optimizer.optimize(iteration_max);
+}
+
+
+void Localization::addSlamEdge(geometry_msgs::PoseWithCovarianceStamped pose_cov)
+{
+
+    g2o::EdgeSE3 *edge = new g2o::EdgeSE3();
+
+    edge->vertices()[0] = optimizer.vertex(0);
+
+    edge->vertices()[1] = optimizer.vertex(1);
+
+    Eigen::Isometry3d measurement;
+
+    tf::poseMsgToEigen(pose_cov.pose.pose, measurement);
+
+    edge->setMeasurement(measurement);
+
+    Eigen::Map<Eigen::MatrixXd> covariance(pose_cov.pose.covariance.data(), 6, 6);
+
+    edge->setInformation(covariance.inverse());
+
+    edge->setRobustKernel(new g2o::RobustKernelHuber());
+
+    optimizer.addEdge(edge);
+
+    edges_slam.push_back(edge);
+
+    // cout << "measurement" << *edge << endl;
+
+}
+
+
 float RAND(){ return 0.1*float(1.0*rand()/RAND_MAX);}
 
 int test()

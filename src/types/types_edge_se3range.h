@@ -31,7 +31,6 @@
 
 #include <Eigen/Geometry>
 #include <iostream>
-
 #include "g2o/core/base_vertex.h"
 #include "g2o/core/base_binary_edge.h"
 #include "g2o/core/base_multi_edge.h"
@@ -39,45 +38,45 @@
 #include "g2o/stuff/macros.h"
 #include "g2o/types/slam3d/se3quat.h"
 #include "g2o/types/slam3d/types_slam3d.h"
-
 #include "g2o_types_api.h"
 
 namespace g2o
 {
-
     class G2O_TYPES_API EdgeSE3Range : public BaseBinaryEdge<1, double, VertexSE3, VertexSE3>
     {
     public:
 
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-        
+
         EdgeSE3Range();
-        
+
         virtual bool read(std::istream& is);
-        
+
         virtual bool write(std::ostream& os) const;
-        
+
         void computeError()
         {
-          const VertexSE3* v1 = dynamic_cast<const VertexSE3*>(_vertices[0]);
-          const VertexSE3* v2 = dynamic_cast<const VertexSE3*>(_vertices[1]);
-          Vector3D dt=v2->estimate().translation()-v1->estimate().translation();
-          _error[0] = _measurement - dt.norm();
+            const VertexSE3* v1 = dynamic_cast<const VertexSE3*>(_vertices[0]);
+
+            const VertexSE3* v2 = dynamic_cast<const VertexSE3*>(_vertices[1]);
+
+            Vector3D dt=v2->estimate().translation()-v1->estimate().translation();
+
+            _error[0] = _measurement - dt.norm();
         }
-        
+
         virtual void setMeasurement(const double& m)
         {
-          _measurement = m;
+            _measurement = m;
         }
-        
+
         virtual double initialEstimatePossible(const OptimizableGraph::VertexSet& , OptimizableGraph::Vertex* )
         {
             return 1.;
         }
-        
+
         virtual void initialEstimate(const OptimizableGraph::VertexSet& from_, OptimizableGraph::Vertex* to_);
     };
-
 }
 
-#endif // SBA_TYPES
+#endif

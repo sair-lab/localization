@@ -7,6 +7,7 @@ ADD_LIBRARY(localization SHARED
 SET_TARGET_PROPERTIES(localization PROPERTIES OUTPUT_NAME localization)
 
 TARGET_LINK_LIBRARIES(localization
+	${catkin_LIBRARIES}
 	${CHOLMOD_LIBRARIES}
 	types_edge_se3range
 	g2o_core
