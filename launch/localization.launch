@@ -2,10 +2,6 @@
 <launch>
 
     <node pkg="localization" type="localization_node" name="localization_node" output="screen">
-<!--         <param name="/target_frame_name" value="$(arg parent_frame)" />
-        <param name="/source_frame_name" value="$(arg child_frame)" />
-        <param name="/trajectory_update_rate" value="20.0" />
-        <param name="/trajectory_publish_rate" value="20.0" /> -->
     </node>
 
 </launch>
