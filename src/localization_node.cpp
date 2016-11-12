@@ -40,7 +40,9 @@ int main(int argc, char** argv)
 
     Localization localization;
 
-    ros::Subscriber sub = n.subscribe("/ni_slam_node/incremental_pose_cov", 10, &Localization::addSlamEdge, &localization);
+    ros::Subscriber pose_sub = n.subscribe("incremental_pose_cov", 10, &Localization::addSlamEdge, &localization);
+
+    ros::Subscriber range_sub  = n.subscribe("range", 10, &Localization::addUwbEdge, &localization);
 
     ros::spin();
 

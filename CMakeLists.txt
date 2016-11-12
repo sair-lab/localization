@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(localization)
 
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules )
+# list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules )
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -10,6 +11,8 @@ find_package(catkin REQUIRED COMPONENTS
   eigen_conversions
   geometry_msgs
   message_filters
+  message_generation
+  message_runtime
   roscpp
   rospy
   std_msgs
@@ -21,17 +24,6 @@ find_package(Boost REQUIRED COMPONENTS system)
 find_package(G2O REQUIRED)
 find_package(Eigen3 3.2 REQUIRED)
 find_package(Cholmod REQUIRED)
-
-# Specify additional locations of header files
-## Your package locations should be listed before other locations
-include_directories(
-    ${catkin_INCLUDE_DIRS}
-    ${PROJECT_SOURCE_DIR}/src/types
-    ${PROJECT_SOURCE_DIR}/src/localization
-)
-
-add_subdirectory(${PROJECT_SOURCE_DIR}/src/types)
-add_subdirectory(${PROJECT_SOURCE_DIR}/src/localization)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -63,11 +55,11 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/src/localization)
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+  FILES
+  UwbData.msg
+  # Message2.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -84,10 +76,11 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/src/localization)
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   geometry_msgs#   std_msgs
-# )
+generate_messages(
+    DEPENDENCIES
+    geometry_msgs
+    std_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -119,36 +112,42 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/src/localization)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES localization
-#  CATKIN_DEPENDS eigen_conversions geometry_msgs libg2o message_filters roscpp rospy std_msgs
-#  DEPENDS system_lib
+ # INCLUDE_DIRS include
+ LIBRARIES localization
+ CATKIN_DEPENDS eigen_conversions geometry_msgs message_generation message_runtime message_filters roscpp rospy std_msgs
+ DEPENDS system_lib
 )
+
+# Specify additional locations of header files
+## Your package locations should be listed before other locations
+include_directories(
+    ${catkin_INCLUDE_DIRS}
+    ${PROJECT_SOURCE_DIR}/src/types
+    ${PROJECT_SOURCE_DIR}/src/localization
+)
+
 
 ###########
 ## Build ##
 ###########
 
+add_subdirectory(${PROJECT_SOURCE_DIR}/src/types)
 
-## Declare a C++ library
-#add_library(localization
-#   src/localization.cpp
-#)
+add_subdirectory(${PROJECT_SOURCE_DIR}/src/localization)
 
-## Add cmake target dependencies of the library
-## as an example, code may need to be generated before libraries
-## either from message generation or dynamic reconfigure
-# add_dependencies(localization ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_executable(localization_node
+    src/localization_node.cpp
+)
 
-## Declare a C++ executable
-add_executable(localization_node src/localization_node.cpp)
-
-add_dependencies(localization_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(localization_node 
+    ${${PROJECT_NAME}_EXPORTED_TARGETS}
+    ${catkin_EXPORTED_TARGETS}
+)
 
 target_link_libraries(localization_node
+    ${EIGEN3_LIBRARIES}
     ${catkin_LIBRARIES}
     localization
-    # ${EIGEN3_LIBRARIES}
 )
 
 #############

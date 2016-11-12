@@ -36,7 +36,6 @@
 #include <time.h>
 #include <Eigen/Dense>
 #include <eigen_conversions/eigen_msg.h>
-#include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <boost/concept_check.hpp>
 #include <g2o/core/sparse_optimizer.h>
 #include <g2o/core/block_solver.h>
@@ -50,6 +49,9 @@
 #include <g2o/solvers/csparse/linear_solver_csparse.h>
 #include <g2o/types/slam3d/types_slam3d.h>
 #include "types_edge_se3range.h"
+
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <uwb_driver/UwbRange.h>
 
 using namespace std;
 
@@ -67,9 +69,9 @@ public:
 
     void solve();
 
-    void addUwbEdge();
+    void addUwbEdge(const uwb_driver::UwbRange::ConstPtr&);
 
-    void addSlamEdge(const geometry_msgs::PoseWithCovarianceStamped&);
+    void addSlamEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&);
 
     void addOpticalFlowEdge();
 

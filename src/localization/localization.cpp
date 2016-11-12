@@ -27,6 +27,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include "localization.h"
+// #include <uwb_driver/UwbRange.h>
 
 
 Localization::Localization()
@@ -55,11 +56,9 @@ void Localization::solve()
 }
 
 
-void Localization::addSlamEdge(const geometry_msgs::PoseWithCovarianceStamped& pose_cov_)
+void Localization::addSlamEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& pose_cov_)
 {
-    cout<<"adding one slam edge"<<endl;
-
-    geometry_msgs::PoseWithCovarianceStamped pose_cov(pose_cov_);
+    geometry_msgs::PoseWithCovarianceStamped pose_cov(*pose_cov_);
 
     g2o::EdgeSE3 *edge = new g2o::EdgeSE3();
 
@@ -85,6 +84,31 @@ void Localization::addSlamEdge(const geometry_msgs::PoseWithCovarianceStamped& p
 
     cout<<"add one slam edge"<<endl;
 }
+
+
+void Localization::addUwbEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
+{
+    g2o::EdgeSE3Range *edge = new g2o::EdgeSE3Range();
+
+    edge->vertices()[0] = optimizer.vertex(0);
+
+    edge->vertices()[1] = optimizer.vertex(1);
+
+    edge->setMeasurement(2.3);
+
+    Eigen::MatrixXd information = Eigen::MatrixXd::Zero(1, 1);
+
+    information(0,0) = 0.0025;
+
+    edge->setInformation(information.inverse());
+
+    edge->setRobustKernel(new g2o::RobustKernelHuber());
+
+    optimizer.addEdge(edge);
+
+    edges_uwb.push_back(edge);
+}
+
 
 
 float RAND(){ return 0.1*float(1.0*rand()/RAND_MAX);}
