@@ -34,6 +34,7 @@
 #include <fstream>
 #include <math.h>
 #include <time.h>
+#include <ros/ros.h>
 #include <Eigen/Dense>
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/concept_check.hpp>
@@ -51,7 +52,7 @@
 #include "types_edge_se3range.h"
 
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
-#include <uwb_driver/UwbRange.h>
+#include <uwb_as/UwbLinkMatrix.h>
 
 using namespace std;
 
@@ -69,11 +70,9 @@ public:
 
     void solve();
 
-    void addUwbEdge(const uwb_driver::UwbRange::ConstPtr&);
+    void addRangeEdge(const uwb_as::UwbLinkMatrix::ConstPtr&);
 
-    void addSlamEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&);
-
-    void addOpticalFlowEdge();
+    void addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&);
 
 private:
 
@@ -87,11 +86,9 @@ private:
 
     vector<g2o::VertexSE3*> poses;
 
-    vector<g2o::EdgeSE3Range*> edges_uwb;
+    vector<g2o::EdgeSE3Range*> edges_range;
 
-    vector<g2o::EdgeSE3*> edges_slam;
-
-    vector<g2o::EdgeSE3*> edges_optical_flow; //edges for optical flow
+    vector<g2o::EdgeSE3*> edges_pose;
 
 private:
 
