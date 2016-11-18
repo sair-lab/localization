@@ -18,6 +18,7 @@ TARGET_LINK_LIBRARIES(types_edge_se3range
 #   ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
 # )
 
+# problem 2
 FILE(GLOB headers "${CMAKE_CURRENT_SOURCE_DIR}/*.h" "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
 
 # INSTALL(FILES ${headers} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/g2o/types/sba)

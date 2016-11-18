@@ -139,6 +139,8 @@ add_executable(localization_node
     src/localization_node.cpp
 )
 
+
+#question 1
 add_dependencies(localization_node 
     ${${PROJECT_NAME}_EXPORTED_TARGETS}
     ${catkin_EXPORTED_TARGETS}
