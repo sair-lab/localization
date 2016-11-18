@@ -28,7 +28,7 @@
 
 #include "localization.h"
 
-Localization::Localization()
+Localization::Localization(int N)
 {
     solver = new Solver();
 
@@ -43,6 +43,8 @@ Localization::Localization()
     optimizer.setVerbose(true);
 
     iteration_max = 100;
+
+    number_of_nodes = N;
 }
 
 
@@ -83,16 +85,36 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
     ROS_INFO("added pose edge id: %d", pose_cov.header.seq);
 }
 
-
-void Localization::addRangeEdge(const uwb_as::UwbLinkMatrix::ConstPtr& uwb)
+//subscribe range msg from uwb_as node
+void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 {
+    //current index for the measurement
+    measCount ++;
+
+    //add two vertices for the new measurment
+    int vertex0_id = N*measCount+uwb->requester_idx;
+    int vertex1_id = N*measCount+uwb->responder_idx;
+
+    g2o::VertexSE3* v0 = new g2o::VertexSE3();
+
+    v0->setId(vertex0_id);
+
+    v0->setEstimate(optimizer.vertex(vertex0_id-N)->estimate());
+
+    g2o::VertexSE3* v1 = new g2o::VertexSE3();
+
+    v1->setId(vertex1_id);
+
+    v1->setEstimate(optimizer.vertex(vertex1_id-N)->estimate());
+
+    //add edge
     g2o::EdgeSE3Range *edge = new g2o::EdgeSE3Range();
 
-    edge->vertices()[0] = optimizer.vertex(0);
+    edge->vertices()[0] = optimizer.vertex(vertex0_id);
 
-    edge->vertices()[1] = optimizer.vertex(1);
+    edge->vertices()[1] = optimizer.vertex(vertex1_id);
 
-    edge->setMeasurement(2.3);
+    edge->setMeasurement(uwb->distance);
 
     Eigen::MatrixXd information = Eigen::MatrixXd::Zero(1, 1);
 

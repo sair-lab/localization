@@ -53,6 +53,7 @@
 
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <uwb_as/UwbLinkMatrix.h>
+#include <uwb_driver/UwbRange.h>
 
 using namespace std;
 
@@ -66,7 +67,7 @@ class Localization
 {
 public:
 
-    Localization();
+    Localization(int N);
 
     void solve();
 
@@ -93,6 +94,8 @@ private:
 private:
 
     int iteration_max;
+
+    int number_of_nodes;
 };
 
 #endif
