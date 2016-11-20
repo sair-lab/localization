@@ -71,7 +71,7 @@ public:
 
     void solve();
 
-    void addRangeEdge(const uwb_as::UwbLinkMatrix::ConstPtr&);
+    void addRangeEdge(const uwb_driver::UwbRange::ConstPtr&);
 
     void addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&);
 
