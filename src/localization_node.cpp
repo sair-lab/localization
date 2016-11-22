@@ -38,11 +38,11 @@ int main(int argc, char** argv)
 
     ros::NodeHandle n("~");
 
-    Localization localization;
+    Localization localization(5);
 
     ros::Subscriber pose_sub = n.subscribe("incremental_pose_cov", 10, &Localization::addPoseEdge, &localization);
 
-    ros::Subscriber range_sub = n.subscribe("range", 10, &Localization::addRangeEdge, &localization);
+    ros::Subscriber range_sub = n.subscribe("/uwb_exorange_info", 10, &Localization::addRangeEdge, &localization);
 
     ros::spin();
 
