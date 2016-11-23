@@ -10,7 +10,7 @@ SET_TARGET_PROPERTIES(types_edge_se3range PROPERTIES OUTPUT_NAME types_edge_se3r
 TARGET_LINK_LIBRARIES(types_edge_se3range
 	g2o_core
 	g2o_types_slam3d
-)
+) 
 
 # INSTALL(TARGETS types_se3_edge
 #   RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin

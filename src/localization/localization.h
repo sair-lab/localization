@@ -53,6 +53,9 @@
 
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <uwb_as/UwbLinkMatrix.h>
+#include <uwb_driver/UwbRange.h>
+
+#include <sensor_msgs/Imu.h>
 
 using namespace std;
 
@@ -66,13 +69,15 @@ class Localization
 {
 public:
 
-    Localization();
+    Localization( int N );
 
     void solve();
 
-    void addRangeEdge(const uwb_as::UwbLinkMatrix::ConstPtr&);
+    void addRangeEdge(const uwb_driver::UwbRange::ConstPtr&);
 
     void addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&);
+
+    void addImuPoseEdge(const sensor_msgs::Imu::ConstPtr&); 
 
 private:
 
@@ -93,6 +98,10 @@ private:
 private:
 
     int iteration_max;
+
+    int number_of_nodes;
+
+    double T;
 };
 
 #endif
