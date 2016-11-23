@@ -59,6 +59,8 @@
 
 using namespace std;
 
+using namespace Eigen;
+
 typedef g2o::BlockSolver_6_3 SE3BlockSolver;
 
 typedef g2o::LinearSolverCholmod<SE3BlockSolver::PoseMatrixType> Solver;
@@ -79,6 +81,8 @@ public:
 
     void addImuPoseEdge(const sensor_msgs::Imu::ConstPtr&); 
 
+    void setup(const uwb_driver::UwbRange::ConstPtr&);
+
 private:
 
     Solver *solver;
@@ -88,6 +92,13 @@ private:
     g2o::OptimizationAlgorithmLevenberg *optimizationsolver;
 
     g2o::SparseOptimizer optimizer;
+
+   
+    // for calculating initial coordinate
+
+    g2o::SparseOptimizer  begin_optimizer;
+
+
 
     vector<g2o::VertexSE3*> poses;
 
@@ -102,6 +113,11 @@ private:
     int number_of_nodes;
 
     double T;
+
+   // initial coordination matrix
+
+    MatrixXd m; 
+
 };
 
 #endif

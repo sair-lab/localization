@@ -45,11 +45,21 @@ Localization::Localization( int N )
 
     optimizer.setVerbose(true);
 
+    // for calculating initial position
+
+    begin_optimizer.setAlgorithm(optimizationsolver);
+
+    begin_optimizer.setVerbose(true);
+
+
+
     iteration_max = 100;
 
     number_of_nodes = N;
 
     T=2/100;
+
+    MatrixXd m(5,5);
 
 
 
@@ -114,17 +124,14 @@ void Localization::addImuPoseEdge(const sensor_msgs::Imu::ConstPtr& Imu_pose_)
 
     // how to get the Vertex0_id from uwb->header.seq
 
-    int measCount = uwb->header.seq;
+    // int measCount = uwb->header.seq;
 
 
     // vertices for the new measurment
 
-    int vertex0_id = number_of_nodes*measCount+uwb->requester_idx; 
+    // int vertex0_id = number_of_nodes*measCount+uwb->requester_idx; 
 
-    // int vertex0_id = 10;
-
-
-
+    int vertex0_id = 10; // just using 10 for test
 
    
     Quaterniond direction = Quaterniond(Imu_pose.orientation.w,Imu_pose.orientation.x,Imu_pose.orientation.y,Imu_pose.orientation.z);
@@ -132,13 +139,6 @@ void Localization::addImuPoseEdge(const sensor_msgs::Imu::ConstPtr& Imu_pose_)
     Vector3d acceleration = Vector3d(Imu_pose.linear_acceleration.x, Imu_pose.linear_acceleration.y, Imu_pose.linear_acceleration.z);
 
     
-
-
-    // for no fixed node and all are dynamic nodes: using approximation p(t)-p(t-1)~a(t)*T^2;
-       
-
-
-
 
     // for four fixed node and one dynamic node  p(t)-p(t-1)=a(t)*T^2+p(t-1)-p(t-2);
 
@@ -178,6 +178,37 @@ void Localization::addImuPoseEdge(const sensor_msgs::Imu::ConstPtr& Imu_pose_)
      delta.matrix()(2,3) = replace(2);
 
 
+
+    
+    // for no fixed node and all are dynamic nodes: using approximation p(t)-p(t-1)~a(t)*T^2;
+   
+    // Vector3d d = acceleration*pow(T,2);
+
+
+    // // rotation calculation
+
+    //  Eigen::Isometry3d pose;
+
+    //  pose.translate(g2o::Vector3D(0, 0, 0) );
+
+    //  pose.rotate(direction);
+     
+    //  Isometry3d delta= v1->estimate().inverse()*pose;
+
+
+    //  // translation replace
+
+    //  Vector3d replace = pose.rotation().inverse()*d;
+
+    //  delta.matrix()(0,3) = replace(0);
+
+    //  delta.matrix()(1,3) = replace(1);
+
+    //  delta.matrix()(2,3) = replace(2);
+    
+
+
+
      // add edge
     
      g2o::EdgeSE3 *edge = new g2o::EdgeSE3();
@@ -205,6 +236,165 @@ void Localization::addImuPoseEdge(const sensor_msgs::Imu::ConstPtr& Imu_pose_)
 }
 
 
+// calculating initial position
+
+void Localization::setup(const uwb_driver::UwbRange::ConstPtr& uwb)
+
+{   
+    size_t sum = number_of_nodes;
+
+
+    for (size_t i = 0; i <= sum; i++)
+    {   
+
+     
+
+        g2o::VertexSE3* v = new g2o::VertexSE3();
+
+        v->setId(i);
+
+         switch(i)
+
+        {
+            // initial position guess 
+
+            case 0:
+            v->setEstimate(g2o::SE3Quat(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(0,0,-0.5)));
+            v->setFixed(true);
+            break;
+
+            case 1:
+            v->setEstimate(g2o::SE3Quat(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(1.7,0,-1)));
+            break;
+
+            case 2:
+            v->setEstimate(g2o::SE3Quat(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(2,1.1,-2.5)));    
+            break;
+
+            case 3:
+            v->setEstimate(g2o::SE3Quat(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(1.3,1.4,-0.6)));
+            break;
+
+            case 4:
+            v->setEstimate(g2o::SE3Quat(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(1.6,1.7,-2.5)));              
+            break;
+
+            case 5:
+            v->setEstimate(g2o::SE3Quat(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(0,0,0)));     
+            v->setFixed(true);
+            default:           
+            break;
+
+        }
+
+      begin_optimizer.addVertex(v);
+
+    }
+
+
+    // length linkmatrix
+
+    MatrixXd length= MatrixXd::Identity(5, 5);
+
+    length(0,1)=5.0978;length(1,0)=length(0,1);
+    length(0,2)=7.5582;length(2,0)=length(0,2);
+    length(0,3)=8.0126;length(3,0)=length(0,3);
+    length(0,4)=3.2093;length(4,0)=length(0,4);
+
+    length(1,2)=5.1669;length(2,1)=length(1,2);
+    length(1,3)=8.4903;length(3,1)=length(1,3);
+    length(1,4)=2.8988;length(4,1)=length(1,4); 
+
+    length(2,3)=5.1990;length(3,2)=length(2,3);
+    length(2,4)=5.7465;length(4,2)=length(2,4);
+
+    length(3,4)=8.1238;length(4,3)=length(3,4);
+
+
+  // add EdgeSE3Range edge
+
+    for (size_t j=0; j <sum;j++)
+  {  
+
+    for (size_t i = j+1; i < sum; i++)
+    {
+        
+        g2o::EdgeSE3Range *edge = new g2o::EdgeSE3Range();
+
+        edge->vertices()[0] = optimizer.vertex(j);
+        edge->vertices()[1] = optimizer.vertex(i);
+
+
+        edge->setMeasurement(length(j,i));
+        
+
+        Eigen::MatrixXd information = Eigen::MatrixXd::Zero(1, 1);
+        information(0,0) = 0.1;
+        edge->setInformation(information.inverse());
+
+        edge->setRobustKernel( new g2o::RobustKernelHuber() );
+        begin_optimizer.addEdge( edge );
+
+        
+    
+     }
+   }
+
+
+   // add known z-value of node edge
+
+  for (size_t j=1; j <sum;j++)
+  {  
+        
+        g2o::zedge *edge = new g2o::zedge();
+
+        edge->vertices()[0] = optimizer.vertex(j);
+        edge->vertices()[1] = optimizer.vertex(sum);
+
+        g2o::VertexSE3 *v1 = dynamic_cast<g2o::VertexSE3 *> (optimizer.vertex(j));
+        double delta = v1->estimate().translation()[2];
+
+        edge->setMeasurement(delta);
+        
+
+        Eigen::MatrixXd information = Eigen::MatrixXd::Zero(1, 1);
+        information(0,0) = 0.1;
+        edge->setInformation(information.inverse());
+
+        edge->setRobustKernel( new g2o::RobustKernelHuber() );
+        begin_optimizer.addEdge( edge );
+       
+    
+     }
+
+
+     // add known y-value of node edge
+   
+
+        g2o::yedge *edge = new g2o::yedge();
+
+        edge->vertices()[0] = optimizer.vertex(1);
+        edge->vertices()[1] = optimizer.vertex(sum);
+
+
+        g2o::VertexSE3 *v1 = dynamic_cast<g2o::VertexSE3 *> (optimizer.vertex(1));
+        double delta = v1->estimate().translation()[1];
+
+        edge->setMeasurement(delta);
+        
+
+        Eigen::MatrixXd information = Eigen::MatrixXd::Zero(1, 1);
+        information(0,0) = 0.1;
+        edge->setInformation(information.inverse());
+
+        edge->setRobustKernel( new g2o::RobustKernelHuber() );
+        begin_optimizer.addEdge( edge ); 
+
+
+}
+
+
+
 
 
 
@@ -220,6 +410,7 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     int vertex0_id = number_of_nodes*measCount+uwb->requester_idx;
 
     int vertex1_id = number_of_nodes*measCount+uwb->responder_idx;
+
 
     g2o::VertexSE3* v0 = new g2o::VertexSE3();
 
@@ -278,8 +469,3 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
 
 }
-
-
-
-
-

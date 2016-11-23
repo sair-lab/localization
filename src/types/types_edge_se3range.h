@@ -77,6 +77,95 @@ namespace g2o
 
         virtual void initialEstimate(const OptimizableGraph::VertexSet& from_, OptimizableGraph::Vertex* to_);
     };
+
+
+
+   class G2O_TYPES_API zedge : public BaseBinaryEdge<1, double, VertexSE3, VertexSE3>
+{
+
+public:
+     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+     zedge();
+
+     virtual bool read(std::istream& is);
+
+     virtual bool write(std::ostream& os) const;
+
+    void computeError()
+    {
+      const VertexSE3* v1 = dynamic_cast<const VertexSE3*>(_vertices[0]);
+
+      const VertexSE3* v2 = dynamic_cast<const VertexSE3*>(_vertices[1]);
+
+      double delta = v1->estimate().translation()[2] - v2->estimate().translation()[2];
+
+      _error[0] = fabs(_measurement - delta);
+
+
+
+     }
+
+      virtual void setMeasurement(const double& m)
+
+      { 
+        _measurement = m;
+      }
+
+
+    virtual double initialEstimatePossible(const OptimizableGraph::VertexSet& , OptimizableGraph::Vertex* ) 
+    { 
+      return 1.;
+    }
+
+     virtual void initialEstimate(const OptimizableGraph::VertexSet& from, OptimizableGraph::Vertex* to);
+ };
+
+
+
+
+   class G2O_TYPES_API yedge : public BaseBinaryEdge<1, double, VertexSE3, VertexSE3>
+{
+
+public:
+     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+     yedge();
+
+     virtual bool read(std::istream& is);
+
+     virtual bool write(std::ostream& os) const;
+
+    void computeError()
+    {
+      const VertexSE3* v1 = dynamic_cast<const VertexSE3*>(_vertices[0]);
+
+      const VertexSE3* v2 = dynamic_cast<const VertexSE3*>(_vertices[1]);
+    
+
+      double delta = v1->estimate().translation()[1] - v2->estimate().translation()[1];
+
+      _error[0] = fabs(_measurement - delta);
+
+     }
+
+
+      virtual void setMeasurement(const double& m)
+
+      { 
+        _measurement = m;
+      }
+
+
+    virtual double initialEstimatePossible(const OptimizableGraph::VertexSet& , OptimizableGraph::Vertex* ) 
+    { 
+      return 1.;
+    }
+
+     virtual void initialEstimate(const OptimizableGraph::VertexSet& from, OptimizableGraph::Vertex* to);
+ };
+
+
 }
 
 #endif

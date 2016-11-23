@@ -136,7 +136,7 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/src/types)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/localization)
 
 add_executable(localization_node
-    src/localization_node.cpp
+    src/localization_node.cpp 
 )
 
 
@@ -194,7 +194,7 @@ target_link_libraries(localization_node
 ## Add gtest based cpp test target and link libraries
 # catkin_add_gtest(${PROJECT_NAME}-test test/test_localization.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
+# target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
 
 ## Add folders to be run by python nosetests

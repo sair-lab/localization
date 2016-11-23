@@ -50,7 +50,6 @@ int main(int argc, char** argv)
     ros::Subscriber range_sub = n.subscribe("range", 10, &Localization::addRangeEdge, &localization);
      
 
-
     // where to add Imu package for getting the topic "/imu/" ?
 
     ros::Subscriber Imu_sub = n.subscribe("/imu",10, &Localization::addImuPoseEdge, &localization);
@@ -59,4 +58,8 @@ int main(int argc, char** argv)
     ros::spin();
 
     return 0;
+
+
+
+
 }
