@@ -118,7 +118,10 @@ void Localization::addImuPoseEdge(const sensor_msgs::Imu::ConstPtr& Imu_pose_)
 
 
     // vertices for the new measurment
+
     int vertex0_id = number_of_nodes*measCount+uwb->requester_idx; 
+
+    // int vertex0_id = 10;
 
 
 
@@ -195,7 +198,7 @@ void Localization::addImuPoseEdge(const sensor_msgs::Imu::ConstPtr& Imu_pose_)
     
      optimizer.addEdge( edge );
 
-     edges_range.push_back(edge);
+     edges_pose.push_back(edge); 
 
 
     

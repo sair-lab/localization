@@ -53,8 +53,8 @@ int main(int argc, char** argv)
 
     // where to add Imu package for getting the topic "/imu/" ?
 
-    ros::Subscriber Imu_sub = n.subscribe("/imu",10, &Localization::addImuposeEdge, &localization);
-    
+    ros::Subscriber Imu_sub = n.subscribe("/imu",10, &Localization::addImuPoseEdge, &localization);
+
 
     ros::spin();
 
