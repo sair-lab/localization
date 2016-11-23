@@ -112,7 +112,9 @@ void Localization::addImuPoseEdge(const sensor_msgs::Imu::ConstPtr& Imu_pose_)
 
     //have the problem of synchronization of uwb range message and imu message. 
 
-    int measCount = Imu_pose->uwb.seq;
+    // how to get the Vertex0_id from uwb->header.seq
+
+    int measCount = uwb->header.seq;
 
 
     // vertices for the new measurment
