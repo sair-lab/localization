@@ -99,7 +99,7 @@ namespace g2o
 
 
 
-    G2O_REGISTER_TYPE(EDGE_RANGE, zedge); // EDGE_RANGE guding
+    G2O_REGISTER_TYPE(EDGE_ZRANGE, zedge); // EDGE_RANGE guding
 
   zedge::zedge():BaseBinaryEdge<1, double, VertexSE3, VertexSE3>(){}  // again anouncement
 
@@ -158,7 +158,7 @@ void zedge::initialEstimate(const OptimizableGraph::VertexSet& from_, Optimizabl
 
 
 
-G2O_REGISTER_TYPE(EDGE_RANGE1, yedge); // EDGE_RANGE guding
+G2O_REGISTER_TYPE(EDGE_YRANGE, yedge); // EDGE_RANGE guding
 
   yedge::yedge():BaseBinaryEdge<1, double, VertexSE3, VertexSE3>(){}  // again anouncement
 

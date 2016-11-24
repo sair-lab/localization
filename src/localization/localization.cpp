@@ -292,59 +292,10 @@ void Localization::setup(const uwb_driver::UwbRange::ConstPtr& uwb)
     }
 
 
-    // length linkmatrix
+      // add known z-value of node edge
 
-    MatrixXd length= MatrixXd::Identity(5, 5);
-
-    length(0,1)=5.0978;length(1,0)=length(0,1);
-    length(0,2)=7.5582;length(2,0)=length(0,2);
-    length(0,3)=8.0126;length(3,0)=length(0,3);
-    length(0,4)=3.2093;length(4,0)=length(0,4);
-
-    length(1,2)=5.1669;length(2,1)=length(1,2);
-    length(1,3)=8.4903;length(3,1)=length(1,3);
-    length(1,4)=2.8988;length(4,1)=length(1,4); 
-
-    length(2,3)=5.1990;length(3,2)=length(2,3);
-    length(2,4)=5.7465;length(4,2)=length(2,4);
-
-    length(3,4)=8.1238;length(4,3)=length(3,4);
-
-
-  // add EdgeSE3Range edge
-
-    for (size_t j=0; j <sum;j++)
-  {  
-
-    for (size_t i = j+1; i < sum; i++)
-    {
-        
-        g2o::EdgeSE3Range *edge = new g2o::EdgeSE3Range();
-
-        edge->vertices()[0] = optimizer.vertex(j);
-        edge->vertices()[1] = optimizer.vertex(i);
-
-
-        edge->setMeasurement(length(j,i));
-        
-
-        Eigen::MatrixXd information = Eigen::MatrixXd::Zero(1, 1);
-        information(0,0) = 0.1;
-        edge->setInformation(information.inverse());
-
-        edge->setRobustKernel( new g2o::RobustKernelHuber() );
-        begin_optimizer.addEdge( edge );
-
-        
-    
-     }
-   }
-
-
-   // add known z-value of node edge
-
-  for (size_t j=1; j <sum;j++)
-  {  
+      for (size_t j=1; j <sum;j++)
+ {  
         
         g2o::zedge *edge = new g2o::zedge();
 
@@ -365,13 +316,13 @@ void Localization::setup(const uwb_driver::UwbRange::ConstPtr& uwb)
         begin_optimizer.addEdge( edge );
        
     
-     }
+ }
 
 
      // add known y-value of node edge
    
 
-        g2o::yedge *edge = new g2o::yedge();
+ {      g2o::yedge *edge = new g2o::yedge();
 
         edge->vertices()[0] = optimizer.vertex(1);
         edge->vertices()[1] = optimizer.vertex(sum);
@@ -390,11 +341,92 @@ void Localization::setup(const uwb_driver::UwbRange::ConstPtr& uwb)
         edge->setRobustKernel( new g2o::RobustKernelHuber() );
         begin_optimizer.addEdge( edge ); 
 
+ }
+
+
+
+
+    int vertex0_id = uwb->requester_idx;
+
+    int vertex1_id = uwb->responder_idx;
+
+
+
+    // length linkmatrix
+
+    MatrixXd length= MatrixXd::Identity(5, 5);
+
+    length(vertex0_id,vertex1_id)= uwb->distance;
+
+    // length(0,1)=5.0978;length(1,0)=length(0,1);
+    // length(0,2)=7.5582;length(2,0)=length(0,2);
+    // length(0,3)=8.0126;length(3,0)=length(0,3);
+    // length(0,4)=3.2093;length(4,0)=length(0,4);
+
+    // length(1,2)=5.1669;length(2,1)=length(1,2);
+    // length(1,3)=8.4903;length(3,1)=length(1,3);
+    // length(1,4)=2.8988;length(4,1)=length(1,4); 
+
+    // length(2,3)=5.1990;length(3,2)=length(2,3);
+    // length(2,4)=5.7465;length(4,2)=length(2,4);
+
+    // length(3,4)=8.1238;length(4,3)=length(3,4);
+
+
+
+  // add EdgeSE3Range edge
+
+     g2o::EdgeSE3Range *edge = new g2o::EdgeSE3Range();
+
+    
+     edge->vertices()[0] = optimizer.vertex(vertex0_id);
+
+     edge->vertices()[1] = optimizer.vertex(vertex1_id);
+
+
+     edge->setMeasurement(length(vertex0_id,vertex1_id));
+        
+
+        Eigen::MatrixXd information = Eigen::MatrixXd::Zero(1, 1);
+        information(0,0) = 0.1;
+        edge->setInformation(information.inverse());
+
+        edge->setRobustKernel( new g2o::RobustKernelHuber() );
+        begin_optimizer.addEdge( edge );
+
+
+
+
+  //   for (size_t j=0; j <sum;j++)
+  // {  
+
+  //   for (size_t i = j+1; i < sum; i++)
+  //   {
+        
+  //       g2o::EdgeSE3Range *edge = new g2o::EdgeSE3Range();
+
+  //       edge->vertices()[0] = optimizer.vertex(j);
+  //       edge->vertices()[1] = optimizer.vertex(i);
+
+
+  //       edge->setMeasurement(length(j,i));
+        
+
+  //       Eigen::MatrixXd information = Eigen::MatrixXd::Zero(1, 1);
+  //       information(0,0) = 0.1;
+  //       edge->setInformation(information.inverse());
+
+  //       edge->setRobustKernel( new g2o::RobustKernelHuber() );
+  //       begin_optimizer.addEdge( edge );
+
+        
+    
+  //    }
+  //  }
+
+
 
 }
-
-
-
 
 
 
