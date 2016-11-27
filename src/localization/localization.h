@@ -52,6 +52,7 @@
 #include "types_edge_se3range.h"
 
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <uwb_as/UwbLinkMatrix.h>
 #include <uwb_driver/UwbRange.h>
 
@@ -79,9 +80,13 @@ public:
 
     void addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&);
 
-    void addImuPoseEdge(const sensor_msgs::Imu::ConstPtr&); 
+    void callback(const uwb_driver::UwbRange::ConstPtr&, const sensor_msgs::Imu::ConstPtr&); 
 
     void setup(const uwb_driver::UwbRange::ConstPtr&);
+
+    geometry_msgs::PoseStamped beginsolve(const geometry_msgs::PoseStamped::ConstPtr&);
+
+
 
 private:
 
@@ -93,18 +98,17 @@ private:
 
     g2o::SparseOptimizer optimizer;
 
-   
     // for calculating initial coordinate
 
     g2o::SparseOptimizer  begin_optimizer;
-
-
-
+   
     vector<g2o::VertexSE3*> poses;
 
     vector<g2o::EdgeSE3Range*> edges_range;
 
     vector<g2o::EdgeSE3*> edges_pose;
+
+    vector<sensor_msgs::Imu*> Imu_pose;
 
 private:
 
@@ -114,9 +118,9 @@ private:
 
     double T;
 
-   // initial coordination matrix
+    // initial coordination matrix
 
-    MatrixXd m; 
+    // MatrixXd initial; 
 
 };
 

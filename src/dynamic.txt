@@ -1,0 +1,29 @@
+    
+    // for no fixed node and all are dynamic nodes: using approximation p(t)-p(t-1)~a(t)*T^2;
+   
+    // Vector3d d = acceleration*pow(T,2);
+
+
+    // // rotation calculation
+
+    //  Eigen::Isometry3d pose;
+
+    //  pose.translate(g2o::Vector3D(0, 0, 0) );
+
+    //  pose.rotate(direction);
+     
+    //  Isometry3d delta= v1->estimate().inverse()*pose;
+
+
+    //  // translation replace
+
+    //  Vector3d replace = pose.rotation().inverse()*d;
+
+    //  delta.matrix()(0,3) = replace(0);
+
+    //  delta.matrix()(1,3) = replace(1);
+
+    //  delta.matrix()(2,3) = replace(2);
+
+
+

@@ -28,48 +28,48 @@
 
 #include <ros/ros.h>
 #include "localization.h"
-#include <geometry_msgs/Pose.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <Eigen/Dense>
 
-#include <message_filters/subscriber.h>
-#include <message_filters/synchronizer.h>
-#include <message_filters/sync_policies/approximate_time.h>
-#include <sensor_msgs/Image.h>
-
-using namespace std;
-using namespace message_filters;
+using namespace std; 
 
 int main(int argc, char** argv) 
 {   
 
-    ros::init(argc, argv, "ni_slam_node");
+    ros::init(argc, argv, "autosetup"); 
 
     ros::NodeHandle n("~");
 
+    ros::Publisher initialposition = n.advertise<geometry_msgs::PoseStamped> ("initialposition", 5);
+
     Localization localization(5);
 
-    ros::Subscriber pose_sub = n.subscribe("incremental_pose_cov", 10, &Localization::addPoseEdge, &localization); 
+    ros::Time starttime = ros::Time::now();
+ 
+    geometry_msgs::PoseStamped::ConstPtr position1;
+    geometry_msgs::PoseStamped position2;
 
-    ros::Subscriber range_sub = n.subscribe("range", 10, &Localization::addRangeEdge, &localization);
-     
-    // where to add Imu package for getting the topic "/imu/" ?
+    while (ros::ok)
 
-    ros::NodeHandle nh;
+    {
+        // need to design a method to fill the linkmatrix
 
-    message_filters::Subscriber<uwb_driver::UwbRange> uwb_sub(nh, "range", 1);
-    message_filters::Subscriber<sensor_msgs::Imu> imu_sub(nh, "imu", 1);
+     ros::Subscriber range_sub = n.subscribe("range", 10, &Localization::setup, &localization);
 
-    typedef sync_policies::ApproximateTime<uwb_driver::UwbRange, sensor_msgs::Imu> imu_uwbSyncPolicy;
 
-    // ApproximateTime takes a queue size as its constructor argument, hence MySyncPolicy(10)
+         if ((ros::Time::now()- starttime).toSec()>2) 
 
-    Synchronizer<imu_uwbSyncPolicy> sync(imu_uwbSyncPolicy(10), uwb_sub, imu_sub);
+        {      
+               position2 = localization.beginsolve(position1);
 
-    sync.registerCallback(boost::bind(&Localization::callback, &localization, _1, _2));
+               initialposition.publish(position2);
 
+        }
+
+    }
+        
     ros::spin();
-
     return 0;
-
 
 
 }

@@ -140,13 +140,33 @@ add_executable(localization_node
 )
 
 
+add_executable(localization_setup
+    src/autosetup.cpp 
+)
+
+
+
 #question 1
 add_dependencies(localization_node 
     ${${PROJECT_NAME}_EXPORTED_TARGETS}
     ${catkin_EXPORTED_TARGETS}
 )
 
+
+add_dependencies(localization_setup
+    ${${PROJECT_NAME}_EXPORTED_TARGETS}
+    ${catkin_EXPORTED_TARGETS}
+)
+
+
+
 target_link_libraries(localization_node
+    ${EIGEN3_LIBRARIES}
+    ${catkin_LIBRARIES}
+    localization
+)
+
+target_link_libraries(localization_setup
     ${EIGEN3_LIBRARIES}
     ${catkin_LIBRARIES}
     localization
