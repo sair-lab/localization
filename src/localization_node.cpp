@@ -40,11 +40,20 @@ int main(int argc, char** argv)
 
     Localization localization;
 
-    ros::Subscriber pose_sub = n.subscribe("incremental_pose_cov", 10, &Localization::addPoseEdge, &localization);
+    ros::Subscriber pose_sub = n.subscribe("incremental_pose_cov", 1000, &Localization::addPoseEdge, &localization);
 
-    ros::Subscriber range_sub = n.subscribe("range", 10, &Localization::addRangeEdge, &localization);
+    ros::Subscriber range_sub = n.subscribe("range", 1000, &Localization::addRangeEdge, &localization);
 
-    ros::spin();
+    ros::Rate rate(0.5);
+
+	while (ros::ok())
+	{
+		ros::spinOnce();
+
+		rate.sleep();
+
+		localization.solve();
+	}
 
     return 0;
 }

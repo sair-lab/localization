@@ -51,6 +51,8 @@ void Localization::solve()
     optimizer.initializeOptimization();
 
     optimizer.optimize(iteration_max);
+
+    ROS_INFO("graph optimized!");
 }
 
 
