@@ -86,6 +86,8 @@ public:
 
     void setupsolve();
 
+    void setup_initialization();
+
 private:
 
     Solver *solver;
@@ -122,5 +124,6 @@ private:
     MatrixXd linkmatrix; 
 
 };
-
 #endif
+
+

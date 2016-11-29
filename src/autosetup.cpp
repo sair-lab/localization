@@ -42,6 +42,8 @@ int main(int argc, char** argv)
 
     Localization localization(5);
 
+    localization.setup_initialization();
+
     ros::Subscriber range_sub = n.subscribe("/path_pose", 10, &Localization::setup, &localization);
 
     ros::spin();
