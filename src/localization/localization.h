@@ -69,7 +69,7 @@ class Localization
 {
 public:
 
-    Localization(int N);
+    Localization();
 
     void solve();
 
@@ -79,7 +79,7 @@ public:
 
 private:
 
-    vector<Robot> robots;
+    map<unsigned char, Robot> robots;
 
     Solver *solver;
 
@@ -88,8 +88,6 @@ private:
     g2o::OptimizationAlgorithmLevenberg *optimizationsolver;
 
     g2o::SparseOptimizer optimizer;
-
-
 
 private:
 

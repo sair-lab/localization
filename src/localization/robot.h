@@ -49,22 +49,23 @@ class Robot
 {
 public:
 
-    Robot(int id):ID(id){};
+    Robot(int ID, bool FLAG_STATIC):ID(ID), FLAG_STATIC(FLAG_STATIC){Robot();};
+
+    Robot();
+
+    g2o::VertexSE3* new_vertex();
 
     int next_pose_id();
 
-
-private:
-
     vector<std_msgs::Header> headers;
 
-    vector<g2o::VertexSE3> poses;
+    vector<g2o::VertexSE3*> vertices;
 
     vector<g2o::EdgeSE3Range*> sensor_range;
 
     vector<g2o::EdgeSE3*> sensor_pose;
 
-    vector<int> poses_global_id; // pose glbal id in a team robots
+    vector<int> poses_global_id; // pose global id in a team robots
 
     int poses_number; //length of poses
 

@@ -28,3 +28,41 @@
 
 #include "robot.h"
 
+Robot::Robot()
+{
+    if(FLAG_STATIC)
+    {
+        g2o::VertexSE3* vertex = new g2o::VertexSE3();
+
+        vertex->setId(ID);
+
+        vertex->setEstimate(Eigen::Isometry3d::Identity());
+
+        vertices.push_back(vertex);
+
+        poses_number = 0;
+    }
+    else
+        poses_number = -1;
+}
+
+
+g2o::VertexSE3* Robot::new_vertex()
+{
+    if(FLAG_STATIC)
+        return vertices.back();
+    else
+    {
+        poses_number++;
+
+        g2o::VertexSE3* vertex = new g2o::VertexSE3();
+
+        vertex->setId(ID + poses_number*10);
+
+        vertex->setEstimate(vertices.back()->estimate());
+
+        vertices.push_back(vertex);
+
+        return vertex;
+    }
+}

@@ -38,7 +38,7 @@ int main(int argc, char** argv)
 
     ros::NodeHandle n("~");
 
-    Localization localization(5);
+    Localization localization;
 
     ros::Subscriber pose_sub = n.subscribe("incremental_pose_cov", 1000, &Localization::addPoseEdge, &localization);
 
