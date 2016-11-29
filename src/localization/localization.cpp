@@ -28,7 +28,7 @@
 
 #include "localization.h"
 
-Localization::Localization(int N)
+Localization::Localization(int N) 
 {
     solver = new Solver();
 
@@ -44,7 +44,10 @@ Localization::Localization(int N)
 
     iteration_max = 100;
 
-    number_of_nodes = N;
+    for (int i=0; i < N; ++i)
+        robots.push_back(Robot(i));
+
+    number_robots = N;
 }
 
 
@@ -82,7 +85,7 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 
     optimizer.addEdge(edge);
 
-    edges_pose.push_back(edge);
+    // edges_pose.push_back(edge);
 
     ROS_INFO("added pose edge id: %d", pose_cov.header.seq);
 }
@@ -94,31 +97,31 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     int measCount = uwb->header.seq;
 
     //add two vertices for the new measurment
-    int vertex0_id = number_of_nodes*measCount+uwb->requester_idx;
+    int vertex0_id = number_robots*measCount+uwb->requester_idx;
 
-    int vertex1_id = number_of_nodes*measCount+uwb->responder_idx;
+    int vertex1_id = number_robots*measCount+uwb->responder_idx;
 
     g2o::VertexSE3* v0 = new g2o::VertexSE3();
 
     v0->setId(vertex0_id);
 
     //previous vertex estimate
-    g2o::VertexSE3* v0_p = dynamic_cast<g2o::VertexSE3*>(optimizer.vertex(vertex0_id-number_of_nodes));
+    g2o::VertexSE3* v0_p = dynamic_cast<g2o::VertexSE3*>(optimizer.vertex(vertex0_id-number_robots));
     v0->setEstimate(v0_p->estimate());
 
     optimizer.addVertex(v0);
 
-    poses.push_back(v0);
+    // poses.push_back(v0);
 
     g2o::VertexSE3* v1 = new g2o::VertexSE3();
 
     v1->setId(vertex1_id);
 
-    v1->setEstimate((dynamic_cast<g2o::VertexSE3*>(optimizer.vertex(vertex1_id-number_of_nodes)))->estimate());
+    v1->setEstimate((dynamic_cast<g2o::VertexSE3*>(optimizer.vertex(vertex1_id-number_robots)))->estimate());
 
     optimizer.addVertex(v1);
 
-    poses.push_back(v1);
+    // poses.push_back(v1);
 
     //add edge
     g2o::EdgeSE3Range *edge = new g2o::EdgeSE3Range();
@@ -139,5 +142,5 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
     optimizer.addEdge(edge);
 
-    edges_range.push_back(edge);
+    // edges_range.push_back(edge);
 }

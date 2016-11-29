@@ -2,12 +2,13 @@ ADD_LIBRARY(localization SHARED
 	${G2O_LIB_TYPE}
   	localization.h
   	localization.cpp
+  	robot.cpp
+  	robot.h
 )
 
 SET_TARGET_PROPERTIES(localization PROPERTIES OUTPUT_NAME localization)
 
 ADD_DEPENDENCIES(localization ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
 
 TARGET_LINK_LIBRARIES(localization
 	${catkin_LIBRARIES}

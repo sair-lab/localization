@@ -26,8 +26,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef LOCALIZATION_H
-#define LOCALIZATION_H
+#ifndef ROBOT_H
+#define ROBOT_H
 #include <iostream>
 #include <sstream>
 #include <string.h>
@@ -38,64 +38,39 @@
 #include <Eigen/Dense>
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/concept_check.hpp>
-#include <g2o/core/sparse_optimizer.h>
-#include <g2o/core/block_solver.h>
-#include <g2o/core/factory.h>
-#include <g2o/core/robust_kernel.h>
-#include <g2o/core/robust_kernel_impl.h>
-#include <g2o/core/robust_kernel_factory.h>
-#include <g2o/core/optimization_algorithm_levenberg.h>
-#include <g2o/core/optimization_algorithm_gauss_newton.h>
-#include <g2o/solvers/cholmod/linear_solver_cholmod.h>
-#include <g2o/solvers/csparse/linear_solver_csparse.h>
+#include <nav_msgs/Odometry.h>
 #include <g2o/types/slam3d/types_slam3d.h>
 #include "types_edge_se3range.h"
-
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
-#include <uwb_as/UwbLinkMatrix.h>
-#include <uwb_driver/UwbRange.h>
-
-#include "robot.h"
 
 using namespace std;
 
-typedef g2o::BlockSolver_6_3 SE3BlockSolver;
-
-typedef g2o::LinearSolverCholmod<SE3BlockSolver::PoseMatrixType> Solver;
-
-int test();
-
-class Localization
+class Robot
 {
 public:
 
-    Localization(int N);
+    Robot(int id):ID(id){};
 
-    void solve();
-
-    void addRangeEdge(const uwb_driver::UwbRange::ConstPtr&);
-
-    void addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&);
-
-private:
-
-    vector<Robot> robots;
-
-    Solver *solver;
-
-    SE3BlockSolver *se3blockSolver;
-
-    g2o::OptimizationAlgorithmLevenberg *optimizationsolver;
-
-    g2o::SparseOptimizer optimizer;
-
+    int next_pose_id();
 
 
 private:
 
-    int iteration_max;
+    vector<std_msgs::Header> headers;
 
-    int number_robots;
+    vector<g2o::VertexSE3> poses;
+
+    vector<g2o::EdgeSE3Range*> sensor_range;
+
+    vector<g2o::EdgeSE3*> sensor_pose;
+
+    vector<int> poses_global_id; // pose glbal id in a team robots
+
+    int poses_number; //length of poses
+
+    int ID; // Robot ID
+
+    bool FLAG_STATIC;
 };
 
 #endif
