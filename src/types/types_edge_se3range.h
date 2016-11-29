@@ -72,7 +72,7 @@ namespace g2o
 
         virtual double initialEstimatePossible(const OptimizableGraph::VertexSet& , OptimizableGraph::Vertex* )
         {
-            return 1.;
+            return 1;
         }
 
         virtual void initialEstimate(const OptimizableGraph::VertexSet& from_, OptimizableGraph::Vertex* to_);
@@ -81,91 +81,82 @@ namespace g2o
 
 
    class G2O_TYPES_API zedge : public BaseBinaryEdge<1, double, VertexSE3, VertexSE3>
-{
+   {
+   public:
 
-public:
-     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+       EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-     zedge();
+       zedge();
 
-     virtual bool read(std::istream& is);
+       virtual bool read(std::istream& is);
 
-     virtual bool write(std::ostream& os) const;
+       virtual bool write(std::ostream& os) const;
 
-    void computeError()
-    {
-      const VertexSE3* v1 = dynamic_cast<const VertexSE3*>(_vertices[0]);
+       void computeError()
+       {
+           const VertexSE3* v1 = dynamic_cast<const VertexSE3*>(_vertices[0]);
 
-      const VertexSE3* v2 = dynamic_cast<const VertexSE3*>(_vertices[1]);
+           const VertexSE3* v2 = dynamic_cast<const VertexSE3*>(_vertices[1]);
 
-      double delta = v1->estimate().translation()[2] - v2->estimate().translation()[2];
+           double delta = v1->estimate().translation()[2] - v2->estimate().translation()[2];
 
-      _error[0] = fabs(_measurement - delta);
+           _error[0] = fabs(_measurement - delta);
+       }
 
+       virtual void setMeasurement(const double& m)
 
+       { 
+            _measurement = m;
+       }
 
-     }
+       virtual double initialEstimatePossible(const OptimizableGraph::VertexSet& , OptimizableGraph::Vertex* ) 
+       { 
+           return 1.;
+       }
 
-      virtual void setMeasurement(const double& m)
-
-      { 
-        _measurement = m;
-      }
-
-
-    virtual double initialEstimatePossible(const OptimizableGraph::VertexSet& , OptimizableGraph::Vertex* ) 
-    { 
-      return 1.;
-    }
-
-     virtual void initialEstimate(const OptimizableGraph::VertexSet& from, OptimizableGraph::Vertex* to);
- };
+       virtual void initialEstimate(const OptimizableGraph::VertexSet& from, OptimizableGraph::Vertex* to);
+   };
 
 
 
 
    class G2O_TYPES_API yedge : public BaseBinaryEdge<1, double, VertexSE3, VertexSE3>
-{
+   {
 
-public:
-     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+   public:
 
-     yedge();
+       EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-     virtual bool read(std::istream& is);
+       yedge();
 
-     virtual bool write(std::ostream& os) const;
+       virtual bool read(std::istream& is);
 
-    void computeError()
-    {
-      const VertexSE3* v1 = dynamic_cast<const VertexSE3*>(_vertices[0]);
+       virtual bool write(std::ostream& os) const;
 
-      const VertexSE3* v2 = dynamic_cast<const VertexSE3*>(_vertices[1]);
+       void computeError()
+       {
+           const VertexSE3* v1 = dynamic_cast<const VertexSE3*>(_vertices[0]);
+
+           const VertexSE3* v2 = dynamic_cast<const VertexSE3*>(_vertices[1]);
     
+           double delta = v1->estimate().translation()[1] - v2->estimate().translation()[1];
 
-      double delta = v1->estimate().translation()[1] - v2->estimate().translation()[1];
-
-      _error[0] = fabs(_measurement - delta);
-
-     }
-
+           _error[0] = fabs(_measurement - delta);
+       }
 
       virtual void setMeasurement(const double& m)
-
       { 
-        _measurement = m;
+          _measurement = m;
       }
 
+      virtual double initialEstimatePossible(const OptimizableGraph::VertexSet& , OptimizableGraph::Vertex* ) 
+      { 
+          return 1;
+      }
 
-    virtual double initialEstimatePossible(const OptimizableGraph::VertexSet& , OptimizableGraph::Vertex* ) 
-    { 
-      return 1.;
-    }
-
-     virtual void initialEstimate(const OptimizableGraph::VertexSet& from, OptimizableGraph::Vertex* to);
- };
+      virtual void initialEstimate(const OptimizableGraph::VertexSet& from, OptimizableGraph::Vertex* to);
+   };
 
 
 }
-
 #endif

@@ -31,7 +31,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <Eigen/Dense>
 
-using namespace std; 
+using namespace std;
 
 int main(int argc, char** argv) 
 {   
@@ -40,36 +40,17 @@ int main(int argc, char** argv)
 
     ros::NodeHandle n("~");
 
-    ros::Publisher initialposition = n.advertise<geometry_msgs::PoseStamped> ("initialposition", 5);
-
     Localization localization(5);
 
-    ros::Time starttime = ros::Time::now();
- 
-    geometry_msgs::PoseStamped::ConstPtr position1;
-    geometry_msgs::PoseStamped position2;
+    ros::Subscriber range_sub = n.subscribe("/path_pose", 10, &Localization::setup, &localization);
 
-    while (ros::ok)
-
-    {
-        // need to design a method to fill the linkmatrix
-
-     ros::Subscriber range_sub = n.subscribe("range", 10, &Localization::setup, &localization);
-
-
-         if ((ros::Time::now()- starttime).toSec()>2) 
-
-        {      
-               position2 = localization.beginsolve(position1);
-
-               initialposition.publish(position2);
-
-        }
-
-    }
-        
     ros::spin();
     return 0;
 
+    // need to design a method to fill the linkmatrix
 
+    // ros::Duration(2.5).sleep();
+
+    // ros::Rate rate(3.5);
+         
 }

@@ -64,7 +64,7 @@ int main(int argc, char** argv)
 
     Synchronizer<imu_uwbSyncPolicy> sync(imu_uwbSyncPolicy(10), uwb_sub, imu_sub);
 
-    sync.registerCallback(boost::bind(&Localization::callback, &localization, _1, _2));
+    sync.registerCallback(boost::bind(&Localization::IMU_UWB, &localization, _1, _2));
 
     ros::spin();
 

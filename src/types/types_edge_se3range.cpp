@@ -55,14 +55,12 @@ namespace g2o
         return true;
     }
 
-
     bool EdgeSE3Range::write(std::ostream& os) const
     {
         os  << measurement() << " " << information()(0,0);
 
         return os.good();
     }
-
 
     void EdgeSE3Range::initialEstimate(const OptimizableGraph::VertexSet& from_, OptimizableGraph::Vertex* /*to_*/)
     {
@@ -97,33 +95,32 @@ namespace g2o
     }
 
 
-
-
     G2O_REGISTER_TYPE(EDGE_ZRANGE, zedge); // EDGE_RANGE guding
 
-  zedge::zedge():BaseBinaryEdge<1, double, VertexSE3, VertexSE3>(){}  // again anouncement
+    zedge::zedge():BaseBinaryEdge<1, double, VertexSE3, VertexSE3>(){}  // again anouncement
 
- 
+    bool zedge::read(std::istream& is)
+    {
+        double meas;
 
-  bool zedge::read(std::istream& is)
-  {
-    double meas;
-    is >> meas;
-    setMeasurement(meas);
-    information().setIdentity();
-    is >> information()(0,0);
-    return true;
-  }
+        is >> meas;
 
-  bool zedge::write(std::ostream& os) const
-  {
-    os  << measurement() << " " << information()(0,0);
-    return os.good();
-  }
+        setMeasurement(meas);
 
+        information().setIdentity();
 
+        is >> information()(0,0);
 
-void zedge::initialEstimate(const OptimizableGraph::VertexSet& from_, OptimizableGraph::Vertex* /*to_*/)
+        return true;
+    }
+
+    bool zedge::write(std::ostream& os) const
+    {
+        os  << measurement() << " " << information()(0,0);
+        return os.good();
+    }
+
+    void zedge::initialEstimate(const OptimizableGraph::VertexSet& from_, OptimizableGraph::Vertex* /*to_*/)
     {
         VertexSE3* v1 = dynamic_cast<VertexSE3*>(_vertices[0]);
 
@@ -156,33 +153,32 @@ void zedge::initialEstimate(const OptimizableGraph::VertexSet& from_, Optimizabl
     }
 
 
+    G2O_REGISTER_TYPE(EDGE_YRANGE, yedge); // EDGE_RANGE guding
 
+    yedge::yedge():BaseBinaryEdge<1, double, VertexSE3, VertexSE3>(){}  // again anouncement
 
-G2O_REGISTER_TYPE(EDGE_YRANGE, yedge); // EDGE_RANGE guding
+    bool yedge::read(std::istream& is)
+    {
+        double meas;
 
-  yedge::yedge():BaseBinaryEdge<1, double, VertexSE3, VertexSE3>(){}  // again anouncement
+        is >> meas;
 
- 
+        setMeasurement(meas);
 
-  bool yedge::read(std::istream& is)
-  {
-    double meas;
-    is >> meas;
-    setMeasurement(meas);
-    information().setIdentity();
-    is >> information()(0,0);
-    return true;
-  }
+        information().setIdentity();
 
-  bool yedge::write(std::ostream& os) const
-  {
-    os  << measurement() << " " << information()(0,0);
-    return os.good();
-  }
+        is >> information()(0,0);
 
+        return true;
+    }
 
+    bool yedge::write(std::ostream& os) const
+    {
+        os  << measurement() << " " << information()(0,0);
+        return os.good();
+    }
 
-void yedge::initialEstimate(const OptimizableGraph::VertexSet& from_, OptimizableGraph::Vertex* /*to_*/)
+    void yedge::initialEstimate(const OptimizableGraph::VertexSet& from_, OptimizableGraph::Vertex* /*to_*/)
     {
         VertexSE3* v1 = dynamic_cast<VertexSE3*>(_vertices[0]);
 
@@ -213,7 +209,5 @@ void yedge::initialEstimate(const OptimizableGraph::VertexSet& from_, Optimizabl
             v1->setEstimate(v2->estimate()*delta);
         }
     }
-
-
 
 }

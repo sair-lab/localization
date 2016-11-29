@@ -80,13 +80,11 @@ public:
 
     void addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&);
 
-    void callback(const uwb_driver::UwbRange::ConstPtr&, const sensor_msgs::Imu::ConstPtr&); 
+    void IMU_UWB(const uwb_driver::UwbRange::ConstPtr&, const sensor_msgs::Imu::ConstPtr&); 
 
-    void setup(const uwb_driver::UwbRange::ConstPtr&);
+    void setup(const geometry_msgs::PoseStamped::ConstPtr&);
 
-    geometry_msgs::PoseStamped beginsolve(const geometry_msgs::PoseStamped::ConstPtr&);
-
-
+    void setupsolve();
 
 private:
 
@@ -116,11 +114,12 @@ private:
 
     int number_of_nodes;
 
-    double T;
+    ros::Time laststamp;
 
-    // initial coordination matrix
-
-    // MatrixXd initial; 
+    // variables used in member function Localization::setup;
+    int M1;
+    int M2;
+    MatrixXd linkmatrix; 
 
 };
 
