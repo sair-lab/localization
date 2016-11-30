@@ -44,7 +44,9 @@ Localization::Localization()
 
     iteration_max = 100;
 
-    robots = {{100, Robot(0, false)}};
+    self_id = 100;
+
+    robots = {{self_id, Robot(0, false)}};
 }
 
 
@@ -64,9 +66,13 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 
     g2o::EdgeSE3 *edge = new g2o::EdgeSE3();
 
-    edge->vertices()[0] = optimizer.vertex(0);
+    auto last_vertex = robots[self_id].last_vertex(sensor_type.slam);
 
-    edge->vertices()[1] = optimizer.vertex(1);
+    auto new_vertex  = robots[self_id].new_vertex(sensor_type.slam);
+
+    edge->vertices()[0] = last_vertex;
+
+    edge->vertices()[1] = new_vertex;
 
     Eigen::Isometry3d measurement;
 
@@ -82,8 +88,6 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 
     optimizer.addEdge(edge);
 
-    // edges_pose.push_back(edge);
-
     ROS_INFO("added pose edge id: %d", pose_cov.header.seq);
 }
 
@@ -94,9 +98,9 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
     robots.insert({uwb->responder_id, Robot(uwb->responder_idx, true)});
 
-    auto vertex_requester = robots[uwb->requester_id].new_vertex();
+    auto vertex_requester = robots[uwb->requester_id].new_vertex(sensor_type.uwb);
 
-    auto vertex_responder = robots[uwb->responder_id].new_vertex();
+    auto vertex_responder = robots[uwb->responder_id].new_vertex(sensor_type.uwb);
 
     optimizer.addVertex(vertex_requester);
 
@@ -112,7 +116,7 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
     Eigen::MatrixXd covariance = Eigen::MatrixXd::Zero(1, 1);
 
-    covariance(0,0) = 0.0025;
+    covariance(0,0) = pow(uwb->distance_err, 2);
 
     edge->setInformation(covariance.inverse());
 

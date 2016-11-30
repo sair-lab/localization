@@ -30,27 +30,20 @@
 
 Robot::Robot()
 {
-    if(FLAG_STATIC)
-    {
-        g2o::VertexSE3* vertex = new g2o::VertexSE3();
+    vertex_init = new g2o::VertexSE3();
 
-        vertex->setId(ID);
+    vertex_init->setId(ID);
 
-        vertex->setEstimate(Eigen::Isometry3d::Identity());
+    vertex_init->setEstimate(Eigen::Isometry3d::Identity());
 
-        vertices.push_back(vertex);
-
-        poses_number = 0;
-    }
-    else
-        poses_number = -1;
+    poses_number = 0;
 }
 
 
-g2o::VertexSE3* Robot::new_vertex()
+g2o::VertexSE3* Robot::new_vertex(unsigned char type)
 {
     if(FLAG_STATIC)
-        return vertices.back();
+        return last_vertex(type);
     else
     {
         poses_number++;
@@ -59,10 +52,22 @@ g2o::VertexSE3* Robot::new_vertex()
 
         vertex->setId(ID + poses_number*10);
 
-        vertex->setEstimate(vertices.back()->estimate());
+        vertex->setEstimate(last_vertex(type)->estimate());
 
-        vertices.push_back(vertex);
+        vertices[type].push_back(vertex);
+
+        vertex_number[type]++;
 
         return vertex;
     }
+}
+
+g2o::VertexSE3* Robot::last_vertex(unsigned char type)
+{
+    vertex_number.insert({type,0});
+
+    if (vertex_number[type] == 0)
+        vertices[type].push_back(vertex_init);
+
+    return vertices[type].back();
 }

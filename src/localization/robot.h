@@ -53,19 +53,23 @@ public:
 
     Robot();
 
-    g2o::VertexSE3* new_vertex();
+    g2o::VertexSE3* new_vertex(unsigned char);
 
-    int next_pose_id();
+    g2o::VertexSE3* last_vertex(unsigned char);
 
-    vector<std_msgs::Header> headers;
+    // vector<std_msgs::Header> headers;
 
-    vector<g2o::VertexSE3*> vertices;
+    map<unsigned char, vector<g2o::VertexSE3*>> vertices; //sensor type-> vertices
 
-    vector<g2o::EdgeSE3Range*> sensor_range;
+    map<unsigned char, int> vertex_number; //sensor type -> vertex number
 
-    vector<g2o::EdgeSE3*> sensor_pose;
+    g2o::VertexSE3* vertex_init;
 
-    vector<int> poses_global_id; // pose global id in a team robots
+    // vector<g2o::EdgeSE3Range*> sensor_range;
+
+    // vector<g2o::EdgeSE3*> sensor_pose;
+
+    // vector<int> poses_global_id; // pose global id in a team robots
 
     int poses_number; //length of poses
 

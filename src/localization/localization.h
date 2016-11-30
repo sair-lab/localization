@@ -65,6 +65,14 @@ typedef g2o::LinearSolverCholmod<SE3BlockSolver::PoseMatrixType> Solver;
 
 int test();
 
+const struct SensorType
+{
+    unsigned char uwb = 0;
+    unsigned char slam = 1;
+    unsigned char imu = 2;
+    unsigned char dvs = 3; 
+}sensor_type;
+
 class Localization
 {
 public:
@@ -94,6 +102,8 @@ private:
     int iteration_max;
 
     int number_robots;
+
+    unsigned char self_id;
 };
 
 #endif
