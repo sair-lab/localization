@@ -68,7 +68,7 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 
     auto last_vertex = robots[self_id].last_vertex(sensor_type.slam);
 
-    auto new_vertex  = robots[self_id].new_vertex(sensor_type.slam);
+    auto new_vertex  = robots[self_id].new_vertex(sensor_type.slam, optimizer);
 
     edge->vertices()[0] = last_vertex;
 
@@ -88,6 +88,8 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 
     optimizer.addEdge(edge);
 
+    optimizer.removeEdge(edge);
+
     ROS_INFO("added pose edge id: %d", pose_cov.header.seq);
 }
 
@@ -98,9 +100,9 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
     robots.insert({uwb->responder_id, Robot(uwb->responder_idx, true)});
 
-    auto vertex_requester = robots[uwb->requester_id].new_vertex(sensor_type.uwb);
+    auto vertex_requester = robots[uwb->requester_id].new_vertex(sensor_type.uwb, optimizer);
 
-    auto vertex_responder = robots[uwb->responder_id].new_vertex(sensor_type.uwb);
+    auto vertex_responder = robots[uwb->responder_id].new_vertex(sensor_type.uwb, optimizer);
 
     optimizer.addVertex(vertex_requester);
 

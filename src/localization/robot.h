@@ -39,6 +39,16 @@
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/concept_check.hpp>
 #include <nav_msgs/Odometry.h>
+#include <g2o/core/sparse_optimizer.h>
+#include <g2o/core/block_solver.h>
+#include <g2o/core/factory.h>
+#include <g2o/core/robust_kernel.h>
+#include <g2o/core/robust_kernel_impl.h>
+#include <g2o/core/robust_kernel_factory.h>
+#include <g2o/core/optimization_algorithm_levenberg.h>
+#include <g2o/core/optimization_algorithm_gauss_newton.h>
+#include <g2o/solvers/cholmod/linear_solver_cholmod.h>
+#include <g2o/solvers/csparse/linear_solver_csparse.h>
 #include <g2o/types/slam3d/types_slam3d.h>
 #include "types_edge_se3range.h"
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
@@ -53,25 +63,22 @@ public:
 
     Robot();
 
-    g2o::VertexSE3* new_vertex(unsigned char);
+    g2o::VertexSE3* new_vertex(unsigned char, g2o::SparseOptimizer&);
 
     g2o::VertexSE3* last_vertex(unsigned char);
 
+
+private:
+
     // vector<std_msgs::Header> headers;
 
-    map<unsigned char, vector<g2o::VertexSE3*>> vertices; //sensor type-> vertices
+    vector<g2o::VertexSE3*> vertices; //sensor type-> vertices
 
-    map<unsigned char, int> vertex_number; //sensor type -> vertex number
+    map<unsigned char, size_t> type_index; //sensor type -> current vertex number
 
-    g2o::VertexSE3* vertex_init;
+    size_t index; // current vertex index
 
-    // vector<g2o::EdgeSE3Range*> sensor_range;
-
-    // vector<g2o::EdgeSE3*> sensor_pose;
-
-    // vector<int> poses_global_id; // pose global id in a team robots
-
-    int poses_number; //length of poses
+    size_t trajectory_length;
 
     int ID; // Robot ID
 

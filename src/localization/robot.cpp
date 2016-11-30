@@ -30,33 +30,40 @@
 
 Robot::Robot()
 {
-    vertex_init = new g2o::VertexSE3();
+    trajectory_length = 1000;
 
-    vertex_init->setId(ID);
+    vertices = vector<g2o::VertexSE3*>(trajectory_length, new g2o::VertexSE3());
 
-    vertex_init->setEstimate(Eigen::Isometry3d::Identity());
+    for (auto it:vertices)
+    {
+        it->setId(ID + index*10);
 
-    poses_number = 0;
+        it->setEstimate(Eigen::Isometry3d::Identity());
+    }
+
+    index = 0;
 }
 
 
-g2o::VertexSE3* Robot::new_vertex(unsigned char type)
+g2o::VertexSE3* Robot::new_vertex(unsigned char type, g2o::SparseOptimizer& optimizer)
 {
+    type_index.insert({type,0});
+
     if(FLAG_STATIC)
         return last_vertex(type);
     else
-    {
-        poses_number++;
+    {   
+        auto vertex = new g2o::VertexSE3();
 
-        g2o::VertexSE3* vertex = new g2o::VertexSE3();
+        vertex->setId(ID + index*10);
 
-        vertex->setId(ID + poses_number*10);
+        vertex->setEstimate(vertices[index]->estimate());
 
-        vertex->setEstimate(last_vertex(type)->estimate());
+        type_index[type] = (++index)%trajectory_length;
 
-        vertices[type].push_back(vertex);
+        optimizer.removeVertex(vertices[type_index[type]]);
 
-        vertex_number[type]++;
+        vertices[type_index[type]] = vertex;
 
         return vertex;
     }
@@ -64,10 +71,7 @@ g2o::VertexSE3* Robot::new_vertex(unsigned char type)
 
 g2o::VertexSE3* Robot::last_vertex(unsigned char type)
 {
-    vertex_number.insert({type,0});
+    type_index.insert({type,0});
 
-    if (vertex_number[type] == 0)
-        vertices[type].push_back(vertex_init);
-
-    return vertices[type].back();
+    return vertices[type_index[type]];
 }
