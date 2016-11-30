@@ -63,14 +63,13 @@ public:
 
     Robot();
 
-    g2o::VertexSE3* new_vertex(unsigned char, g2o::SparseOptimizer&);
+    g2o::VertexSE3* new_vertex(unsigned char, std_msgs::Header, g2o::SparseOptimizer&);
 
     g2o::VertexSE3* last_vertex(unsigned char);
 
-
 private:
 
-    // vector<std_msgs::Header> headers;
+    vector<std_msgs::Header> headers;
 
     vector<g2o::VertexSE3*> vertices; //sensor type-> vertices
 

@@ -34,6 +34,8 @@ Robot::Robot()
 
     vertices = vector<g2o::VertexSE3*>(trajectory_length, new g2o::VertexSE3());
 
+    headers = vector<std_msgs::Header>(trajectory_length, std_msgs::Header());
+
     for (auto it:vertices)
     {
         it->setId(ID + index*10);
@@ -42,15 +44,19 @@ Robot::Robot()
     }
 
     index = 0;
+
+    // vertices and headers needs to be initilize
 }
 
 
-g2o::VertexSE3* Robot::new_vertex(unsigned char type, g2o::SparseOptimizer& optimizer)
+g2o::VertexSE3* Robot::new_vertex(unsigned char type, std_msgs::Header header, g2o::SparseOptimizer& optimizer)
 {
     type_index.insert({type,0});
 
     if(FLAG_STATIC)
+    {
         return last_vertex(type);
+    }
     else
     {   
         auto vertex = new g2o::VertexSE3();
@@ -64,6 +70,8 @@ g2o::VertexSE3* Robot::new_vertex(unsigned char type, g2o::SparseOptimizer& opti
         optimizer.removeVertex(vertices[type_index[type]]);
 
         vertices[type_index[type]] = vertex;
+
+        headers[index] = header;
 
         return vertex;
     }
