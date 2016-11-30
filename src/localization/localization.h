@@ -54,6 +54,7 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <uwb_as/UwbLinkMatrix.h>
 #include <uwb_driver/UwbRange.h>
+#include <sensor_msgs/Imu.h>
 
 #include "robot.h"
 
@@ -84,6 +85,8 @@ public:
     void addRangeEdge(const uwb_driver::UwbRange::ConstPtr&);
 
     void addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&);
+
+    void addImuEdge(const sensor_msgs::Imu::ConstPtr&);
 
 private:
 

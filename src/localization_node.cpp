@@ -42,18 +42,13 @@ int main(int argc, char** argv)
 
     ros::Subscriber pose_sub = n.subscribe("incremental_pose_cov", 1000, &Localization::addPoseEdge, &localization);
 
-    ros::Subscriber range_sub = n.subscribe("/uwb_exorange_info", 10, &Localization::addRangeEdge, &localization);
+    ros::Subscriber range_sub = n.subscribe("/uwb_exorange_info", 1, &Localization::addRangeEdge, &localization);
 
-    ros::Rate rate(0.5);
+    ros::Subscriber imu_sub = n.subscribe("/imu", 10, &Localization::addImuEdge, &localization);
 
-    while (ros::ok())
-    {
-        ros::spinOnce();
+    ros::Rate rate(1);
 
-        rate.sleep();
-
-        localization.solve();
-    }
+    ros::spin();
 
     return 0;
 }

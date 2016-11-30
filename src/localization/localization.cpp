@@ -124,3 +124,8 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
     optimizer.addEdge(edge);
 }
+
+void Localization::addImuEdge(const sensor_msgs::Imu::ConstPtr& imu)
+{
+
+}
