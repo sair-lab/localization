@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+
+  	<include file="$(find localization)/launch/localization.launch"/>
+
+  	<include file="$(find ni_slam)/launch/ni_slam_demo.launch"/>
+
+</launch>
