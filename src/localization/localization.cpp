@@ -128,6 +128,7 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
     ROS_INFO("added range edge id: %d", uwb->header.seq);
 
+    solve();
 }
 
 void Localization::addImuEdge(const sensor_msgs::Imu::ConstPtr& imu)

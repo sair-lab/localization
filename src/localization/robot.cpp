@@ -30,7 +30,7 @@
 
 void Robot::init(g2o::SparseOptimizer& optimizer)
 {
-    trajectory_length = 3;
+    trajectory_length = 1000;
 
     headers = vector<std_msgs::Header>(trajectory_length, std_msgs::Header());
 
