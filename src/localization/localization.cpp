@@ -131,6 +131,13 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     solve();
 }
 
+
+void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped::ConstPtr& twist)
+{
+
+    ROS_WARN("added twist edges with id: %d!", twist->header.seq);
+}
+
 void Localization::addImuEdge(const sensor_msgs::Imu::ConstPtr& imu)
 {
 

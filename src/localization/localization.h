@@ -52,6 +52,7 @@
 #include "types_edge_se3range.h"
 
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <geometry_msgs/TwistWithCovarianceStamped.h>
 #include <uwb_as/UwbLinkMatrix.h>
 #include <uwb_driver/UwbRange.h>
 #include <sensor_msgs/Imu.h>
@@ -87,6 +88,8 @@ public:
     void addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&);
 
     void addImuEdge(const sensor_msgs::Imu::ConstPtr&);
+
+    void addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped::ConstPtr&);
 
 private:
 

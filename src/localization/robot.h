@@ -65,10 +65,7 @@ public:
         init(optimizer);
     };
 
-    Robot()
-    {
-        //init(optimizer);
-    };
+    Robot(){};
 
     void init(g2o::SparseOptimizer&);
 

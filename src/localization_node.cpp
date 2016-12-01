@@ -44,6 +44,8 @@ int main(int argc, char** argv)
 
     ros::Subscriber range_sub = n.subscribe("/uwb_exorange_info", 1, &Localization::addRangeEdge, &localization);
 
+    ros::Subscriber twist_sub = n.subscribe("twiststamp", 1, &Localization::addTwistEdge, &localization);
+
     ros::Subscriber imu_sub = n.subscribe("/imu", 10, &Localization::addImuEdge, &localization);
 
     ros::Rate rate(1);
