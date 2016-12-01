@@ -30,7 +30,7 @@
 
 void Robot::init(g2o::SparseOptimizer& optimizer)
 {
-    trajectory_length = 1000;
+    trajectory_length = 3;
 
     headers = vector<std_msgs::Header>(trajectory_length, std_msgs::Header());
 
@@ -63,18 +63,15 @@ g2o::VertexSE3* Robot::new_vertex(unsigned char type, std_msgs::Header header, g
     }
     else
     {   
+        index = (index+1)%trajectory_length;
+        optimizer.removeVertex(vertices[index]);
+
         auto vertex = new g2o::VertexSE3();
-
-        vertex->setId(++index*10 + ID);
-
+        vertex->setId(index*10 + ID);
         vertex->setEstimate(vertices[index]->estimate());
-
-        type_index[type] = (index)%trajectory_length;
-
-        optimizer.removeVertex(vertices[type_index[type]]);
-
-        vertices[type_index[type]] = vertex;
-
+        vertices[index] = vertex;
+        
+        type_index[type] = index;
         headers[index] = header;
 
         return vertex;
