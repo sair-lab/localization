@@ -28,19 +28,23 @@
 
 #include "robot.h"
 
-Robot::Robot()
+void Robot::init(g2o::SparseOptimizer& optimizer)
 {
     trajectory_length = 1000;
 
-    vertices = vector<g2o::VertexSE3*>(trajectory_length, new g2o::VertexSE3());
-
     headers = vector<std_msgs::Header>(trajectory_length, std_msgs::Header());
 
-    for (auto it:vertices)
+    for (size_t i = 0; i < trajectory_length; ++i)
     {
-        it->setId(ID + index*10);
+        g2o::VertexSE3* vertex = new g2o::VertexSE3();
 
-        it->setEstimate(Eigen::Isometry3d::Identity());
+        vertex->setId(ID + i*10);
+
+        vertex->setEstimate(Eigen::Isometry3d::Identity());
+
+        vertices.push_back(vertex);
+
+        optimizer.addVertex(vertex);
     }
 
     index = 0;
@@ -61,11 +65,11 @@ g2o::VertexSE3* Robot::new_vertex(unsigned char type, std_msgs::Header header, g
     {   
         auto vertex = new g2o::VertexSE3();
 
-        vertex->setId(ID + index*10);
+        vertex->setId(++index*10 + ID);
 
         vertex->setEstimate(vertices[index]->estimate());
 
-        type_index[type] = (++index)%trajectory_length;
+        type_index[type] = (index)%trajectory_length;
 
         optimizer.removeVertex(vertices[type_index[type]]);
 

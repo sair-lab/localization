@@ -46,7 +46,7 @@ Localization::Localization()
 
     self_id = 100;
 
-    robots = {{self_id, Robot(0, false)}};
+    robots.emplace(self_id, Robot(0, false, optimizer));
 }
 
 
@@ -66,9 +66,9 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 
     g2o::EdgeSE3 *edge = new g2o::EdgeSE3();
 
-    auto last_vertex = robots[self_id].last_vertex(sensor_type.slam);
+    auto last_vertex = robots.at(self_id).last_vertex(sensor_type.slam);
 
-    auto new_vertex  = robots[self_id].new_vertex(sensor_type.slam, pose_cov_->header, optimizer);
+    auto new_vertex  = robots.at(self_id).new_vertex(sensor_type.slam, pose_cov_->header, optimizer);
 
     edge->vertices()[0] = last_vertex;
 
@@ -86,21 +86,23 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 
     edge->setRobustKernel(new g2o::RobustKernelHuber());
 
+    optimizer.addVertex(new_vertex);
+
     optimizer.addEdge(edge);
 
-    ROS_INFO("added pose edge id: %d", pose_cov.header.seq);
+    ROS_WARN("added pose edge id: %d", pose_cov.header.seq);
 }
 
 
 void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 {
-    robots.insert({uwb->requester_id, Robot(uwb->requester_idx, true)});
+    robots.emplace(uwb->requester_id, Robot(uwb->requester_idx, true, optimizer));
 
-    robots.insert({uwb->responder_id, Robot(uwb->responder_idx, true)});
+    robots.emplace(uwb->responder_id, Robot(uwb->responder_idx, true, optimizer));
 
-    auto vertex_requester = robots[uwb->requester_id].new_vertex(sensor_type.uwb, uwb->header, optimizer);
+    auto vertex_requester = robots.at(uwb->requester_id).new_vertex(sensor_type.uwb, uwb->header, optimizer);
 
-    auto vertex_responder = robots[uwb->responder_id].new_vertex(sensor_type.uwb, uwb->header, optimizer);
+    auto vertex_responder = robots.at(uwb->responder_id).new_vertex(sensor_type.uwb, uwb->header, optimizer);
 
     optimizer.addVertex(vertex_requester);
 

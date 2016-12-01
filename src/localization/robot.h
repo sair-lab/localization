@@ -59,9 +59,18 @@ class Robot
 {
 public:
 
-    Robot(int ID, bool FLAG_STATIC):ID(ID), FLAG_STATIC(FLAG_STATIC){Robot();};
+    Robot(int ID, bool FLAG_STATIC, g2o::SparseOptimizer& optimizer)
+        :ID(ID), FLAG_STATIC(FLAG_STATIC)
+    {
+        init(optimizer);
+    };
 
-    Robot();
+    Robot()
+    {
+        //init(optimizer);
+    };
+
+    void init(g2o::SparseOptimizer&);
 
     g2o::VertexSE3* new_vertex(unsigned char, std_msgs::Header, g2o::SparseOptimizer&);
 
