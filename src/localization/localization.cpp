@@ -46,10 +46,6 @@ Localization::Localization()
 
     self_id = 100;
 
-    transform_twist = tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0, 0, 0));
-
-    covariance_twist = Eigen::ArrayXXd::Zero(6, 6);
-
     robots.emplace(self_id, Robot(0, false, optimizer));
 }
 
@@ -72,7 +68,12 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 
     auto last_vertex = robots.at(self_id).last_vertex(sensor_type.pose);
 
-    auto new_vertex  = robots.at(self_id).new_vertex(sensor_type.pose, pose_cov_->header, optimizer);
+    g2o::VertexSE3* new_vertex;
+
+    if (pose_cov.header.frame_id != robots.at(self_id).last_header(sensor_type.pose).frame_id)
+        new_vertex = robots.at(self_id).new_vertex(sensor_type.pose, pose_cov.header, optimizer);
+    else
+        new_vertex = robots.at(self_id).new_vertex(sensor_type.general, pose_cov.header, optimizer);
 
     edge->vertices()[0] = last_vertex;
 
@@ -100,13 +101,11 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 
 void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 {
-    double dt = uwb->header.stamp.toSec() - header.stamp.toSec();
-
-    header = uwb->header;
-
     robots.emplace(uwb->requester_id, Robot(uwb->requester_idx, true, optimizer));
 
     robots.emplace(uwb->responder_id, Robot(uwb->responder_idx, true, optimizer));
+
+    double dt = uwb->header.stamp.toSec() - robots.at(self_id).last_header().stamp.toSec();
 
     auto vertex_requester = robots.at(uwb->requester_id).new_vertex(sensor_type.range, uwb->header, optimizer);
 
@@ -132,8 +131,6 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
     edge->setRobustKernel(new g2o::RobustKernelHuber());
 
-    transform_twist = tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0, 0, 0));
-
     optimizer.addEdge(edge);
 
     ROS_INFO("added range edge id: %d", uwb->header.seq);
@@ -141,12 +138,12 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     solve();
 }
 
-// this is for dvs and slam
+
 void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped::ConstPtr& twist_)
 {
-    twist = geometry_msgs::TwistWithCovarianceStamped(*twist_);
+    geometry_msgs::TwistWithCovarianceStamped twist(*twist_);
 
-    double dt = twist.header.stamp.toSec() - header.stamp.toSec();
+    double dt = twist.header.stamp.toSec() - robots.at(self_id).last_header().stamp.toSec();
 
     tf::Vector3 translation, euler;
 
@@ -158,23 +155,19 @@ void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped:
 
     quaternion.setRPY(euler[0]*dt, euler[1]*dt, euler[2]*dt);
 
-    transform_twist = transform_twist * tf::Transform(quaternion, translation * dt);
+    tf::Transform transform(quaternion, translation * dt);
+
+    Eigen::Isometry3d measurement;
+
+    tf::transformTFToEigen(transform, measurement);
 
     Eigen::Map<Eigen::ArrayXXd> cov(twist.twist.covariance.data(), 6, 6);
 
-    auto last_vertex = robots.at(self_id).last_vertex(sensor_type.twist);
+    Eigen::ArrayXXd covariance = cov*dt*dt;
 
-    g2o::VertexSE3* new_vertex;
+    auto last_vertex = robots.at(self_id).last_vertex();
 
-    if (twist.header.frame_id != header.frame_id)
-    {
-        covariance_twist += cov*dt*dt;
-        new_vertex = robots.at(self_id).new_vertex(sensor_type.twist, twist.header, optimizer);
-    }
-    else
-    {
-        new_vertex = robots.at(self_id).new_vertex(sensor_type.general, twist.header, optimizer);
-    }
+    auto new_vertex = robots.at(self_id).new_vertex(sensor_type.twist, twist.header, optimizer);
 
     g2o::EdgeSE3 *edge = new g2o::EdgeSE3();
 
@@ -182,17 +175,11 @@ void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped:
 
     edge->vertices()[1] = new_vertex;
 
-    Eigen::Isometry3d measurement;
-
-    tf::transformTFToEigen(transform_twist, measurement);
-
     edge->setMeasurement(measurement);
 
-    edge->setInformation(covariance_twist.inverse());
+    edge->setInformation(covariance.inverse());
 
     edge->setRobustKernel(new g2o::RobustKernelHuber());
-
-    header = twist.header;
 
     ROS_INFO("added twist edges with id: %d!", twist.header.seq);
 }

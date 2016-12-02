@@ -32,8 +32,6 @@ void Robot::init(g2o::SparseOptimizer& optimizer)
 {
     trajectory_length = 1000;
 
-    headers = vector<std_msgs::Header>(trajectory_length, std_msgs::Header());
-
     for (size_t i = 0; i < trajectory_length; ++i)
     {
         g2o::VertexSE3* vertex = new g2o::VertexSE3();
@@ -53,9 +51,10 @@ void Robot::init(g2o::SparseOptimizer& optimizer)
 }
 
 
-g2o::VertexSE3* Robot::new_vertex(unsigned char type, std_msgs::Header header, g2o::SparseOptimizer& optimizer)
+g2o::VertexSE3* Robot::new_vertex(unsigned char type, std_msgs::Header new_header, g2o::SparseOptimizer& optimizer)
 {
     type_index.emplace(type, index);
+    headers.emplace(type, new_header);
 
     if(FLAG_STATIC)
     {
@@ -77,7 +76,9 @@ g2o::VertexSE3* Robot::new_vertex(unsigned char type, std_msgs::Header header, g
 
         type_index[type] = index;
 
-        headers[index] = header;
+        headers.at(type) = new_header;
+
+        header = new_header;
 
         return vertex;
     }
@@ -87,6 +88,24 @@ g2o::VertexSE3* Robot::new_vertex(unsigned char type, std_msgs::Header header, g
 g2o::VertexSE3* Robot::last_vertex(unsigned char type)
 {
     type_index.emplace(type, index);
+    headers.emplace(type, header);
+    return vertices.at(type_index[type]);
+}
 
-    return vertices[type_index[type]];
+
+g2o::VertexSE3* Robot::last_vertex()
+{
+    return vertices.at(index);
+}
+
+std_msgs::Header Robot::last_header(unsigned char type)
+{
+    headers.emplace(type, header);
+    return headers.at(type);
+}
+
+
+std_msgs::Header Robot::last_header()
+{
+    return header;
 }

@@ -73,9 +73,17 @@ public:
 
     g2o::VertexSE3* last_vertex(unsigned char);
 
+    g2o::VertexSE3* last_vertex();
+
+    std_msgs::Header last_header(unsigned char);
+
+    std_msgs::Header last_header();
+
 private:
 
-    vector<std_msgs::Header> headers;
+    map<unsigned char, std_msgs::Header> headers;
+
+    std_msgs::Header header;
 
     vector<g2o::VertexSE3*> vertices; //sensor type-> vertices
 

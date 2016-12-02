@@ -98,14 +98,6 @@ private:
 
     map<unsigned char, Robot> robots;
 
-    std_msgs::Header header;
-
-    geometry_msgs::TwistWithCovarianceStamped twist;
-
-    tf::Transform transform_twist;     // transform for twist edge
-
-    Eigen::ArrayXXd covariance_twist;  // transform covariance for twist edge 
-
     Solver *solver;
 
     SE3BlockSolver *se3blockSolver;
