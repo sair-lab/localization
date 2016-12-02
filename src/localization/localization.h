@@ -110,8 +110,6 @@ private:
 
     int iteration_max;
 
-    int number_robots;
-
     unsigned char self_id;
 };
 
