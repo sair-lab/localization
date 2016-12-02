@@ -51,6 +51,7 @@
 #include <g2o/types/slam3d/types_slam3d.h>
 #include "types_edge_se3range.h"
 #include <tf/transform_datatypes.h>
+#include <tf_conversions/tf_eigen.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/TwistWithCovarianceStamped.h>
 #include <uwb_driver/UwbRange.h>
@@ -68,10 +69,11 @@ int test();
 
 const struct SensorType
 {
-    unsigned char uwb = 0;
-    unsigned char slam = 1;
-    unsigned char imu = 2;
-    unsigned char dvs = 3; 
+    unsigned char general = 0;
+    unsigned char pose = 1;
+    unsigned char range = 2;
+    unsigned char twist = 3;
+    unsigned char imu = 4;
 }sensor_type;
 
 class Localization
@@ -97,8 +99,6 @@ private:
     map<unsigned char, Robot> robots;
 
     std_msgs::Header header;
-
-    // tf::Transform transform;
 
     geometry_msgs::TwistWithCovarianceStamped twist;
 

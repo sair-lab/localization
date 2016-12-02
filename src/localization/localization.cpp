@@ -70,9 +70,9 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 
     g2o::EdgeSE3 *edge = new g2o::EdgeSE3();
 
-    auto last_vertex = robots.at(self_id).last_vertex(sensor_type.slam);
+    auto last_vertex = robots.at(self_id).last_vertex(sensor_type.pose);
 
-    auto new_vertex  = robots.at(self_id).new_vertex(sensor_type.slam, pose_cov_->header, optimizer);
+    auto new_vertex  = robots.at(self_id).new_vertex(sensor_type.pose, pose_cov_->header, optimizer);
 
     edge->vertices()[0] = last_vertex;
 
@@ -108,9 +108,9 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
     robots.emplace(uwb->responder_id, Robot(uwb->responder_idx, true, optimizer));
 
-    auto vertex_requester = robots.at(uwb->requester_id).new_vertex(sensor_type.uwb, uwb->header, optimizer);
+    auto vertex_requester = robots.at(uwb->requester_id).new_vertex(sensor_type.range, uwb->header, optimizer);
 
-    auto vertex_responder = robots.at(uwb->responder_id).new_vertex(sensor_type.uwb, uwb->header, optimizer);
+    auto vertex_responder = robots.at(uwb->responder_id).new_vertex(sensor_type.range, uwb->header, optimizer);
 
     optimizer.addVertex(vertex_requester);
 
@@ -162,10 +162,35 @@ void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped:
 
     Eigen::Map<Eigen::ArrayXXd> cov(twist.twist.covariance.data(), 6, 6);
 
+    auto last_vertex = robots.at(self_id).last_vertex(sensor_type.twist);
+
+    g2o::VertexSE3* new_vertex;
+
     if (twist.header.frame_id != header.frame_id)
     {
         covariance_twist += cov*dt*dt;
+        new_vertex = robots.at(self_id).new_vertex(sensor_type.twist, twist.header, optimizer);
     }
+    else
+    {
+        new_vertex = robots.at(self_id).new_vertex(sensor_type.general, twist.header, optimizer);
+    }
+
+    g2o::EdgeSE3 *edge = new g2o::EdgeSE3();
+
+    edge->vertices()[0] = last_vertex;
+
+    edge->vertices()[1] = new_vertex;
+
+    Eigen::Isometry3d measurement;
+
+    tf::transformTFToEigen(transform_twist, measurement);
+
+    edge->setMeasurement(measurement);
+
+    edge->setInformation(covariance_twist.inverse());
+
+    edge->setRobustKernel(new g2o::RobustKernelHuber());
 
     header = twist.header;
 

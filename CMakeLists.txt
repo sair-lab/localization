@@ -9,6 +9,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   eigen_conversions
+  tf_conversions
   geometry_msgs
   message_filters
   message_generation

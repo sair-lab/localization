@@ -83,6 +83,7 @@ g2o::VertexSE3* Robot::new_vertex(unsigned char type, std_msgs::Header header, g
     }
 }
 
+
 g2o::VertexSE3* Robot::last_vertex(unsigned char type)
 {
     type_index.emplace(type, index);
