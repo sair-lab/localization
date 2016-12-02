@@ -50,10 +50,9 @@
 #include <g2o/solvers/csparse/linear_solver_csparse.h>
 #include <g2o/types/slam3d/types_slam3d.h>
 #include "types_edge_se3range.h"
-
+#include <tf/transform_datatypes.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/TwistWithCovarianceStamped.h>
-#include <uwb_as/UwbLinkMatrix.h>
 #include <uwb_driver/UwbRange.h>
 #include <sensor_msgs/Imu.h>
 
@@ -79,6 +78,8 @@ class Localization
 {
 public:
 
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     Localization();
 
     void solve();
@@ -94,6 +95,16 @@ public:
 private:
 
     map<unsigned char, Robot> robots;
+
+    std_msgs::Header header;
+
+    // tf::Transform transform;
+
+    geometry_msgs::TwistWithCovarianceStamped twist;
+
+    tf::Transform transform_twist;     // transform for twist edge
+
+    Eigen::ArrayXXd covariance_twist;  // transform covariance for twist edge 
 
     Solver *solver;
 

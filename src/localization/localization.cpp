@@ -46,6 +46,10 @@ Localization::Localization()
 
     self_id = 100;
 
+    transform_twist = tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0, 0, 0));
+
+    covariance_twist = Eigen::ArrayXXd::Zero(6, 6);
+
     robots.emplace(self_id, Robot(0, false, optimizer));
 }
 
@@ -96,6 +100,10 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 
 void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 {
+    double dt = uwb->header.stamp.toSec() - header.stamp.toSec();
+
+    header = uwb->header;
+
     robots.emplace(uwb->requester_id, Robot(uwb->requester_idx, true, optimizer));
 
     robots.emplace(uwb->responder_id, Robot(uwb->responder_idx, true, optimizer));
@@ -124,6 +132,8 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
     edge->setRobustKernel(new g2o::RobustKernelHuber());
 
+    transform_twist = tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0, 0, 0));
+
     optimizer.addEdge(edge);
 
     ROS_INFO("added range edge id: %d", uwb->header.seq);
@@ -131,12 +141,37 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     solve();
 }
 
-
-void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped::ConstPtr& twist)
+// this is for dvs and slam
+void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped::ConstPtr& twist_)
 {
+    twist = geometry_msgs::TwistWithCovarianceStamped(*twist_);
 
-    ROS_WARN("added twist edges with id: %d!", twist->header.seq);
+    double dt = twist.header.stamp.toSec() - header.stamp.toSec();
+
+    tf::Vector3 translation, euler;
+
+    tf::vector3MsgToTF(twist.twist.twist.linear, translation);
+
+    tf::vector3MsgToTF(twist.twist.twist.angular, euler);
+
+    tf::Quaternion quaternion;
+
+    quaternion.setRPY(euler[0]*dt, euler[1]*dt, euler[2]*dt);
+
+    transform_twist = transform_twist * tf::Transform(quaternion, translation * dt);
+
+    Eigen::Map<Eigen::ArrayXXd> cov(twist.twist.covariance.data(), 6, 6);
+
+    if (twist.header.frame_id != header.frame_id)
+    {
+        covariance_twist += cov*dt*dt;
+    }
+
+    header = twist.header;
+
+    ROS_INFO("added twist edges with id: %d!", twist.header.seq);
 }
+
 
 void Localization::addImuEdge(const sensor_msgs::Imu::ConstPtr& imu)
 {
