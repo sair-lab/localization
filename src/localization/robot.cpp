@@ -62,15 +62,15 @@ g2o::VertexSE3* Robot::new_vertex(unsigned char type, std_msgs::Header header, g
         return last_vertex(type);
     }
     else
-    {   
-        index = (index+1)%trajectory_length;
-        optimizer.removeVertex(vertices[index]);
-
+    {
         auto vertex = new g2o::VertexSE3();
         vertex->setId(index*10 + ID);
         vertex->setEstimate(vertices[index]->estimate());
+
+        index = (index+1)%trajectory_length;
+        optimizer.removeVertex(vertices[index]);
+
         vertices[index] = vertex;
-        
         type_index[type] = index;
         headers[index] = header;
 
