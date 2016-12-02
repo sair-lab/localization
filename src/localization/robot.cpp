@@ -55,23 +55,28 @@ void Robot::init(g2o::SparseOptimizer& optimizer)
 
 g2o::VertexSE3* Robot::new_vertex(unsigned char type, std_msgs::Header header, g2o::SparseOptimizer& optimizer)
 {
-    type_index.insert({type,0});
+    type_index.emplace(type, index);
 
     if(FLAG_STATIC)
     {
         return last_vertex(type);
     }
     else
-    {
+    {   
         auto vertex = new g2o::VertexSE3();
-        vertex->setId(index*10 + ID);
+
         vertex->setEstimate(vertices[index]->estimate());
 
         index = (index+1)%trajectory_length;
+
+        vertex->setId(index*10 + ID);
+
         optimizer.removeVertex(vertices[index]);
 
-        vertices[index] = vertex;
+        vertices[index] = vertex;        
+
         type_index[type] = index;
+
         headers[index] = header;
 
         return vertex;
@@ -80,7 +85,7 @@ g2o::VertexSE3* Robot::new_vertex(unsigned char type, std_msgs::Header header, g
 
 g2o::VertexSE3* Robot::last_vertex(unsigned char type)
 {
-    type_index.insert({type,0});
+    type_index.emplace(type, index);
 
     return vertices[type_index[type]];
 }
