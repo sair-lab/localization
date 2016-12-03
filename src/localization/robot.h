@@ -60,14 +60,13 @@ class Robot
 public:
 
     Robot(int ID, bool FLAG_STATIC, g2o::SparseOptimizer& optimizer)
-        :ID(ID), FLAG_STATIC(FLAG_STATIC)
-    {
-        init(optimizer);
-    };
+        :ID(ID), FLAG_STATIC(FLAG_STATIC){init(optimizer);}; 
+    // only call this constructor without following an init()
 
-    Robot(){};
+    Robot(int ID, bool FLAG_STATIC):ID(ID), FLAG_STATIC(FLAG_STATIC){};
+    // call this constructor, then init(optimizer, vertex_init)
 
-    void init(g2o::SparseOptimizer&);
+    void init(g2o::SparseOptimizer&, Eigen::Isometry3d vertex_init=Eigen::Isometry3d::Identity());
 
     g2o::VertexSE3* new_vertex(unsigned char, std_msgs::Header, g2o::SparseOptimizer&);
 

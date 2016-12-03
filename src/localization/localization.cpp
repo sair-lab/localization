@@ -64,8 +64,6 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 {
     geometry_msgs::PoseWithCovarianceStamped pose_cov(*pose_cov_);
 
-    g2o::EdgeSE3 *edge = new g2o::EdgeSE3();
-
     auto last_vertex = robots.at(self_id).last_vertex(sensor_type.pose);
 
     g2o::VertexSE3* new_vertex;
@@ -74,6 +72,8 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
         new_vertex = robots.at(self_id).new_vertex(sensor_type.pose, pose_cov.header, optimizer);
     else
         new_vertex = robots.at(self_id).new_vertex(sensor_type.general, pose_cov.header, optimizer);
+
+    g2o::EdgeSE3 *edge = new g2o::EdgeSE3();
 
     edge->vertices()[0] = last_vertex;
 

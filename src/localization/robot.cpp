@@ -28,7 +28,7 @@
 
 #include "robot.h"
 
-void Robot::init(g2o::SparseOptimizer& optimizer)
+void Robot::init(g2o::SparseOptimizer& optimizer, Eigen::Isometry3d vertex_init)
 {
     trajectory_length = 1000;
 
@@ -38,7 +38,7 @@ void Robot::init(g2o::SparseOptimizer& optimizer)
 
         vertex->setId(ID + i*10);
 
-        vertex->setEstimate(Eigen::Isometry3d::Identity());
+        vertex->setEstimate(vertex_init);
 
         vertices.push_back(vertex);
 
@@ -55,6 +55,7 @@ g2o::VertexSE3* Robot::new_vertex(unsigned char type, std_msgs::Header new_heade
 {
     type_index.emplace(type, index);
     headers.emplace(type, new_header);
+    header = new_header;
 
     if(FLAG_STATIC)
     {
@@ -74,11 +75,9 @@ g2o::VertexSE3* Robot::new_vertex(unsigned char type, std_msgs::Header new_heade
 
         vertices[index] = vertex;        
 
-        type_index[type] = index;
+        type_index.at(type) = index;
 
         headers.at(type) = new_header;
-
-        header = new_header;
 
         return vertex;
     }
@@ -97,6 +96,7 @@ g2o::VertexSE3* Robot::last_vertex()
 {
     return vertices.at(index);
 }
+
 
 std_msgs::Header Robot::last_header(unsigned char type)
 {
