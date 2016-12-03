@@ -96,8 +96,12 @@ public:
 
 private:
 
+// for robots
     map<unsigned char, Robot> robots;
 
+    unsigned char self_id;
+
+// for g2o solver
     Solver *solver;
 
     SE3BlockSolver *se3blockSolver;
@@ -106,11 +110,12 @@ private:
 
     g2o::SparseOptimizer optimizer;
 
-private:
-
     int iteration_max;
 
-    unsigned char self_id;
+//  
+    inline geometry_msgs::Twist pose2twist(geometry_msgs::Pose, geometry_msgs::Pose, double);
+
+    inline Eigen::Isometry3d twist2transform(geometry_msgs::TwistWithCovariance&, Eigen::ArrayXXd&, double);
 };
 
 #endif

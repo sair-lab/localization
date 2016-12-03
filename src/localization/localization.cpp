@@ -145,26 +145,6 @@ void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped:
 
     double dt = twist.header.stamp.toSec() - robots.at(self_id).last_header().stamp.toSec();
 
-    tf::Vector3 translation, euler;
-
-    tf::vector3MsgToTF(twist.twist.twist.linear, translation);
-
-    tf::vector3MsgToTF(twist.twist.twist.angular, euler);
-
-    tf::Quaternion quaternion;
-
-    quaternion.setRPY(euler[0]*dt, euler[1]*dt, euler[2]*dt);
-
-    tf::Transform transform(quaternion, translation * dt);
-
-    Eigen::Isometry3d measurement;
-
-    tf::transformTFToEigen(transform, measurement);
-
-    Eigen::Map<Eigen::ArrayXXd> cov(twist.twist.covariance.data(), 6, 6);
-
-    Eigen::ArrayXXd covariance = cov*dt*dt;
-
     auto last_vertex = robots.at(self_id).last_vertex();
 
     auto new_vertex = robots.at(self_id).new_vertex(sensor_type.twist, twist.header, optimizer);
@@ -174,6 +154,10 @@ void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped:
     edge->vertices()[0] = last_vertex;
 
     edge->vertices()[1] = new_vertex;
+
+    Eigen::ArrayXXd covariance;
+
+    auto measurement = twist2transform(twist.twist, covariance, dt);
 
     edge->setMeasurement(measurement);
 
@@ -188,4 +172,30 @@ void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped:
 void Localization::addImuEdge(const sensor_msgs::Imu::ConstPtr& imu)
 {
 
+}
+
+
+inline Eigen::Isometry3d Localization::twist2transform(geometry_msgs::TwistWithCovariance& twist, Eigen::ArrayXXd& covariance, double dt)
+{
+    tf::Vector3 translation, euler;
+
+    tf::vector3MsgToTF(twist.twist.linear, translation);
+
+    tf::vector3MsgToTF(twist.twist.angular, euler);
+
+    tf::Quaternion quaternion;
+
+    quaternion.setRPY(euler[0]*dt, euler[1]*dt, euler[2]*dt);
+
+    tf::Transform transform(quaternion, translation * dt);
+
+    Eigen::Isometry3d measurement;
+
+    tf::transformTFToEigen(transform, measurement);
+
+    Eigen::Map<Eigen::ArrayXXd> cov(twist.covariance.data(), 6, 6);
+
+    covariance = cov*dt*dt;
+
+    return measurement;
 }
