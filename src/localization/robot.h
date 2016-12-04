@@ -81,12 +81,6 @@ public:
 
     std_msgs::Header last_header();
 
-    void set_velocity(const geometry_msgs::TwistWithCovariance&);
-
-    void set_velocity(); // call this only after optimizing the graph
-
-    geometry_msgs::TwistWithCovariance get_velocity();
-
 private:
 
     map<unsigned char, std_msgs::Header> headers;

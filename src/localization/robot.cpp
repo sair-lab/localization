@@ -109,21 +109,3 @@ std_msgs::Header Robot::last_header()
 {
     return header;
 }
-
-
-void Robot::set_velocity(const geometry_msgs::TwistWithCovariance& twist)
-{
-    if (!FLAG_STATIC)
-        velocity = twist;
-}
-
-void Robot::set_velocity() 
-{
-    // if (!FLAG_STATIC)
-        // velocity = twist;
-}
-
-geometry_msgs::TwistWithCovariance Robot::get_velocity()
-{
-    return velocity;
-}

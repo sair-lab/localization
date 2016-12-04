@@ -105,18 +105,6 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
     double dt_responder = uwb->header.stamp.toSec() - robots.at(uwb->responder_id).last_header().stamp.toSec();
 
-    bool requester_not_static = robots.at(uwb->requester_id).not_static();
-    bool responder_not_static = robots.at(uwb->responder_id).not_static();
-    bool requester_same_frame_id = (robots.at(uwb->requester_id).last_header().frame_id == uwb->header.frame_id);
-    bool responder_same_frame_id = (robots.at(uwb->responder_id).last_header().frame_id == uwb->header.frame_id);
-    
-    // there are other sensor update between two uwb measurements
-    geometry_msgs::TwistWithCovariance twist_requester, twist_responder;
-    if (requester_not_static && (!requester_same_frame_id))
-        twist_requester = robots.at(uwb->requester_id).get_velocity();
-    if (responder_not_static && (!responder_same_frame_id))
-        twist_responder = robots.at(uwb->responder_id).get_velocity();
-
     auto vertex_last_requester = robots.at(uwb->requester_id).last_vertex();
     auto vertex_last_responder = robots.at(uwb->responder_id).last_vertex();
 
@@ -126,26 +114,13 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, pow(uwb->distance_err, 2));
     optimizer.addEdge(edge);
 
-    // requester to requester's last vertex edge
-    if (requester_not_static && (!requester_same_frame_id))
+    if (robots.at(uwb->requester_id).not_static())
     {
-        auto edge_requester = create_se3_edge_from_twist(vertex_last_requester, vertex_requester, twist_requester, dt_requester);
-        optimizer.addEdge(edge_requester);
-    }
-    // responder to responder's last vertex edge
-    if (responder_not_static && (!responder_same_frame_id))
-    {
-        auto edge_responder = create_se3_edge_from_twist(vertex_last_responder, vertex_responder, twist_responder, dt_responder);
-        optimizer.addEdge(edge_responder);
-    }
-
-    //if there is no other sensor update between two uwb measurements
-    if (requester_not_static && requester_same_frame_id)
-    {
-        auto edge_requester_range =  create_range_edge(vertex_last_requester, vertex_requester, 0, 1.0*dt_requester*dt_requester);
+        auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, 1.0*dt_requester*dt_requester);
         optimizer.addEdge(edge_requester_range);
     }
-    if (responder_not_static && responder_same_frame_id)
+
+    if (robots.at(uwb->responder_id).not_static())
     {
         auto edge_responder_range = create_range_edge(vertex_last_responder, vertex_responder, 0, 1.0*dt_responder*dt_responder);
         optimizer.addEdge(edge_responder_range);
@@ -162,8 +137,6 @@ void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped:
     geometry_msgs::TwistWithCovarianceStamped twist(*twist_);
 
     double dt = twist.header.stamp.toSec() - robots.at(self_id).last_header().stamp.toSec();
-
-    robots.at(self_id).set_velocity(twist.twist);
 
     auto last_vertex = robots.at(self_id).last_vertex();
 
