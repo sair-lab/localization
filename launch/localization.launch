@@ -2,8 +2,10 @@
 <launch>
 
     <node pkg="localization" type="localization_node" name="localization_node" output="screen">
-		<remap from="~/incremental_pose_cov" to="/ni_slam_node/incremental_pose_cov"/>
-		<!-- <remap from="~/twiststamp" to="/ni_slam_node/twiststamped"/> -->
+		<remap from="~/pose" to="/ni_slam_node/incremental_pose_cov"/>
+		<remap from="~/range" to="/uwb_exorange_info"/>
+		<remap from="~/imu" to="/imu/data"/>
+		<remap from="~/twist" to="/ni_slam_node/twiststamped"/>
     </node>
 
 </launch>

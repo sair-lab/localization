@@ -56,7 +56,7 @@ void Localization::solve()
 
     optimizer.optimize(iteration_max);
 
-    ROS_INFO("graph optimized!");
+    ROS_INFO("Localization: graph optimized!");
 }
 
 
@@ -95,7 +95,7 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 
     optimizer.addEdge(edge);
 
-    ROS_WARN("added pose edge id: %d", pose_cov.header.seq);
+    ROS_WARN("Localization: added pose edge id: %d frame_id: %s", pose_cov.header.seq, pose_cov.header.frame_id.c_str());
 }
 
 
@@ -133,7 +133,7 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
     optimizer.addEdge(edge);
 
-    ROS_INFO("added range edge id: %d", uwb->header.seq);
+    ROS_WARN("Localization: added range edge id: %d", uwb->header.seq);
 
     solve();
 }
@@ -165,7 +165,7 @@ void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped:
 
     edge->setRobustKernel(new g2o::RobustKernelHuber());
 
-    ROS_INFO("added twist edges with id: %d!", twist.header.seq);
+    ROS_WARN("Localization: added twist edges with id: %d!", twist.header.seq);
 }
 
 
