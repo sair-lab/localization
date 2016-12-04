@@ -30,7 +30,12 @@
 
 #include "localization.h"
 
+#include <message_filters/subscriber.h>
+#include <message_filters/synchronizer.h>
+#include <message_filters/sync_policies/approximate_time.h>
+
 using namespace std;
+using namespace message_filters;
 
 int main(int argc, char** argv)
 {
@@ -42,11 +47,22 @@ int main(int argc, char** argv)
 
     ros::Subscriber pose_sub = n.subscribe("pose", 1000, &Localization::addPoseEdge, &localization);
 
-    ros::Subscriber range_sub = n.subscribe("range", 1, &Localization::addRangeEdge, &localization);
+    // ros::Subscriber range_sub = n.subscribe("range", 1, &Localization::addRangeEdge, &localization);
 
     ros::Subscriber twist_sub = n.subscribe("twist", 1, &Localization::addTwistEdge, &localization);
 
-    ros::Subscriber imu_sub = n.subscribe("imu", 1, &Localization::addImuEdge, &localization);
+    // ros::Subscriber imu_sub = n.subscribe("imu", 1, &Localization::addImuEdge, &localization);
+
+    message_filters::Subscriber<uwb_driver::UwbRange> uwb_sub(n, "uwb_exorange_info", 1);
+    message_filters::Subscriber<sensor_msgs::Imu> imu_sub(n, "imu", 1);
+
+    typedef sync_policies::ApproximateTime<uwb_driver::UwbRange, sensor_msgs::Imu> imu_uwbSyncPolicy;
+
+    // ApproximateTime takes a queue size as its constructor argument, hence MySyncPolicy(10)
+
+    Synchronizer<imu_uwbSyncPolicy> sync(imu_uwbSyncPolicy(10), uwb_sub, imu_sub);
+
+    sync.registerCallback(boost::bind(&Localization::addRangeEdge, &localization, _1, _2));
 
     ros::spin();
 

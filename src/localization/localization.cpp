@@ -28,6 +28,8 @@
 
 #include "localization.h"
 
+using namespace Eigen;
+
 Localization::Localization() 
 {
     solver = new Solver();
@@ -97,7 +99,7 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 }
 
 
-void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
+void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const sensor_msgs::Imu::ConstPtr& Imu_)
 {
     robots.emplace(uwb->requester_id, Robot(uwb->requester_idx, true, optimizer));
     robots.emplace(uwb->responder_id, Robot(uwb->responder_idx, true, optimizer));
@@ -114,13 +116,85 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, pow(uwb->distance_err, 2));
     optimizer.addEdge(edge);
 
-    if (robots.at(uwb->requester_id).not_static())
+    // add imu edge
+    bool requester_not_static = robots.at(uwb->requester_id).not_static();
+    bool responder_not_static = robots.at(uwb->responder_id).not_static();
+    bool requester_same_frame_id = (robots.at(uwb->requester_id).last_header().frame_id == uwb->header.frame_id);
+    bool responder_same_frame_id = (robots.at(uwb->responder_id).last_header().frame_id == uwb->header.frame_id);   
+
+    // there are other sensor update between two uwb measurements
+    geometry_msgs::TwistWithCovariance twist_requester;
+    if (requester_not_static && (!requester_same_frame_id))
+        twist_requester = robots.at(uwb->requester_id).get_velocity();
+
+    sensor_msgs::Imu Imu(*Imu_);
+    // calculate translation
+    double qx = Imu.orientation.x;
+    double qy = Imu.orientation.y;
+    double qz = Imu.orientation.z;
+    double qw = Imu.orientation.w;
+
+    Matrix3d T_matrix;
+    T_matrix << 1-2*qy*qy-2*qz*qz, 2*qx*qy-2*qz*qw, 2*qx*qz+2*qy*qw,
+                2*qx*qy + 2*qz*qw, 1-2*qx*qx-2*qz*qz, 2*qy*qz-2*qx*qw,
+                2*qx*qz-2*qy*qw, 2*qy*qz + 2*qx*qw, 1-2*qx*qx-2*qy*qy;
+
+    Vector3d imu_acceleration = Vector3d(Imu.linear_acceleration.x,Imu.linear_acceleration.y,Imu.linear_acceleration.z);
+    Vector3d gravity = Vector3d(0,0,9.8);
+    Vector3d acceleration = T_matrix.inverse()*imu_acceleration+gravity;
+
+    Vector3d  last_vertex_velocity;
+    last_vertex_velocity << twist_requester.twist.linear.x,
+                            twist_requester.twist.linear.y,
+                            twist_requester.twist.linear.z;
+    Vector3d  translation = last_vertex_velocity*dt_requester+0.5*acceleration*pow(dt_requester,2);
+
+    Eigen::Isometry3d current_pose;
+    Quaterniond imu_rotation = Quaterniond(Imu.orientation.w,Imu.orientation.x,Imu.orientation.y,Imu.orientation.z);
+    current_pose.rotate(imu_rotation);
+    current_pose.translate(g2o::Vector3D(0, 0, 0) );
+
+    // calculate transform matrix
+    Isometry3d transform_matrix = vertex_last_requester->estimate().inverse()*current_pose;
+    translation = current_pose.rotation().inverse()*translation;
+    transform_matrix(0,3) = translation[0];
+    transform_matrix(1,3) = translation[1];
+    transform_matrix(2,3) = translation[2];
+
+    Eigen::Map<Eigen::MatrixXd> covariance_orientation(Imu.orientation_covariance.data(), 3, 3);
+    Eigen::Map<Eigen::MatrixXd> covariance_translation(Imu.linear_acceleration_covariance.data(), 3, 3);
+    Eigen::Matrix3d zero_matrix = Eigen::Matrix3d::Zero();
+
+    Eigen::MatrixXd SE3information(6,6);
+
+    SE3information << covariance_orientation,zero_matrix,
+                      zero_matrix,covariance_translation;
+
+    // requester to requester's last vertex edge
+    if (requester_not_static && (!requester_same_frame_id))
     {
-        auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, 1.0*dt_requester*dt_requester);
-        optimizer.addEdge(edge_requester_range);
+        g2o::EdgeSE3 *SE3edge = new g2o::EdgeSE3();
+    
+        SE3edge->vertices()[0] = vertex_last_requester;
+
+        SE3edge->vertices()[1] = vertex_requester; 
+
+        SE3edge->setMeasurement(transform_matrix);
+
+        SE3edge->setInformation(SE3information.inverse());
+
+        edge->setRobustKernel(new g2o::RobustKernelHuber());
+    
+        optimizer.addEdge( SE3edge );
     }
 
-    if (robots.at(uwb->responder_id).not_static())
+    //if there is no other sensor update between two uwb measurements
+    if (requester_not_static && requester_same_frame_id)
+    {
+        auto edge_requester_range =  create_range_edge(vertex_last_requester, vertex_requester, 0, 1.0*dt_requester*dt_requester);
+        optimizer.addEdge(edge_requester_range);
+    }
+    if (responder_not_static && responder_same_frame_id)
     {
         auto edge_responder_range = create_range_edge(vertex_last_responder, vertex_responder, 0, 1.0*dt_responder*dt_responder);
         optimizer.addEdge(edge_responder_range);
