@@ -112,7 +112,9 @@ private:
 
     int iteration_max;
 
-//  
+// for data convertion
+    inline g2o::EdgeSE3* create_se3_edge_from_twist(g2o::VertexSE3*, g2o::VertexSE3*, geometry_msgs::TwistWithCovariance&, double);
+
     inline geometry_msgs::Twist pose2twist(geometry_msgs::Pose, geometry_msgs::Pose, double);
 
     inline Eigen::Isometry3d twist2transform(geometry_msgs::TwistWithCovariance&, Eigen::ArrayXXd&, double);

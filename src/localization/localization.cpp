@@ -91,8 +91,6 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 
     edge->setRobustKernel(new g2o::RobustKernelHuber());
 
-    optimizer.addVertex(new_vertex);
-
     optimizer.addEdge(edge);
 
     ROS_WARN("Localization: added pose edge id: %d frame_id: %s", pose_cov.header.seq, pose_cov.header.frame_id.c_str());
@@ -105,16 +103,32 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
     robots.emplace(uwb->responder_id, Robot(uwb->responder_idx, true, optimizer));
 
-    double dt = uwb->header.stamp.toSec() - robots.at(self_id).last_header().stamp.toSec();
+    double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
+
+    double dt_responder = uwb->header.stamp.toSec() - robots.at(uwb->responder_id).last_header().stamp.toSec();
+
+    //if there is no other sensor update between two uwb measurements
+    geometry_msgs::TwistWithCovariance twist_requester, twist_responder;
+
+    if (robots.at(uwb->requester_id).last_header().frame_id == uwb->header.frame_id)
+        twist_requester;
+    else
+        twist_requester = robots.at(uwb->requester_id).get_velocity();
+
+    if (robots.at(uwb->responder_id).last_header().frame_id == uwb->header.frame_id)
+        twist_responder;
+    else
+        twist_responder = robots.at(uwb->responder_id).get_velocity();
+
+    auto vertex_last_requester = robots.at(uwb->requester_id).last_vertex();
+
+    auto vertex_last_responder = robots.at(uwb->responder_id).last_vertex();
 
     auto vertex_requester = robots.at(uwb->requester_id).new_vertex(sensor_type.range, uwb->header, optimizer);
 
     auto vertex_responder = robots.at(uwb->responder_id).new_vertex(sensor_type.range, uwb->header, optimizer);
 
-    optimizer.addVertex(vertex_requester);
-
-    optimizer.addVertex(vertex_responder);
-
+    // requester to responder edge
     auto edge = new g2o::EdgeSE3Range();
 
     edge->vertices()[0] = vertex_requester;
@@ -133,6 +147,20 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
     optimizer.addEdge(edge);
 
+    // requester to requester's last vertex edge
+    if (!(robots.at(uwb->requester_id).is_static()))
+    {
+        auto edge_requester = create_se3_edge_from_twist(vertex_last_requester, vertex_requester, twist_requester, dt_requester);
+        optimizer.addEdge(edge_requester);
+    }
+
+    // responder to responder's last vertex edge
+    if (!(robots.at(uwb->responder_id).is_static()))
+    {
+        auto edge_responder = create_se3_edge_from_twist(vertex_last_responder, vertex_responder, twist_responder, dt_responder);
+        optimizer.addEdge(edge_responder);
+    }
+
     ROS_WARN("Localization: added range edge id: %d", uwb->header.seq);
 
     solve();
@@ -145,27 +173,17 @@ void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped:
 
     double dt = twist.header.stamp.toSec() - robots.at(self_id).last_header().stamp.toSec();
 
+    robots.at(self_id).set_velocity(twist.twist);
+
     auto last_vertex = robots.at(self_id).last_vertex();
 
     auto new_vertex = robots.at(self_id).new_vertex(sensor_type.twist, twist.header, optimizer);
 
-    g2o::EdgeSE3 *edge = new g2o::EdgeSE3();
+    auto edge = create_se3_edge_from_twist(last_vertex, new_vertex, twist.twist, dt);
 
-    edge->vertices()[0] = last_vertex;
+    optimizer.addEdge(edge);
 
-    edge->vertices()[1] = new_vertex;
-
-    Eigen::ArrayXXd covariance;
-
-    auto measurement = twist2transform(twist.twist, covariance, dt);
-
-    edge->setMeasurement(measurement);
-
-    edge->setInformation(covariance.inverse());
-
-    edge->setRobustKernel(new g2o::RobustKernelHuber());
-
-    ROS_WARN("Localization: added twist edges with id: %d!", twist.header.seq);
+    ROS_WARN("Localization: added twist edge id: %d!", twist.header.seq);
 }
 
 
@@ -198,4 +216,26 @@ inline Eigen::Isometry3d Localization::twist2transform(geometry_msgs::TwistWithC
     covariance = cov*dt*dt;
 
     return measurement;
+}
+
+
+inline g2o::EdgeSE3* Localization::create_se3_edge_from_twist(g2o::VertexSE3* vetex1, g2o::VertexSE3* vetex2, geometry_msgs::TwistWithCovariance& twist, double dt)
+{
+    g2o::EdgeSE3 *edge = new g2o::EdgeSE3();
+
+    edge->vertices()[0] = vetex1;
+
+    edge->vertices()[1] = vetex2;
+
+    Eigen::ArrayXXd covariance;
+
+    auto measurement = twist2transform(twist, covariance, dt);
+
+    edge->setMeasurement(measurement);
+
+    edge->setInformation(covariance.inverse());
+
+    edge->setRobustKernel(new g2o::RobustKernelHuber());
+
+    return edge;
 }

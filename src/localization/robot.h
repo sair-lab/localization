@@ -52,6 +52,7 @@
 #include <g2o/types/slam3d/types_slam3d.h>
 #include "types_edge_se3range.h"
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <geometry_msgs/TwistWithCovariance.h>
 
 using namespace std;
 
@@ -68,6 +69,8 @@ public:
 
     void init(g2o::SparseOptimizer&, Eigen::Isometry3d vertex_init=Eigen::Isometry3d::Identity());
 
+    bool is_static(){return FLAG_STATIC;};
+
     g2o::VertexSE3* new_vertex(unsigned char, std_msgs::Header, g2o::SparseOptimizer&);
 
     g2o::VertexSE3* last_vertex(unsigned char);
@@ -78,6 +81,12 @@ public:
 
     std_msgs::Header last_header();
 
+    void set_velocity(const geometry_msgs::TwistWithCovariance&);
+
+    void set_velocity(); // call this only after optimizing the graph
+
+    geometry_msgs::TwistWithCovariance get_velocity();
+
 private:
 
     map<unsigned char, std_msgs::Header> headers;
@@ -86,9 +95,11 @@ private:
 
     vector<g2o::VertexSE3*> vertices; //sensor type-> vertices
 
-    map<unsigned char, size_t> type_index; //sensor type -> current vertex number
+    map<unsigned char, size_t> type_index; //sensor type -> current vertex index
 
     size_t index; // current vertex index
+
+    geometry_msgs::TwistWithCovariance velocity;
 
     size_t trajectory_length;
 

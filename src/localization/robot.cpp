@@ -31,6 +31,8 @@
 void Robot::init(g2o::SparseOptimizer& optimizer, Eigen::Isometry3d vertex_init)
 {
     trajectory_length = 1000;
+    index = 0;
+    velocity = geometry_msgs::TwistWithCovariance();
 
     for (size_t i = 0; i < trajectory_length; ++i)
     {
@@ -44,10 +46,6 @@ void Robot::init(g2o::SparseOptimizer& optimizer, Eigen::Isometry3d vertex_init)
 
         optimizer.addVertex(vertex);
     }
-
-    index = 0;
-
-    // vertices and headers needs to be initilize
 }
 
 
@@ -79,6 +77,8 @@ g2o::VertexSE3* Robot::new_vertex(unsigned char type, std_msgs::Header new_heade
 
         headers.at(type) = new_header;
 
+        optimizer.addVertex(vertex);
+
         return vertex;
     }
 }
@@ -108,4 +108,22 @@ std_msgs::Header Robot::last_header(unsigned char type)
 std_msgs::Header Robot::last_header()
 {
     return header;
+}
+
+
+void Robot::set_velocity(const geometry_msgs::TwistWithCovariance& twist)
+{
+    if (!FLAG_STATIC)
+        velocity = twist;
+}
+
+void Robot::set_velocity() 
+{
+    // if (!FLAG_STATIC)
+        // velocity = twist;
+}
+
+geometry_msgs::TwistWithCovariance Robot::get_velocity()
+{
+    return velocity;
 }
