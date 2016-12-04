@@ -32,7 +32,7 @@ void Robot::init(g2o::SparseOptimizer& optimizer, Eigen::Isometry3d vertex_init)
 {
     trajectory_length = 1000;
 
-    for (size_t i = 0; i < trajectory_length; ++i)
+    for (size_t i = 0; i < trajectory_length; ++i) // i--
     {
         g2o::VertexSE3* vertex = new g2o::VertexSE3();
 
@@ -53,8 +53,9 @@ void Robot::init(g2o::SparseOptimizer& optimizer, Eigen::Isometry3d vertex_init)
 
 g2o::VertexSE3* Robot::new_vertex(unsigned char type, std_msgs::Header new_header, g2o::SparseOptimizer& optimizer)
 {
+    // size_t last_last_index = type_index[sensor_type.range];
     type_index.emplace(type, index);
-    headers.emplace(type, new_header);
+    headers.emplace(type, new_header); //avoid responder header update   
     header = new_header;
 
     if(FLAG_STATIC)
@@ -63,11 +64,12 @@ g2o::VertexSE3* Robot::new_vertex(unsigned char type, std_msgs::Header new_heade
     }
     else
     {   
+
         auto vertex = new g2o::VertexSE3();
 
         vertex->setEstimate(vertices[index]->estimate());
 
-        index = (index+1)%trajectory_length;
+        index = (index+1)%trajectory_length; //should back
 
         vertex->setId(index*10 + ID);
 
@@ -85,7 +87,7 @@ g2o::VertexSE3* Robot::new_vertex(unsigned char type, std_msgs::Header new_heade
 
 
 g2o::VertexSE3* Robot::last_vertex(unsigned char type)
-{
+{   
     type_index.emplace(type, index);
     headers.emplace(type, header);
     return vertices.at(type_index[type]);

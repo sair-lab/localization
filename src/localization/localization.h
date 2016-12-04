@@ -71,9 +71,10 @@ const struct SensorType
 {
     unsigned char general = 0;
     unsigned char pose = 1;
-    unsigned char range = 2;
     unsigned char twist = 3;
     unsigned char imu = 4;
+    unsigned char range = 2;
+
 }sensor_type;
 
 class Localization
@@ -86,7 +87,7 @@ public:
 
     void solve();
 
-    void addRangeEdge(const uwb_driver::UwbRange::ConstPtr&);
+    void addRangeEdge(const uwb_driver::UwbRange::ConstPtr&,const sensor_msgs::Imu::ConstPtr&);
 
     void addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&);
 
@@ -111,6 +112,10 @@ private:
     g2o::SparseOptimizer optimizer;
 
     int iteration_max;
+
+    int uwb_number;
+
+    g2o::VertexSE3* last_last_vertex;
 
 //  
     inline geometry_msgs::Twist pose2twist(geometry_msgs::Pose, geometry_msgs::Pose, double);
