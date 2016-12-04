@@ -100,65 +100,55 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 {
     robots.emplace(uwb->requester_id, Robot(uwb->requester_idx, true, optimizer));
-
     robots.emplace(uwb->responder_id, Robot(uwb->responder_idx, true, optimizer));
 
     double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
-
     double dt_responder = uwb->header.stamp.toSec() - robots.at(uwb->responder_id).last_header().stamp.toSec();
 
-    //if there is no other sensor update between two uwb measurements
+    bool requester_not_static = robots.at(uwb->requester_id).not_static();
+    bool responder_not_static = robots.at(uwb->responder_id).not_static();
+    bool requester_same_frame_id = (robots.at(uwb->requester_id).last_header().frame_id == uwb->header.frame_id);
+    bool responder_same_frame_id = (robots.at(uwb->responder_id).last_header().frame_id == uwb->header.frame_id);
+    
+    // there are other sensor update between two uwb measurements
     geometry_msgs::TwistWithCovariance twist_requester, twist_responder;
-
-    if (robots.at(uwb->requester_id).last_header().frame_id == uwb->header.frame_id)
-        twist_requester;
-    else
+    if (requester_not_static && (!requester_same_frame_id))
         twist_requester = robots.at(uwb->requester_id).get_velocity();
-
-    if (robots.at(uwb->responder_id).last_header().frame_id == uwb->header.frame_id)
-        twist_responder;
-    else
+    if (responder_not_static && (!responder_same_frame_id))
         twist_responder = robots.at(uwb->responder_id).get_velocity();
 
     auto vertex_last_requester = robots.at(uwb->requester_id).last_vertex();
-
     auto vertex_last_responder = robots.at(uwb->responder_id).last_vertex();
 
-    auto vertex_requester = robots.at(uwb->requester_id).new_vertex(sensor_type.range, uwb->header, optimizer);
-
-    auto vertex_responder = robots.at(uwb->responder_id).new_vertex(sensor_type.range, uwb->header, optimizer);
-
     // requester to responder edge
-    auto edge = new g2o::EdgeSE3Range();
-
-    edge->vertices()[0] = vertex_requester;
-
-    edge->vertices()[1] = vertex_responder;
-
-    edge->setMeasurement(uwb->distance);
-
-    Eigen::MatrixXd covariance = Eigen::MatrixXd::Zero(1, 1);
-
-    covariance(0,0) = pow(uwb->distance_err, 2);
-
-    edge->setInformation(covariance.inverse());
-
-    edge->setRobustKernel(new g2o::RobustKernelHuber());
-
+    auto vertex_requester = robots.at(uwb->requester_id).new_vertex(sensor_type.range, uwb->header, optimizer);
+    auto vertex_responder = robots.at(uwb->responder_id).new_vertex(sensor_type.range, uwb->header, optimizer);
+    auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, pow(uwb->distance_err, 2));
     optimizer.addEdge(edge);
 
     // requester to requester's last vertex edge
-    if (!(robots.at(uwb->requester_id).is_static()))
+    if (requester_not_static && (!requester_same_frame_id))
     {
         auto edge_requester = create_se3_edge_from_twist(vertex_last_requester, vertex_requester, twist_requester, dt_requester);
         optimizer.addEdge(edge_requester);
     }
-
     // responder to responder's last vertex edge
-    if (!(robots.at(uwb->responder_id).is_static()))
+    if (responder_not_static && (!responder_same_frame_id))
     {
         auto edge_responder = create_se3_edge_from_twist(vertex_last_responder, vertex_responder, twist_responder, dt_responder);
         optimizer.addEdge(edge_responder);
+    }
+
+    //if there is no other sensor update between two uwb measurements
+    if (requester_not_static && requester_same_frame_id)
+    {
+        auto edge_requester_range =  create_range_edge(vertex_last_requester, vertex_requester, 0, 1.0*dt_requester*dt_requester);
+        optimizer.addEdge(edge_requester_range);
+    }
+    if (responder_not_static && responder_same_frame_id)
+    {
+        auto edge_responder_range = create_range_edge(vertex_last_responder, vertex_responder, 0, 1.0*dt_responder*dt_responder);
+        optimizer.addEdge(edge_responder_range);
     }
 
     ROS_WARN("Localization: added range edge id: %d", uwb->header.seq);
@@ -234,6 +224,28 @@ inline g2o::EdgeSE3* Localization::create_se3_edge_from_twist(g2o::VertexSE3* ve
     edge->setMeasurement(measurement);
 
     edge->setInformation(covariance.inverse());
+
+    edge->setRobustKernel(new g2o::RobustKernelHuber());
+
+    return edge;
+}
+
+
+inline g2o::EdgeSE3Range* Localization::create_range_edge(g2o::VertexSE3* vertex1, g2o::VertexSE3* vertex2, double distance, double covariance)
+{
+    auto edge = new g2o::EdgeSE3Range();
+
+    edge->vertices()[0] = vertex1;
+
+    edge->vertices()[1] = vertex2;
+
+    edge->setMeasurement(distance);
+
+    Eigen::MatrixXd covariance_matrix = Eigen::MatrixXd::Zero(1, 1);
+
+    covariance_matrix(0,0) = covariance;
+
+    edge->setInformation(covariance_matrix.inverse());
 
     edge->setRobustKernel(new g2o::RobustKernelHuber());
 
