@@ -38,7 +38,19 @@ int main(int argc, char** argv)
 
     ros::NodeHandle n("~");
 
-    Localization localization;
+	std::vector<int> nodesId;
+
+	std::vector<double> nodesPos;
+
+    if(n.getParam("/uwb/nodesId", nodesId))
+        for (auto it:nodesId)
+            ROS_WARN("Get node ID: %d", it);
+
+    if(n.getParam("/uwb/nodesPos", nodesPos))
+        for(auto it:nodesPos)
+            ROS_WARN("Get node position: %4.2f", it);
+
+    Localization localization(nodesId, nodesPos);
 
     ros::Subscriber pose_sub = n.subscribe("pose", 1000, &Localization::addPoseEdge, &localization);
 

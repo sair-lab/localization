@@ -28,7 +28,7 @@
 
 #include "localization.h"
 
-Localization::Localization() 
+Localization::Localization(std::vector<int> nodesId, std::vector<double> nodesPos)
 {
     solver = new Solver();
 
@@ -44,9 +44,21 @@ Localization::Localization()
 
     iteration_max = 100;
 
-    self_id = 100;
+    self_id = nodesId.back();
 
-    robots.emplace(self_id, Robot(0, false, optimizer));
+    robots.emplace(self_id, Robot(self_id%100, false, optimizer));
+    ROS_WARN("Init self robot ID: %d with moving option", self_id);
+
+    for (size_t i = 0; i < nodesPos.size()/3; ++i)
+    {
+        robots.emplace(nodesId[i], Robot(nodesId[i]%100, true));
+        Eigen::Isometry3d pose = Eigen::Isometry3d::Identity();
+        pose(0,3) = nodesPos[i*3]; 
+        pose(1,3) = nodesPos[i*3+1]; 
+        pose(2,3) = nodesPos[i*3+2];
+        robots.at(nodesId[i]).init(optimizer, pose);
+        ROS_WARN("Init robot ID: %d with position (%.2f,%.2f,%.2f)", nodesId[i], pose(0,3), pose(1,3), pose(2,3));
+    }        
 }
 
 
@@ -99,9 +111,6 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 
 void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 {
-    robots.emplace(uwb->requester_id, Robot(uwb->requester_idx, true, optimizer));
-    robots.emplace(uwb->responder_id, Robot(uwb->responder_idx, true, optimizer));
-
     double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
     double dt_responder = uwb->header.stamp.toSec() - robots.at(uwb->responder_id).last_header().stamp.toSec();
 
@@ -129,6 +138,8 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     ROS_WARN("Localization: added range edge id: %d", uwb->header.seq);
 
     solve();
+
+    timer.toc();
 }
 
 

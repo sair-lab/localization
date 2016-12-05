@@ -30,7 +30,7 @@
 
 void Robot::init(g2o::SparseOptimizer& optimizer, Eigen::Isometry3d vertex_init)
 {
-    trajectory_length = 1000;
+    trajectory_length = 100;
     index = 0;
     velocity = geometry_msgs::TwistWithCovariance();
 
