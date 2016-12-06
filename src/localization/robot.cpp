@@ -30,7 +30,7 @@
 
 void Robot::init(g2o::SparseOptimizer& optimizer, Eigen::Isometry3d vertex_init)
 {
-    trajectory_length = 1000;
+    trajectory_length = 20;
     index = 0;
     velocity = geometry_msgs::TwistWithCovariance();
 
@@ -43,6 +43,9 @@ void Robot::init(g2o::SparseOptimizer& optimizer, Eigen::Isometry3d vertex_init)
         vertex->setEstimate(vertex_init);
 
         vertices.push_back(vertex);
+
+        if(FLAG_STATIC)
+            vertex->setFixed(true);
 
         optimizer.addVertex(vertex);
     }
@@ -69,7 +72,7 @@ g2o::VertexSE3* Robot::new_vertex(unsigned char type, std_msgs::Header new_heade
 
         vertex->setId(index*10 + ID);
 
-        optimizer.removeVertex(vertices[index]);
+        optimizer.removeVertex(vertices[index], false);
 
         vertices[index] = vertex;        
 

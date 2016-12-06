@@ -56,7 +56,7 @@
 #include <geometry_msgs/TwistWithCovarianceStamped.h>
 #include <uwb_driver/UwbRange.h>
 #include <sensor_msgs/Imu.h>
-
+#include "lib.h"
 #include "robot.h"
 
 using namespace std;
@@ -82,7 +82,7 @@ public:
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    Localization();
+    Localization(std::vector<int>, std::vector<double>);
 
     void solve();
 
@@ -95,6 +95,8 @@ public:
     void addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped::ConstPtr&);
 
 private:
+
+    Jeffsan::CPPTimer timer;
 
 // for robots
     map<unsigned char, Robot> robots;

@@ -28,7 +28,7 @@
 
 #include "localization.h"
 
-Localization::Localization() 
+Localization::Localization(std::vector<int> nodesId, std::vector<double> nodesPos)
 {
     solver = new Solver();
 
@@ -42,11 +42,23 @@ Localization::Localization()
 
     optimizer.setVerbose(true);
 
-    iteration_max = 100;
+    iteration_max = 50;
 
-    self_id = 100;
+    self_id = nodesId.back();
 
-    robots.emplace(self_id, Robot(0, false, optimizer));
+    robots.emplace(self_id, Robot(self_id%100, false, optimizer));
+    ROS_WARN("Init self robot ID: %d with moving option", self_id);
+
+    for (size_t i = 0; i < nodesPos.size()/3; ++i)
+    {
+        robots.emplace(nodesId[i], Robot(nodesId[i]%100, true));
+        Eigen::Isometry3d pose = Eigen::Isometry3d::Identity();
+        pose(0,3) = nodesPos[i*3];
+        pose(1,3) = nodesPos[i*3+1];
+        pose(2,3) = nodesPos[i*3+2];
+        robots.at(nodesId[i]).init(optimizer, pose);
+        ROS_WARN("Init robot ID: %d with position (%.2f,%.2f,%.2f)", nodesId[i], pose(0,3), pose(1,3), pose(2,3));
+    }
 }
 
 
@@ -54,7 +66,11 @@ void Localization::solve()
 {
     optimizer.initializeOptimization();
 
+    optimizer.save("/home/jeffsan/before.g2o");
+
     optimizer.optimize(iteration_max);
+
+    optimizer.save("/home/jeffsan/after.g2o");
 
     ROS_INFO("Localization: graph optimized!");
 }
@@ -99,9 +115,6 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 
 void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 {
-    robots.emplace(uwb->requester_id, Robot(uwb->requester_idx, true, optimizer));
-    robots.emplace(uwb->responder_id, Robot(uwb->responder_idx, true, optimizer));
-
     double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
     double dt_responder = uwb->header.stamp.toSec() - robots.at(uwb->responder_id).last_header().stamp.toSec();
 
@@ -114,14 +127,16 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, pow(uwb->distance_err, 2));
     optimizer.addEdge(edge);
 
-    if (robots.at(uwb->requester_id).not_static())
+    if (!robots.at(uwb->requester_id).is_static())
     {
+        ROS_WARN("adding requester trajectory edge");
         auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, 1.0*dt_requester*dt_requester);
         optimizer.addEdge(edge_requester_range);
     }
 
-    if (robots.at(uwb->responder_id).not_static())
+    if (!robots.at(uwb->responder_id).is_static())
     {
+        ROS_WARN("adding responder trajectory edge");
         auto edge_responder_range = create_range_edge(vertex_last_responder, vertex_responder, 0, 1.0*dt_responder*dt_responder);
         optimizer.addEdge(edge_responder_range);
     }
@@ -129,6 +144,8 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     ROS_WARN("Localization: added range edge id: %d", uwb->header.seq);
 
     solve();
+
+    timer.toc();
 }
 
 
