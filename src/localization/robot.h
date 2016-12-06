@@ -61,7 +61,15 @@ class Robot
 public:
 
     Robot(int ID, bool FLAG_STATIC, g2o::SparseOptimizer& optimizer)
-        :ID(ID), FLAG_STATIC(FLAG_STATIC){init(optimizer);}; 
+        :ID(ID), FLAG_STATIC(FLAG_STATIC)
+    {
+        Eigen::Isometry3d pose = Eigen::Isometry3d::Identity();
+        pose(0,3) = 0; 
+        pose(1,3) = 0; 
+        pose(2,3) = 2;
+        init(optimizer, pose);
+
+    }; 
     // only call this constructor without following an init()
 
     Robot(int ID, bool FLAG_STATIC):ID(ID), FLAG_STATIC(FLAG_STATIC){};
@@ -69,7 +77,7 @@ public:
 
     void init(g2o::SparseOptimizer&, Eigen::Isometry3d vertex_init=Eigen::Isometry3d::Identity());
 
-    bool not_static(){return ~FLAG_STATIC;};
+    bool is_static(){return FLAG_STATIC;};
 
     g2o::VertexSE3* new_vertex(unsigned char, std_msgs::Header, g2o::SparseOptimizer&);
 

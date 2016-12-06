@@ -42,7 +42,7 @@ Localization::Localization(std::vector<int> nodesId, std::vector<double> nodesPo
 
     optimizer.setVerbose(true);
 
-    iteration_max = 100;
+    iteration_max = 50;
 
     self_id = nodesId.back();
 
@@ -53,12 +53,12 @@ Localization::Localization(std::vector<int> nodesId, std::vector<double> nodesPo
     {
         robots.emplace(nodesId[i], Robot(nodesId[i]%100, true));
         Eigen::Isometry3d pose = Eigen::Isometry3d::Identity();
-        pose(0,3) = nodesPos[i*3]; 
-        pose(1,3) = nodesPos[i*3+1]; 
+        pose(0,3) = nodesPos[i*3];
+        pose(1,3) = nodesPos[i*3+1];
         pose(2,3) = nodesPos[i*3+2];
         robots.at(nodesId[i]).init(optimizer, pose);
         ROS_WARN("Init robot ID: %d with position (%.2f,%.2f,%.2f)", nodesId[i], pose(0,3), pose(1,3), pose(2,3));
-    }        
+    }
 }
 
 
@@ -66,7 +66,11 @@ void Localization::solve()
 {
     optimizer.initializeOptimization();
 
+    optimizer.save("/home/jeffsan/before.g2o");
+
     optimizer.optimize(iteration_max);
+
+    optimizer.save("/home/jeffsan/after.g2o");
 
     ROS_INFO("Localization: graph optimized!");
 }
@@ -123,14 +127,16 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, pow(uwb->distance_err, 2));
     optimizer.addEdge(edge);
 
-    if (robots.at(uwb->requester_id).not_static())
+    if (!robots.at(uwb->requester_id).is_static())
     {
+        ROS_WARN("adding requester trajectory edge");
         auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, 1.0*dt_requester*dt_requester);
         optimizer.addEdge(edge_requester_range);
     }
 
-    if (robots.at(uwb->responder_id).not_static())
+    if (!robots.at(uwb->responder_id).is_static())
     {
+        ROS_WARN("adding responder trajectory edge");
         auto edge_responder_range = create_range_edge(vertex_last_responder, vertex_responder, 0, 1.0*dt_responder*dt_responder);
         optimizer.addEdge(edge_responder_range);
     }
