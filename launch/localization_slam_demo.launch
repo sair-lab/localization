@@ -5,4 +5,10 @@
 
   	<include file="$(find ni_slam)/launch/ni_slam_demo.launch"/>
 
+  	<node name="datarecord" pkg="rosbag" type="record" 
+		  args="-o $(find localization)/bag -a"/>
+
+<!-- 	<node pkg="rosbag" type="play" name="rosbag_replay" 
+        args="--loop $(find localization)/bag/data_2016-01-07-13-20-55.bag --clock"/> -->
+
 </launch>
