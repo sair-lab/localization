@@ -82,7 +82,7 @@ public:
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    Localization(std::vector<int>, std::vector<double>);
+    Localization(ros::NodeHandle, std::vector<int>, std::vector<double>);
 
     void solve();
 
@@ -97,6 +97,8 @@ public:
 private:
 
     Jeffsan::CPPTimer timer;
+
+    ros::Publisher pose_pub;
 
 // for robots
     map<unsigned char, Robot> robots;

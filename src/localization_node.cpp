@@ -45,12 +45,16 @@ int main(int argc, char** argv)
     if(n.getParam("/uwb/nodesId", nodesId))
         for (auto it:nodesId)
             ROS_WARN("Get node ID: %d", it);
+    else
+        ROS_ERROR("Can't get parameter nodesId from UWB");
 
     if(n.getParam("/uwb/nodesPos", nodesPos))
         for(auto it:nodesPos)
             ROS_WARN("Get node position: %4.2f", it);
+    else
+        ROS_ERROR("Can't get parameter nodesPos from UWB");
 
-    Localization localization(nodesId, nodesPos);
+    Localization localization(n, nodesId, nodesPos);
 
     ros::Subscriber pose_sub = n.subscribe("pose", 1000, &Localization::addPoseEdge, &localization);
 

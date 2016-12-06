@@ -28,8 +28,10 @@
 
 #include "localization.h"
 
-Localization::Localization(std::vector<int> nodesId, std::vector<double> nodesPos)
+Localization::Localization(ros::NodeHandle n, std::vector<int> nodesId, std::vector<double> nodesPos)
 {
+    pose_pub = n.advertise<geometry_msgs::PoseStamped>("optimized/pose", 1);
+
     solver = new Solver();
 
     solver->setBlockOrdering(false);
@@ -40,9 +42,9 @@ Localization::Localization(std::vector<int> nodesId, std::vector<double> nodesPo
 
     optimizer.setAlgorithm(optimizationsolver);
 
-    optimizer.setVerbose(true);
+    optimizer.setVerbose(false);
 
-    iteration_max = 50;
+    iteration_max = 80;
 
     self_id = nodesId.back();
 
@@ -66,11 +68,19 @@ void Localization::solve()
 {
     optimizer.initializeOptimization();
 
-    optimizer.save("/home/jeffsan/before.g2o");
-
     optimizer.optimize(iteration_max);
 
-    optimizer.save("/home/jeffsan/after.g2o");
+    auto vertex = robots.at(self_id).last_vertex()->estimate();
+
+    geometry_msgs::PoseStamped pose;
+
+    pose.header = robots.at(self_id).last_header();
+
+    pose.header.frame_id = "world";
+
+    tf::poseEigenToMsg(vertex, pose.pose);
+
+    pose_pub.publish(pose);
 
     ROS_INFO("Localization: graph optimized!");
 }
