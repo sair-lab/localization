@@ -105,6 +105,8 @@ private:
 
     unsigned char self_id;
 
+    double robot_max_velocity;
+
 // for g2o solver
     Solver *solver;
 

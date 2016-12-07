@@ -44,7 +44,9 @@ Localization::Localization(ros::NodeHandle n, std::vector<int> nodesId, std::vec
 
     optimizer.setVerbose(false);
 
-    iteration_max = 80;
+    iteration_max = 20;
+
+    robot_max_velocity = 2.0;
 
     self_id = nodesId.back();
 
@@ -140,14 +142,14 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     if (!robots.at(uwb->requester_id).is_static())
     {
         ROS_WARN("adding requester trajectory edge");
-        auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, 1.0*dt_requester*dt_requester);
+        auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, robot_max_velocity*robot_max_velocity*dt_requester*dt_requester);
         optimizer.addEdge(edge_requester_range);
     }
 
     if (!robots.at(uwb->responder_id).is_static())
     {
         ROS_WARN("adding responder trajectory edge");
-        auto edge_responder_range = create_range_edge(vertex_last_responder, vertex_responder, 0, 1.0*dt_responder*dt_responder);
+        auto edge_responder_range = create_range_edge(vertex_last_responder, vertex_responder, 0, robot_max_velocity*robot_max_velocity*dt_responder*dt_responder);
         optimizer.addEdge(edge_responder_range);
     }
 
