@@ -34,6 +34,9 @@ void Robot::init(g2o::SparseOptimizer& optimizer, Eigen::Isometry3d vertex_init)
     index = 0;
     velocity = geometry_msgs::TwistWithCovariance();
 
+    path = new nav_msgs::Path();
+    path->poses = vector<geometry_msgs::PoseStamped>(trajectory_length, geometry_msgs::PoseStamped());
+
     for (size_t i = 0; i < trajectory_length; ++i)
     {
         g2o::VertexSE3* vertex = new g2o::VertexSE3();
@@ -44,11 +47,22 @@ void Robot::init(g2o::SparseOptimizer& optimizer, Eigen::Isometry3d vertex_init)
 
         vertices.push_back(vertex);
 
+        geometry_msgs::PoseStamped pose;
+
         if(FLAG_STATIC)
             vertex->setFixed(true);
 
         optimizer.addVertex(vertex);
     }
+}
+
+
+nav_msgs::Path* Robot::vertices2path()
+{
+    for (size_t i= 0; i < trajectory_length; ++i)
+        tf::poseEigenToMsg(vertices[(index+1+i)%trajectory_length]->estimate(), path->poses[i].pose);
+
+    return path;
 }
 
 

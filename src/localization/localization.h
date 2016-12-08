@@ -100,6 +100,8 @@ private:
 
     ros::Publisher pose_pub;
 
+    ros::Publisher path_pub;
+
 // for robots
     map<unsigned char, Robot> robots;
 

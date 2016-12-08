@@ -32,6 +32,8 @@ Localization::Localization(ros::NodeHandle n, std::vector<int> nodesId, std::vec
 {
     pose_pub = n.advertise<geometry_msgs::PoseStamped>("optimized/pose", 1);
 
+    path_pub = n.advertise<nav_msgs::Path>("optimized/path", 1);
+
     solver = new Solver();
 
     solver->setBlockOrdering(false);
@@ -44,7 +46,7 @@ Localization::Localization(ros::NodeHandle n, std::vector<int> nodesId, std::vec
 
     optimizer.setVerbose(false);
 
-    iteration_max = 20;
+    iteration_max = 5;
 
     robot_max_velocity = 2.0;
 
@@ -83,6 +85,12 @@ void Localization::solve()
     tf::poseEigenToMsg(vertex, pose.pose);
 
     pose_pub.publish(pose);
+
+    nav_msgs::Path* path = robots.at(self_id).vertices2path();
+
+    path->header = pose.header;
+
+    path_pub.publish(*path);
 
     ROS_INFO("Localization: graph optimized!");
 }

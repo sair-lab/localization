@@ -53,6 +53,7 @@
 #include "types_edge_se3range.h"
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/TwistWithCovariance.h>
+#include <nav_msgs/Path.h>
 
 using namespace std;
 
@@ -89,6 +90,8 @@ public:
 
     std_msgs::Header last_header();
 
+    nav_msgs::Path* vertices2path();
+
 private:
 
     map<unsigned char, std_msgs::Header> headers;
@@ -96,6 +99,8 @@ private:
     std_msgs::Header header;
 
     vector<g2o::VertexSE3*> vertices; //sensor type-> vertices
+
+    nav_msgs::Path* path;
 
     map<unsigned char, size_t> type_index; //sensor type -> current vertex index
 
