@@ -32,6 +32,8 @@ Localization::Localization(ros::NodeHandle n, std::vector<int> nodesId, std::vec
 {
     pose_pub = n.advertise<geometry_msgs::PoseStamped>("optimized/pose", 1);
 
+    path_pub = n.advertise<geometry_msgs::PoseStamped>("optimized/path", 1);
+
     solver = new Solver();
 
     solver->setBlockOrdering(false);
@@ -83,6 +85,8 @@ void Localization::solve()
     tf::poseEigenToMsg(vertex, pose.pose);
 
     pose_pub.publish(pose);
+
+    path_pub.publish(*(robots.at(self_id).vertices2path()));
 
     ROS_INFO("Localization: graph optimized!");
 }
