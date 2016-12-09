@@ -77,7 +77,9 @@ public:
 
     void init(g2o::SparseOptimizer&, Eigen::Isometry3d vertex_init=Eigen::Isometry3d::Identity());
 
-    bool is_static(){return FLAG_STATIC;};
+    bool not_static(){return ~FLAG_STATIC;};
+
+    bool is_static() {return FLAG_STATIC;};
 
     g2o::VertexSE3* new_vertex(unsigned char, std_msgs::Header, g2o::SparseOptimizer&);
 

@@ -90,7 +90,7 @@ public:
 
     void addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&);
 
-    void addImuEdge(const sensor_msgs::Imu::ConstPtr&);
+    void addImuEdge(const uwb_driver::UwbRange::ConstPtr&,const sensor_msgs::Imu::ConstPtr&);
 
     void addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped::ConstPtr&);
 
@@ -117,6 +117,15 @@ private:
     g2o::SparseOptimizer optimizer;
 
     int iteration_max;
+
+    int uwb_number;
+
+    double start_time;
+
+    double judge;
+
+    g2o::VertexSE3* last_last_vertex = new g2o::VertexSE3();
+
 
 // for data convertion
     inline g2o::EdgeSE3* create_se3_edge_from_twist(g2o::VertexSE3*, g2o::VertexSE3*, geometry_msgs::TwistWithCovariance&, double);

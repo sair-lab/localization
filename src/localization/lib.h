@@ -31,7 +31,6 @@
 #define EIGEN_USE_MKL_ALL
 #include <Eigen/Dense>
 #include <unsupported/Eigen/FFT>
-#include <fftw3.h>
 #include <stdio.h>
 #include <math.h>
 #include <cstdlib>
