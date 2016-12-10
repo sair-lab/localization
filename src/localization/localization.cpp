@@ -147,19 +147,19 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, pow(uwb->distance_err, 2));
     optimizer.addEdge(edge);
 
-    if (!robots.at(uwb->requester_id).is_static())
-    {
-        ROS_WARN("adding requester trajectory edge");
-        auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, robot_max_velocity*robot_max_velocity*dt_requester*dt_requester);
-        optimizer.addEdge(edge_requester_range);
-    }
+    // if (!robots.at(uwb->requester_id).is_static())
+    // {
+    //     ROS_WARN("adding requester trajectory edge");
+    //     auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, robot_max_velocity*robot_max_velocity*dt_requester*dt_requester);
+    //     optimizer.addEdge(edge_requester_range);
+    // }
 
-    if (!robots.at(uwb->responder_id).is_static())
-    {
-        ROS_WARN("adding responder trajectory edge");
-        auto edge_responder_range = create_range_edge(vertex_last_responder, vertex_responder, 0, robot_max_velocity*robot_max_velocity*dt_responder*dt_responder);
-        optimizer.addEdge(edge_responder_range);
-    }
+    // if (!robots.at(uwb->responder_id).is_static())
+    // {
+    //     ROS_WARN("adding responder trajectory edge");
+    //     auto edge_responder_range = create_range_edge(vertex_last_responder, vertex_responder, 0, robot_max_velocity*robot_max_velocity*dt_responder*dt_responder);
+    //     optimizer.addEdge(edge_responder_range);
+    // }
 
     ROS_WARN("Localization: added range edge id: %d", uwb->header.seq);
 
