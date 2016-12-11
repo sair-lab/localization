@@ -61,7 +61,7 @@ Localization::Localization(ros::NodeHandle n, std::vector<int> nodesId, std::vec
     robots.emplace(self_id, Robot(self_id%100, false, optimizer));
     ROS_WARN("Init self robot ID: %d with moving option", self_id);
 
-    for (size_t i = 0; i < nodesPos.size()/3; ++i)
+    for (size_t i = 0; i < nodesId.size()-1; ++i)
     {
         robots.emplace(nodesId[i], Robot(nodesId[i]%100, true));
         Eigen::Isometry3d pose = Eigen::Isometry3d::Identity();
