@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+
+<launch>
+
+    <include file="$(find uwb_driver)/launch/uwb_driver.launch"/>
+
+    <include file="$(find viconxbee)/launch/viconxbee.launch"/>
+
+    <node name="uwb_driver_record" pkg="rosbag" type="record" args="-o $(find localization)/bag/uwb_ /uwb_data_info /uwb_endorange_info /viconxbee_node/mocap/imu /viconxbee_node/mocap/pose /viconxbee_node/viconPoseTopic"/>
+  
+</launch>
+

@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+
+    <node pkg="myahrs_driver" type="myahrs_driver" name="myahrs_driver">
+    	<param name="port" value="/dev/sensors/acm_000001010000" />
+    	<param name="baud_rate" value="115200" />
+    	<param name="frame_id" value="imu_link"/>
+    	<param name="parent_frame_id" value="local_origin"/>
+  	</node>
+
+</launch>
