@@ -32,6 +32,8 @@ Localization::Localization(ros::NodeHandle n, std::vector<int> nodesId, std::vec
 {
     pose_pub = n.advertise<geometry_msgs::PoseStamped>("optimized/pose", 1);
 
+    path_pub = n.advertise<nav_msgs::Path>("optimized/path", 1);
+
     solver = new Solver();
 
     solver->setBlockOrdering(false);
@@ -52,7 +54,7 @@ Localization::Localization(ros::NodeHandle n, std::vector<int> nodesId, std::vec
 
     last_last_vertex->setEstimate(g2o::SE3Quat(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(0,0,0)));
 
-    iteration_max = 20;
+    iteration_max = 10;
 
     robot_max_velocity = 2.0;
 
@@ -91,6 +93,12 @@ void Localization::solve()
     tf::poseEigenToMsg(vertex, pose.pose);
 
     pose_pub.publish(pose);
+
+    nav_msgs::Path* path = robots.at(self_id).vertices2path();
+ 
+    path->header = pose.header;
+ 
+    path_pub.publish(*path);
 
     // ROS_INFO("Localization: graph optimized!");
 
@@ -158,19 +166,19 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, pow(uwb->distance_err, 2));
     optimizer.addEdge(edge);
 
-    if (!robots.at(uwb->requester_id).is_static())
-    {
-        ROS_WARN("adding requester trajectory edge");
-        auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, robot_max_velocity*robot_max_velocity*dt_requester*dt_requester);
-        optimizer.addEdge(edge_requester_range);
-    }
+    // if (!robots.at(uwb->requester_id).is_static())
+    // {
+    //     ROS_WARN("adding requester trajectory edge");
+    //     auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, robot_max_velocity*robot_max_velocity*dt_requester*dt_requester);
+    //     optimizer.addEdge(edge_requester_range);
+    // }
 
-    if (!robots.at(uwb->responder_id).is_static())
-    {
-        ROS_WARN("adding responder trajectory edge");
-        auto edge_responder_range = create_range_edge(vertex_last_responder, vertex_responder, 0, robot_max_velocity*robot_max_velocity*dt_responder*dt_responder);
-        optimizer.addEdge(edge_responder_range);
-    }
+    // if (!robots.at(uwb->responder_id).is_static())
+    // {
+    //     ROS_WARN("adding responder trajectory edge");
+    //     auto edge_responder_range = create_range_edge(vertex_last_responder, vertex_responder, 0, robot_max_velocity*robot_max_velocity*dt_responder*dt_responder);
+    //     optimizer.addEdge(edge_responder_range);
+    // }
 
     ROS_WARN("Localization: added range edge id: %d", uwb->header.seq);
 
@@ -244,12 +252,11 @@ void Localization::addImuEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const se
     {
         last_vertex_velocity = vertex_last_requester->estimate().translation() - last_last_vertex->estimate().translation();
         judge = last_vertex_velocity.norm();
-        cout << "judge" << '\n' <<  judge <<endl;
+        // cout << "judge" << '\n' <<  judge <<endl;
 
         last_vertex_velocity = last_vertex_velocity/dt_requester;
 
         // last_vertex_velocity = Vector3d::Identity()*2;
-
         // if (last_vertex_velocity.norm()>=2*sqrt(3))
         // {
         //     last_vertex_velocity << 2,2,2;  
@@ -316,7 +323,6 @@ void Localization::addImuEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const se
 
     // cout << "information inverse" << '\n' <<  SE3information.inverse().matrix() << endl;
 
-
     // requester to requester's last vertex edge
 
     if (requester_not_static)
@@ -336,7 +342,6 @@ void Localization::addImuEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const se
         edge->setRobustKernel(new g2o::RobustKernelHuber());
     
         optimizer.addEdge( SE3edge );
-
         
     }
 
