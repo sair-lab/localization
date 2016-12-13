@@ -127,7 +127,7 @@ private:
 
     inline geometry_msgs::Twist pose2twist(geometry_msgs::Pose, geometry_msgs::Pose, double);
 
-    inline Eigen::Isometry3d twist2transform(geometry_msgs::TwistWithCovariance&, Eigen::ArrayXXd&, double);
+    inline Eigen::Isometry3d twist2transform(geometry_msgs::TwistWithCovariance&, Eigen::MatrixXd&, double);
 };
 
 #endif

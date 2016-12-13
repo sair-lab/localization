@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
 <launch>
 
-	<param name="use_sim_time" value="true" />
+	<!-- <param name="use_sim_time" value="true" /> -->
 
     <rosparam param="/uwb/nodesId"> [100, 101, 102, 103, 204]</rosparam>
     <rosparam param="/uwb/nodesPos">[3, 3, 0.65, 3, -3, 0.25, -3, -3, 0.25, -3, 3, 0.25, 0, 0, 1.0]</rosparam>
 
     <node name="rosbag_play" pkg="rosbag" type="play" output="screen" args="-s 10 -l $(find localization)/bag/uwb_imu_square.bag"/>
 
-    <node pkg="tf" type="static_transform_publisher" name="uwb_to_vicon_tf" args="0 0 0 0 0 0  vicon_global_frame world 20" />
+    <node pkg="tf" type="static_transform_publisher" name="uwb_to_vicon_tf" args="0 0 0 0 0 0 vicon world 20" />
   
 </launch>
 
