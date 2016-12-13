@@ -211,7 +211,7 @@ inline Eigen::Isometry3d Localization::twist2transform(geometry_msgs::TwistWithC
 
     tf::transformTFToEigen(transform, measurement);
 
-    Eigen::Map<Eigen::ArrayXXd> cov(twist.covariance.data(), 6, 6);
+    Eigen::Map<Eigen::MatrixXd> cov(twist.covariance.data(), 6, 6);
 
     covariance = cov*dt*dt;
 
