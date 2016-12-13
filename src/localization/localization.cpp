@@ -193,7 +193,7 @@ void Localization::addImuEdge(const sensor_msgs::Imu::ConstPtr& imu)
 }
 
 
-inline Eigen::Isometry3d Localization::twist2transform(geometry_msgs::TwistWithCovariance& twist, Eigen::ArrayXXd& covariance, double dt)
+inline Eigen::Isometry3d Localization::twist2transform(geometry_msgs::TwistWithCovariance& twist, Eigen::MatrixXd& covariance, double dt)
 {
     tf::Vector3 translation, euler;
 
@@ -211,7 +211,7 @@ inline Eigen::Isometry3d Localization::twist2transform(geometry_msgs::TwistWithC
 
     tf::transformTFToEigen(transform, measurement);
 
-    Eigen::Map<Eigen::ArrayXXd> cov(twist.covariance.data(), 6, 6);
+    Eigen::Map<Eigen::MatrixXd> cov(twist.covariance.data(), 6, 6);
 
     covariance = cov*dt*dt;
 
@@ -227,7 +227,7 @@ inline g2o::EdgeSE3* Localization::create_se3_edge_from_twist(g2o::VertexSE3* ve
 
     edge->vertices()[1] = vetex2;
 
-    Eigen::ArrayXXd covariance;
+    Eigen::MatrixXd covariance;
 
     auto measurement = twist2transform(twist, covariance, dt);
 
