@@ -54,9 +54,9 @@ Localization::Localization(ros::NodeHandle n, std::vector<int> nodesId, std::vec
 
     last_last_vertex->setEstimate(g2o::SE3Quat(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(0,0,0)));
 
-    iteration_max = 10;
+    iteration_max = 5;
 
-    robot_max_velocity = 2.0;
+    robot_max_velocity = 3.0;
 
     self_id = nodesId.back();
 
@@ -308,6 +308,8 @@ void Localization::addImuEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const se
 
     // covariance_orientation = covariance_orientation*pow(dt_requester,2);
 
+    // covariance_orientation = covariance_orientation*dt_requester;
+
     covariance_translation << robot_max_velocity*dt_requester,0,0,
                               0,robot_max_velocity*dt_requester,0,
                               0,0,robot_max_velocity*dt_requester;
@@ -319,7 +321,7 @@ void Localization::addImuEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const se
 
     // cout << "orientation" << '\n' <<  covariance_orientation <<endl;
 
-    // cout << "information" << '\n' <<  SE3information <<endl;
+    cout << "information" << '\n' <<  SE3information <<endl;
 
     // cout << "information inverse" << '\n' <<  SE3information.inverse().matrix() << endl;
 
