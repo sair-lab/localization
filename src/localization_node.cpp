@@ -60,7 +60,9 @@ int main(int argc, char** argv)
 
     ros::Subscriber range_sub = n.subscribe("range", 1, &Localization::addRangeEdge, &localization);
 
-    ros::Subscriber twist_sub = n.subscribe("twist", 1, &Localization::addTwistEdge, &localization);
+    // ros::Subscriber twist_sub = n.subscribe("twist", 1, &Localization::addTwistEdge, &localization);
+
+    ros::Subscriber twist_sub = n.subscribe("dvs", 1, &Localization::addTwistEdge, &localization);
 
     ros::Subscriber imu_sub = n.subscribe("imu", 1, &Localization::addImuEdge, &localization);
 
