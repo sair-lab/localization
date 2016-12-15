@@ -6,6 +6,7 @@
 		<remap from="~/range" to="/uwb_endorange_info"/>
 		<remap from="~/imu" to="/imu/data"/>
 		<remap from="~/twist" to="/viconxbee_node/mocap/twist"/>
+		<param name="localization/filename_prefix" value="$(find localization)/bag/estimation" />
     </node>
 
 </launch>
