@@ -109,6 +109,8 @@ private:
 
     double robot_max_velocity;
 
+    g2o::VertexSE3* key_vertex;
+
 // for g2o solver
     Solver *solver;
 

@@ -103,18 +103,14 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 {
     geometry_msgs::PoseWithCovarianceStamped pose_cov(*pose_cov_);
 
-    auto last_vertex = robots.at(self_id).last_vertex(sensor_type.pose);
-
-    g2o::VertexSE3* new_vertex;
-
     if (pose_cov.header.frame_id != robots.at(self_id).last_header(sensor_type.pose).frame_id)
-        new_vertex = robots.at(self_id).new_vertex(sensor_type.pose, pose_cov.header, optimizer);
-    else
-        new_vertex = robots.at(self_id).new_vertex(sensor_type.general, pose_cov.header, optimizer);
+        key_vertex = robots.at(self_id).last_vertex(sensor_type.pose);
+
+    auto new_vertex = robots.at(self_id).new_vertex(sensor_type.pose, pose_cov.header, optimizer);
 
     g2o::EdgeSE3 *edge = new g2o::EdgeSE3();
 
-    edge->vertices()[0] = last_vertex;
+    edge->vertices()[0] = key_vertex;
 
     edge->vertices()[1] = new_vertex;
 
@@ -132,7 +128,7 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 
     optimizer.addEdge(edge);
 
-    ROS_INFO("Localization: added pose edge id: %d frame_id: %s", pose_cov.header.seq, pose_cov.header.frame_id.c_str());
+    ROS_INFO("Localization: added pose edge id: %d frame_id: %s;", pose_cov.header.seq, pose_cov.header.frame_id.c_str());
 }
 
 
@@ -183,6 +179,8 @@ void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped:
     auto new_vertex = robots.at(self_id).new_vertex(sensor_type.twist, twist.header, optimizer);
 
     auto edge = create_se3_edge_from_twist(last_vertex, new_vertex, twist.twist, dt);
+
+    // edge->setLevel(1);
 
     optimizer.addEdge(edge);
 
