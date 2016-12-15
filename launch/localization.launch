@@ -1,12 +1,13 @@
 <?xml version="1.0"?>
 <launch>
 
-    <node pkg="localization" type="localization_node" name="localization_node" output="screen">
+	<node pkg="localization" type="localization_node" name="localization_node" output="screen">
 		<remap from="~/pose" to="/ni_slam_node/incremental_pose_cov"/>
 		<remap from="~/range" to="/uwb_endorange_info"/>
 		<remap from="~/imu" to="/imu/data"/>
-		<!-- <remap from="~/imu" to="/raw_imu"/> -->
+			<!-- <remap from="~/imu" to="/raw_imu"/> -->
 		<remap from="~/twist" to="/ni_slam_node/twiststamped"/>
-    </node>
+	</node>
 
+   	<node pkg="localization" type="error_node" name="error_node" output="screen"/>
 </launch>

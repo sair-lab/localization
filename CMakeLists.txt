@@ -151,6 +151,22 @@ target_link_libraries(localization_node
     localization
 )
 
+
+add_executable(error_node
+    src/error.cpp
+)
+
+add_dependencies(error_node 
+    ${${PROJECT_NAME}_EXPORTED_TARGETS}
+    ${catkin_EXPORTED_TARGETS}
+)
+
+target_link_libraries(error_node
+    ${EIGEN3_LIBRARIES}
+    ${catkin_LIBRARIES}
+    localization
+)
+
 #############
 ## Install ##
 #############

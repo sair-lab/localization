@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+
+<node pkg="localization" type="error_node" name="error_node" output="screen">
+</node>
+
+</launch>
