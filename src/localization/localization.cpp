@@ -48,7 +48,7 @@ Localization::Localization(ros::NodeHandle n, std::vector<int> nodesId, std::vec
 
     iteration_max = 20;
 
-    robot_max_velocity = 1.0;
+    robot_max_velocity = 1;
 
     self_id = nodesId.back();
 
@@ -76,28 +76,16 @@ void Localization::solve()
 
     optimizer.optimize(iteration_max);
 
-    auto vertex = robots.at(self_id).last_vertex()->estimate();
-
-    geometry_msgs::PoseStamped pose;
-
-    pose.header = robots.at(self_id).last_header();
-
-    pose.header.frame_id = "world";
-
-    tf::poseEigenToMsg(vertex, pose.pose);
+    auto pose = robots.at(self_id).current_pose();
 
     pose_pub.publish(pose);
 
     if(flag_save_file)
         save_file(pose);
 
-    nav_msgs::Path* path = robots.at(self_id).vertices2path();
+    path_pub.publish(*robots.at(self_id).vertices2path());
 
-    path->header = pose.header;
-
-    path_pub.publish(*path);
-
-    ROS_INFO("Localization: graph optimized!");
+    ROS_INFO("Graph optimized with error: %f!", optimizer.chi2());
 
     timer.toc();
 }
@@ -153,7 +141,9 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
         auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, pow(uwb->distance_err, 2));
 
-        auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, robot_max_velocity*robot_max_velocity*dt_requester*dt_requester);
+        double cov = pow(robot_max_velocity*dt_requester/3, 2); //3 sigma priciple
+
+        auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, cov);
 
         optimizer.addEdge(edge_requester_range);
 
@@ -163,7 +153,7 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     }
     else
     {
-        auto edge = create_range_edge(vertex_last_requester, vertex_responder, uwb->distance, pow(0.1, 2));
+        auto edge = create_range_edge(vertex_last_requester, vertex_responder, uwb->distance, pow(uwb->distance_err, 2));
 
         optimizer.addEdge(edge);
 
@@ -172,7 +162,9 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
     if (!robots.at(uwb->responder_id).is_static())
     {
-        auto edge_responder_range = create_range_edge(vertex_last_responder, vertex_responder, 0, robot_max_velocity*robot_max_velocity*dt_responder*dt_responder);
+        double cov = pow(robot_max_velocity*dt_responder/3, 2); //3 sigma priciple
+
+        auto edge_responder_range = create_range_edge(vertex_last_responder, vertex_responder, 0, cov);
 
         optimizer.addEdge(edge_responder_range);
 
