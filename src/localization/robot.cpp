@@ -30,7 +30,7 @@
 
 void Robot::init(g2o::SparseOptimizer& optimizer, Eigen::Isometry3d vertex_init)
 {
-    trajectory_length = 100;
+    trajectory_length = 200;
     index = 0;
     velocity = geometry_msgs::TwistWithCovariance();
 
@@ -54,6 +54,8 @@ void Robot::init(g2o::SparseOptimizer& optimizer, Eigen::Isometry3d vertex_init)
 
         optimizer.addVertex(vertex);
     }
+
+    header.frame_id = "none";
 }
 
 
