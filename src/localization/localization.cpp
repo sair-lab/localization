@@ -76,6 +76,27 @@ void Localization::solve()
 
     optimizer.optimize(iteration_max);
 
+    auto edges = optimizer.activeEdges();
+
+    // if(edges.size()>100)
+    // {
+    //     for(auto edge:edges)
+    //         if (edge->chi2() > 2.0 && edge->dimension () ==1)
+    //         {
+    //             edge->setLevel(1);
+    //             ROS_WARN("Removed one Range Edge");
+    //         }
+    // }
+    // optimizer.optimize(iteration_max);
+
+    ROS_INFO("Graph optimized with error: %f!", optimizer.chi2());
+
+    timer.toc();
+}
+
+
+void Localization::publish()
+{
     auto pose = robots.at(self_id).current_pose();
 
     pose_pub.publish(pose);
@@ -84,10 +105,6 @@ void Localization::solve()
         save_file(pose);
 
     path_pub.publish(*robots.at(self_id).vertices2path());
-
-    ROS_INFO("Graph optimized with error: %f!", optimizer.chi2());
-
-    timer.toc();
 }
 
 
@@ -121,6 +138,10 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
     optimizer.addEdge(edge);
 
     ROS_INFO("Localization: added pose edge id: %d frame_id: %s;", pose_cov.header.seq, pose_cov.header.frame_id.c_str());
+
+    solve();
+
+    publish();
 }
 
 
@@ -172,6 +193,8 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     }
 
     solve();
+
+    publish();
 }
 
 
@@ -190,6 +213,8 @@ void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped:
     optimizer.addEdge(edge);
 
     ROS_INFO("Localization: added twist edge id: %d!", twist.header.seq);
+
+    solve();
 }
 
 

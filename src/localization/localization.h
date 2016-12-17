@@ -86,6 +86,8 @@ public:
 
     void solve();
 
+    void publish();
+
     void addRangeEdge(const uwb_driver::UwbRange::ConstPtr&);
 
     void addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&);

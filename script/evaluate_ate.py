@@ -78,7 +78,7 @@ def align(model,data):
         
     return rot,trans,trans_error
 
-def plot_traj(ax,stamps,traj,style,color,label):
+def plot_traj(ax,stamps,traj,style,color,label=''):
     """
     Plot a trajectory using matplotlib. 
     
@@ -179,8 +179,8 @@ if __name__=="__main__":
         from matplotlib.patches import Ellipse
         fig = plt.figure()
         ax = fig.add_subplot(111)
-        plot_traj(ax,first_stamps,first_xyz_full.transpose().A,'-',"black","ground truth")
-        plot_traj(ax,second_stamps,second_xyz_full_aligned.transpose().A,'-',"blue","estimated")
+        plot_traj(ax,first_stamps,first_xyz_full.transpose().A,'-',"black")
+        plot_traj(ax,second_stamps,second_xyz_full_aligned.transpose().A,'-',"blue")
 
         label="difference"
         for (a,b),(x1,y1,z1),(x2,y2,z2) in zip(matches,first_xyz.transpose().A,second_xyz_aligned.transpose().A):
@@ -191,5 +191,6 @@ if __name__=="__main__":
             
         ax.set_xlabel('x [m]')
         ax.set_ylabel('y [m]')
+        plt.show()
         plt.savefig(args.plot,dpi=90)
         
