@@ -76,7 +76,9 @@ void Localization::solve()
 
     optimizer.optimize(iteration_max);
 
-    auto edges = optimizer.activeEdges();
+    optimizer.save("/home/eee/after.g2o");
+
+    // auto edges = optimizer.activeEdges();
 
     // if(edges.size()>100)
     // {
@@ -150,6 +152,8 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
     double dt_responder = uwb->header.stamp.toSec() - robots.at(uwb->responder_id).last_header().stamp.toSec();
 
+    double cov_requester = pow(robot_max_velocity*dt_requester/3, 2); //3 sigma priciple
+
     auto vertex_last_requester = robots.at(uwb->requester_id).last_vertex();
     auto vertex_last_responder = robots.at(uwb->responder_id).last_vertex();
     auto vertex_responder = robots.at(uwb->responder_id).new_vertex(sensor_type.range, uwb->header, optimizer);
@@ -162,9 +166,7 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
         auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, pow(uwb->distance_err, 2));
 
-        double cov = pow(robot_max_velocity*dt_requester/3, 2); //3 sigma priciple
-
-        auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, cov);
+        auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, cov_requester);
 
         optimizer.addEdge(edge_requester_range);
 
@@ -174,7 +176,7 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     }
     else
     {
-        auto edge = create_range_edge(vertex_last_requester, vertex_responder, uwb->distance, pow(uwb->distance_err, 2));
+        auto edge = create_range_edge(vertex_last_requester, vertex_responder, uwb->distance, pow(uwb->distance_err, 2) + cov_requester);
 
         optimizer.addEdge(edge);
 
@@ -183,9 +185,9 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
     if (!robots.at(uwb->responder_id).is_static())
     {
-        double cov = pow(robot_max_velocity*dt_responder/3, 2); //3 sigma priciple
+        double cov_responder = pow(robot_max_velocity*dt_responder/3, 2); //3 sigma priciple
 
-        auto edge_responder_range = create_range_edge(vertex_last_responder, vertex_responder, 0, cov);
+        auto edge_responder_range = create_range_edge(vertex_last_responder, vertex_responder, 0, cov_responder);
 
         optimizer.addEdge(edge_responder_range);
 
