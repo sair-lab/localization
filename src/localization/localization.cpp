@@ -56,7 +56,7 @@ Localization::Localization(ros::NodeHandle n, std::vector<int> nodesId, std::vec
 
     iteration_max = 5;
 
-    robot_max_velocity = 3.0;
+    robot_max_velocity = 2.0;
 
     self_id = nodesId.back();
 
