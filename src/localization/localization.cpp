@@ -76,10 +76,9 @@ void Localization::solve()
 
     optimizer.optimize(iteration_max);
 
-    optimizer.save("/home/eee/after.g2o");
+    // optimizer.save("/home/eee/after.g2o");
 
     // auto edges = optimizer.activeEdges();
-
     // if(edges.size()>100)
     // {
     //     for(auto edge:edges)
