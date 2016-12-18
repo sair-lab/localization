@@ -149,7 +149,7 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 
 void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 {
-    double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
+double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
     double dt_responder = uwb->header.stamp.toSec() - robots.at(uwb->responder_id).last_header().stamp.toSec();
 
     double cov_requester = pow(robot_max_velocity*dt_requester/3, 2); //3 sigma priciple
@@ -158,21 +158,6 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     auto vertex_last_responder = robots.at(uwb->responder_id).last_vertex();
     auto vertex_responder = robots.at(uwb->responder_id).new_vertex(sensor_type.range, uwb->header, optimizer);
 
-<<<<<<< HEAD
-    // if (!robots.at(uwb->requester_id).is_static())
-    // {
-    //     ROS_WARN("adding requester trajectory edge");
-    //     auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, robot_max_velocity*robot_max_velocity*dt_requester*dt_requester);
-    //     optimizer.addEdge(edge_requester_range);
-    // }
-
-    // if (!robots.at(uwb->responder_id).is_static())
-    // {
-    //     ROS_WARN("adding responder trajectory edge");
-    //     auto edge_responder_range = create_range_edge(vertex_last_responder, vertex_responder, 0, robot_max_velocity*robot_max_velocity*dt_responder*dt_responder);
-    //     optimizer.addEdge(edge_responder_range);
-    // }
-=======
     auto frame_id = robots.at(uwb->requester_id).last_header().frame_id;
 
     if(frame_id == uwb->header.frame_id || frame_id == "none")
@@ -205,7 +190,6 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
         auto edge_responder_range = create_range_edge(vertex_last_responder, vertex_responder, 0, cov_responder);
 
         optimizer.addEdge(edge_responder_range);
->>>>>>> bacc451ee34fa4c8c13b6054a982d6cd2e6526d9
 
         ROS_INFO("added responder trajectory edge;");
     }
