@@ -5,7 +5,8 @@
 		<remap from="~/pose" to="/ni_slam_node/incremental_pose_cov"/>
 		<remap from="~/range" to="/uwb_endorange_info"/>
 		<remap from="~/imu" to="/imu/data"/>
-		<remap from="~/twist" to="/viconxbee_node/mocap/twist"/>
+		<remap from="~/twist" to="/dvs/twist"/>
+		<param name="localization/filename_prefix" value="$(find localization)/bag/real_time" />
     </node>
 
 </launch>

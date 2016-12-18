@@ -86,6 +86,8 @@ public:
 
     void solve();
 
+    void publish();
+
     void addRangeEdge(const uwb_driver::UwbRange::ConstPtr&);
 
     void addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&);
@@ -109,6 +111,8 @@ private:
 
     double robot_max_velocity;
 
+    g2o::VertexSE3* key_vertex;
+
 // for g2o solver
     Solver *solver;
 
@@ -120,6 +124,13 @@ private:
 
     int iteration_max;
 
+// for debug
+    string filename;
+
+    ofstream file;
+
+    bool flag_save_file;
+
 // for data convertion
     inline g2o::EdgeSE3* create_se3_edge_from_twist(g2o::VertexSE3*, g2o::VertexSE3*, geometry_msgs::TwistWithCovariance&, double);
 
@@ -128,6 +139,12 @@ private:
     inline geometry_msgs::Twist pose2twist(geometry_msgs::Pose, geometry_msgs::Pose, double);
 
     inline Eigen::Isometry3d twist2transform(geometry_msgs::TwistWithCovariance&, Eigen::MatrixXd&, double);
+
+    inline void save_file(geometry_msgs::PoseStamped);
+
+public:
+    void set_file(string name_prefix);
+
 };
 
 #endif
