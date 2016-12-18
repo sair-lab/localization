@@ -47,6 +47,8 @@ int main(int argc, char** argv)
 
 	std::vector<double> nodesPos;
 
+    string filename_prefix;
+
     if(n.getParam("/uwb/nodesId", nodesId))
         for (auto it:nodesId)
             ROS_WARN("Get node ID: %d", it);
@@ -61,8 +63,15 @@ int main(int argc, char** argv)
 
     Localization localization(n, nodesId, nodesPos);
 
+    if(n.getParam("localization/filename_prefix", filename_prefix))
+    {
+        ROS_WARN("Get filename prefix: %s", filename_prefix.c_str());
+        localization.set_file(filename_prefix);
+    }
+    else
+        ROS_WARN("Won't save any files!");
 
-    // ros::Subscriber pose_sub = n.subscribe("pose", 1000, &Localization::addPoseEdge, &localization);
+    ros::Subscriber pose_sub = n.subscribe("pose", 1000, &Localization::addPoseEdge, &localization);
 
     // ros::Subscriber range_sub = n.subscribe("range", 1, &Localization::addRangeEdge, &localization);
 

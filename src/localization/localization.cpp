@@ -61,7 +61,7 @@ Localization::Localization(ros::NodeHandle n, std::vector<int> nodesId, std::vec
     self_id = nodesId.back();
 
     robots.emplace(self_id, Robot(self_id%100, false, optimizer));
-    ROS_WARN("Init self robot ID: %d with moving option", self_id);
+    ROS_INFO("Init self robot ID: %d with moving option", self_id);
 
     for (size_t i = 0; i < nodesId.size()-1; ++i)
     {
@@ -71,7 +71,7 @@ Localization::Localization(ros::NodeHandle n, std::vector<int> nodesId, std::vec
         pose(1,3) = nodesPos[i*3+1];
         pose(2,3) = nodesPos[i*3+2];
         robots.at(nodesId[i]).init(optimizer, pose);
-        ROS_WARN("Init robot ID: %d with position (%.2f,%.2f,%.2f)", nodesId[i], pose(0,3), pose(1,3), pose(2,3));
+        ROS_INFO("Init robot ID: %d with position (%.2f,%.2f,%.2f)", nodesId[i], pose(0,3), pose(1,3), pose(2,3));
     }
 }
 
@@ -94,16 +94,16 @@ void Localization::solve()
 
     pose_pub.publish(pose);
 
+    if(flag_save_file)
+        save_file(pose);
+
     nav_msgs::Path* path = robots.at(self_id).vertices2path();
- 
+
     path->header = pose.header;
- 
+
     path_pub.publish(*path);
 
-    // ROS_INFO("Localization: graph optimized!");
-
-    // optimizer.save( "result.g2o" );
-
+    ROS_INFO("Localization: graph optimized!");
 }
 
 
@@ -140,22 +140,14 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 
     optimizer.addEdge(edge);
 
-    ROS_WARN("Localization: added pose edge id: %d frame_id: %s", pose_cov.header.seq, pose_cov.header.frame_id.c_str());
+    ROS_INFO("Localization: added pose edge id: %d frame_id: %s", pose_cov.header.seq, pose_cov.header.frame_id.c_str());
 }
 
 
 void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 {
-    // if (!uwb_number)
-    // {
-    //     double start_time = uwb->header.stamp.toSec();
-    //     uwb_number =1;
-    // }
-
     double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
     double dt_responder = uwb->header.stamp.toSec() - robots.at(uwb->responder_id).last_header().stamp.toSec();
-
-    cout << "interval time" << uwb->header.stamp.toSec()-start_time <<endl;
 
     auto vertex_last_requester = robots.at(uwb->requester_id).last_vertex();
     auto vertex_last_responder = robots.at(uwb->responder_id).last_vertex();
@@ -166,21 +158,21 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, pow(uwb->distance_err, 2));
     optimizer.addEdge(edge);
 
-    // if (!robots.at(uwb->requester_id).is_static())
-    // {
-    //     ROS_WARN("adding requester trajectory edge");
-    //     auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, robot_max_velocity*robot_max_velocity*dt_requester*dt_requester);
-    //     optimizer.addEdge(edge_requester_range);
-    // }
+    if (!robots.at(uwb->requester_id).is_static())
+    {
+        ROS_INFO("adding requester trajectory edge");
+        auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, robot_max_velocity*robot_max_velocity*dt_requester*dt_requester);
+        optimizer.addEdge(edge_requester_range);
+    }
 
-    // if (!robots.at(uwb->responder_id).is_static())
-    // {
-    //     ROS_WARN("adding responder trajectory edge");
-    //     auto edge_responder_range = create_range_edge(vertex_last_responder, vertex_responder, 0, robot_max_velocity*robot_max_velocity*dt_responder*dt_responder);
-    //     optimizer.addEdge(edge_responder_range);
-    // }
+    if (!robots.at(uwb->responder_id).is_static())
+    {
+        ROS_INFO("adding responder trajectory edge");
+        auto edge_responder_range = create_range_edge(vertex_last_responder, vertex_responder, 0, robot_max_velocity*robot_max_velocity*dt_responder*dt_responder);
+        optimizer.addEdge(edge_responder_range);
+    }
 
-    ROS_WARN("Localization: added range edge id: %d", uwb->header.seq);
+    ROS_INFO("Localization: added range edge id: %d", uwb->header.seq);
 
     solve();
 
@@ -202,7 +194,7 @@ void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped:
 
     optimizer.addEdge(edge);
 
-    ROS_WARN("Localization: added twist edge id: %d!", twist.header.seq);
+    ROS_INFO("Localization: added twist edge id: %d!", twist.header.seq);
 }
 
 
@@ -366,7 +358,7 @@ void Localization::addImuEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const se
 }
 
 
-inline Eigen::Isometry3d Localization::twist2transform(geometry_msgs::TwistWithCovariance& twist, Eigen::ArrayXXd& covariance, double dt)
+inline Eigen::Isometry3d Localization::twist2transform(geometry_msgs::TwistWithCovariance& twist, Eigen::MatrixXd& covariance, double dt)
 {
     tf::Vector3 translation, euler;
 
@@ -384,7 +376,7 @@ inline Eigen::Isometry3d Localization::twist2transform(geometry_msgs::TwistWithC
 
     tf::transformTFToEigen(transform, measurement);
 
-    Eigen::Map<Eigen::ArrayXXd> cov(twist.covariance.data(), 6, 6);
+    Eigen::Map<Eigen::MatrixXd> cov(twist.covariance.data(), 6, 6);
 
     covariance = cov*dt*dt;
 
@@ -400,7 +392,7 @@ inline g2o::EdgeSE3* Localization::create_se3_edge_from_twist(g2o::VertexSE3* ve
 
     edge->vertices()[1] = vetex2;
 
-    Eigen::ArrayXXd covariance;
+    Eigen::MatrixXd covariance;
 
     auto measurement = twist2transform(twist, covariance, dt);
 
@@ -433,4 +425,37 @@ inline g2o::EdgeSE3Range* Localization::create_range_edge(g2o::VertexSE3* vertex
     edge->setRobustKernel(new g2o::RobustKernelHuber());
 
     return edge;
+}
+
+
+inline void Localization::save_file(geometry_msgs::PoseStamped pose)
+{
+    file.open(filename.c_str(), ios::app);
+
+    file<<boost::format("%.9f") % (pose.header.stamp.toSec())<<" "
+        <<pose.pose.position.x<<" "
+        <<pose.pose.position.y<<" "
+        <<pose.pose.position.z<<" "
+        <<pose.pose.orientation.x<<" "
+        <<pose.pose.orientation.y<<" "
+        <<pose.pose.orientation.z<<" "
+        <<pose.pose.orientation.w<<endl;
+    
+    file.close();
+}
+
+
+void Localization::set_file(string name_prefix)
+{
+    flag_save_file = true;
+    char s[30];
+    struct tm tim;
+    time_t now;
+    now = time(NULL);
+    tim = *(localtime(&now));
+    strftime(s,30,"_%Y_%b_%d_%H_%M_%S.txt",&tim);
+    filename = name_prefix + string(s);
+    file.open(filename.c_str(), ios::trunc|ios::out);
+    file<<"# "<<"iteration_max:"<<iteration_max<<"\n";
+    file.close();
 }

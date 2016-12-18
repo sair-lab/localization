@@ -152,16 +152,16 @@ target_link_libraries(localization_node
 )
 
 
-add_executable(error_node
-    src/error.cpp
+add_executable(pose2file_node
+    src/pose2file_node.cpp
 )
 
-add_dependencies(error_node 
+add_dependencies(pose2file_node 
     ${${PROJECT_NAME}_EXPORTED_TARGETS}
     ${catkin_EXPORTED_TARGETS}
 )
 
-target_link_libraries(error_node
+target_link_libraries(pose2file_node
     ${EIGEN3_LIBRARIES}
     ${catkin_LIBRARIES}
     localization

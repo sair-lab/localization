@@ -128,6 +128,12 @@ private:
 
     g2o::VertexSE3* last_last_vertex = new g2o::VertexSE3();
 
+// for debug
+    string filename;
+
+    ofstream file;
+
+    bool flag_save_file;
 
 // for data convertion
     inline g2o::EdgeSE3* create_se3_edge_from_twist(g2o::VertexSE3*, g2o::VertexSE3*, geometry_msgs::TwistWithCovariance&, double);
@@ -136,7 +142,13 @@ private:
 
     inline geometry_msgs::Twist pose2twist(geometry_msgs::Pose, geometry_msgs::Pose, double);
 
-    inline Eigen::Isometry3d twist2transform(geometry_msgs::TwistWithCovariance&, Eigen::ArrayXXd&, double);
+    inline Eigen::Isometry3d twist2transform(geometry_msgs::TwistWithCovariance&, Eigen::MatrixXd&, double);
+
+    inline void save_file(geometry_msgs::PoseStamped);
+
+public:
+    void set_file(string name_prefix);
+
 };
 
 #endif

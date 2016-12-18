@@ -102,6 +102,8 @@ private:
 
     vector<g2o::VertexSE3*> vertices; //sensor type-> vertices
 
+    nav_msgs::Path* path;
+
     map<unsigned char, size_t> type_index; //sensor type -> current vertex index
 
     size_t index; // current vertex index
@@ -113,8 +115,6 @@ private:
     int ID; // Robot ID
 
     bool FLAG_STATIC;
-
-    nav_msgs::Path* path;
 };
 
 #endif
