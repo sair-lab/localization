@@ -54,6 +54,8 @@ void Robot::init(g2o::SparseOptimizer& optimizer, Eigen::Isometry3d vertex_init)
 
         optimizer.addVertex(vertex);
     }
+
+    header.frame_id = "none";
 }
 
 
@@ -61,7 +63,8 @@ nav_msgs::Path* Robot::vertices2path()
 {
     for (size_t i= 0; i < trajectory_length; ++i)
         tf::poseEigenToMsg(vertices[(index+1+i)%trajectory_length]->estimate(), path->poses[i].pose);
-
+    path->header = last_header();
+    path->header.frame_id = "world";
     return path;
 }
 
@@ -125,4 +128,20 @@ std_msgs::Header Robot::last_header(unsigned char type)
 std_msgs::Header Robot::last_header()
 {
     return header;
+}
+
+
+geometry_msgs::PoseStamped Robot::current_pose()
+{
+    auto vertex = last_vertex()->estimate();
+
+    geometry_msgs::PoseStamped pose;
+
+    pose.header = last_header();
+
+    pose.header.frame_id = "world";
+
+    tf::poseEigenToMsg(vertex, pose.pose);
+
+    return pose;
 }

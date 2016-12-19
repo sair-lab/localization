@@ -18,14 +18,14 @@ std::ofstream file2;
 
     file1.close();  
 
-   ROS_WARN("HERE!!");
+   // ROS_WARN("HERE!!");
 
 }
 
 void truth_record(const geometry_msgs::PoseStamped::ConstPtr& pose_)
 {
 
-    ROS_WARN("WE ARE HERE!!");
+    // ROS_WARN("WE ARE HERE!!");
     geometry_msgs::PoseStamped pose(*pose_);
 
     file2.open("/home/xufang/experiment_data/truth_data.txt",ios::app); 

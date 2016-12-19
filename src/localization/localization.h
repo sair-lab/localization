@@ -86,6 +86,8 @@ public:
 
     void solve();
 
+    void publish();
+
     void addRangeEdge(const uwb_driver::UwbRange::ConstPtr&);
 
     void addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&);
@@ -109,6 +111,8 @@ private:
 
     double robot_max_velocity;
 
+    g2o::VertexSE3* key_vertex;
+
 // for g2o solver
     Solver *solver;
 
@@ -127,6 +131,8 @@ private:
     double judge;
 
     g2o::VertexSE3* last_last_vertex = new g2o::VertexSE3();
+
+    Eigen::Matrix3d  record_imu;
 
 // for debug
     string filename;

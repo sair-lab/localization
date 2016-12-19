@@ -94,6 +94,8 @@ public:
 
     nav_msgs::Path* vertices2path();
 
+    geometry_msgs::PoseStamped current_pose();
+
 private:
 
     map<unsigned char, std_msgs::Header> headers;
