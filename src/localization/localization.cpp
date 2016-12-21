@@ -289,7 +289,7 @@ inline g2o::EdgeSE3Range* Localization::create_range_edge(g2o::VertexSE3* vertex
 
     edge->setInformation(covariance_matrix.inverse());
 
-    edge->setRobustKernel(new g2o::RobustKernelHuber());
+    edge->setRobustKernel(new g2o::RobustKernelPseudoHuber());
 
     return edge;
 }
