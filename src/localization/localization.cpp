@@ -54,7 +54,7 @@ Localization::Localization(ros::NodeHandle n, std::vector<int> nodesId, std::vec
 
     last_last_vertex->setEstimate(g2o::SE3Quat(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(0,0,0)));
 
-    iteration_max = 20;
+    iteration_max = 3;
 
     robot_max_velocity = 2;
 
@@ -84,7 +84,7 @@ void Localization::solve()
 
     optimizer.optimize(iteration_max);
 
-    optimizer.save("/home/eee/after.g2o");
+    // optimizer.save("/home/eee/after.g2o");
 
     // auto edges = optimizer.activeEdges();
 
@@ -231,17 +231,11 @@ void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped:
 void Localization::addImuEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const sensor_msgs::Imu::ConstPtr& Imu_)
 {
 
-    
-    double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
+    double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header(sensor_type.range).stamp.toSec();
     // double dt_responder = uwb->header.stamp.toSec() - robots.at(uwb->responder_id).last_header().stamp.toSec();
 
-    double cov_requester = pow(robot_max_velocity*dt_requester/3, 2);
-
-    auto vertex_last_requester = robots.at(uwb->requester_id).last_vertex();
+    auto vertex_last_requester = robots.at(uwb->requester_id).last_vertex(sensor_type.range);
     uwb_number = uwb_number + 1;
-
-    cout <<"number" << uwb_number <<endl;
-    
     // auto vertex_last_responder = robots.at(uwb->responder_id).last_vertex();
 
     // requester to responder edge
@@ -250,10 +244,7 @@ void Localization::addImuEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const se
     auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, pow(uwb->distance_err, 2));
     optimizer.addEdge(edge);
 
-    
-
-    // bool requester_same_frame_id = (robots.at(uwb->requester_id).last_header().frame_id == uwb->header.frame_id);
-
+    bool requester_same_frame_id = (robots.at(uwb->requester_id).last_header().frame_id == uwb->header.frame_id);
     bool requester_not_static = robots.at(uwb->requester_id).not_static();
 
 
@@ -295,7 +286,8 @@ void Localization::addImuEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const se
 
     last_last_vertex = vertex_last_requester;
 
-    // cout << "matrix" << '\n' << last_last_vertex->estimate().matrix() <<endl;
+
+    // cout << "matrix" << '\n' << last_vertex_velocity <<endl;
 
     if (uwb_number >20)
     {
@@ -310,13 +302,9 @@ void Localization::addImuEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const se
     current_pose.setIdentity(); // very important
 
     Quaterniond imu_rotation = Quaterniond(Imu.orientation.w,Imu.orientation.x,Imu.orientation.y,Imu.orientation.z);
-    // cout << Imu.orientation.w << "" << Imu.orientation.x <<"" << Imu.orientation.y <<"" << Imu.orientation.z <<endl;
-
 
     current_pose.rotate(imu_rotation);
-    current_pose.translation()[0] = 1;
-    current_pose.translation()[1] = 1;
-    current_pose.translation()[2] = 1;
+    current_pose.translate(g2o::Vector3D(1, 1, 1));
 
     // cout << "information" << '\n' << current_pose.matrix() << endl;
 
@@ -324,36 +312,12 @@ void Localization::addImuEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const se
 
     // cout << "information" << '\n' << current_pose.translation() << endl;
 
-
-    // Eigen::Isometry3d bpose;
-    // bpose.setIdentity();
-
-    // bpose.rotate(record_imu);
-    // bpose.translation()[0] = vertex_last_requester->estimate().translation()[0];
-    // bpose.translation()[1] = vertex_last_requester->estimate().translation()[1];
-    // bpose.translation()[2] = vertex_last_requester->estimate().translation()[2];
-
     // calculate transform matrix
     Isometry3d transform_matrix = vertex_last_requester->estimate().inverse()*current_pose;
-    // Isometry3d transform_matrix ;
-    // transform_matrix.rotate(Eigen::Quaterniond(1,0,0,0));
-
     translation = vertex_last_requester->estimate().rotation().inverse()*translation;
-    // translation = bpose.rotation().inverse()*translation;
-
-    // cout << "totation" << '\n' << vertex_last_requester->estimate().rotation() << endl;
-    // cout << "totation" << '\n' << vertex_last_requester->estimate().rotation().inverse() << endl;
-
-    // translation = bpose.rotation().inverse()*translation;
-    // transform_matrix(0,3) = translation[0];
-    // transform_matrix(1,3) = translation[1];
-    // transform_matrix(2,3) = translation[2];
-
-    transform_matrix(0,3) = 0;
-    transform_matrix(1,3) = 0;
-    transform_matrix(2,3) = 0;
-
-    // double dis = translation.norm();
+    transform_matrix(0,3) = translation(0);
+    transform_matrix(1,3) = translation(1);
+    transform_matrix(2,3) = translation(2);
 
     // cout << "information" << '\n' <<  transform_matrix.matrix() <<endl;
 
@@ -363,30 +327,18 @@ void Localization::addImuEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const se
 
     Eigen::MatrixXd SE3information(6,6);
 
-    covariance_orientation = covariance_orientation.inverse();
-
-    // int i;
+    // covariance_orientation = covariance_orientation*pow(dt_requester,2);
 
     // covariance_orientation = covariance_orientation*dt_requester;
-    // for (i=0;i<3;i++)
-    // {
-    //     if (fabs(translation[i])>= cov_requester) 
-    //      translation[i] = cov_requester;
-    // }
 
-    // cout << "transform" << translation  <<endl;
+    covariance_translation << robot_max_velocity*dt_requester,0,0,
+                              0,robot_max_velocity*dt_requester,0,
+                              0,0,robot_max_velocity*dt_requester;
 
-    cout << cov_requester<<endl;
-    
-
-    covariance_translation << fabs(translation[0]),0,0,
-                              0,fabs(translation[1]),0,
-                              0,0,fabs(translation[2]);
-
+    // double cov_requester = pow(robot_max_velocity*dt_requester/3, 2);
     // covariance_translation << cov_requester,0,0,
     //                           0,cov_requester,0,
     //                           0,0,cov_requester;
-
 
     SE3information << covariance_orientation,zero_matrix,
                       zero_matrix,covariance_translation;
@@ -401,13 +353,9 @@ void Localization::addImuEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const se
 
     // requester to requester's last vertex edge
 
-    record_imu = T_matrix;
-
-    // cout << "record" << record_imu << endl;
-
-
     if (requester_not_static)
     {
+
         ROS_WARN("IMU IMU IMU");
 
         g2o::EdgeSE3 *SE3edge = new g2o::EdgeSE3();
@@ -418,12 +366,12 @@ void Localization::addImuEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const se
 
         SE3edge->setMeasurement(transform_matrix);
 
-        SE3edge->setInformation(SE3information.inverse());
+        SE3edge->setInformation(SE3information);
 
         edge->setRobustKernel(new g2o::RobustKernelHuber());
     
         optimizer.addEdge( SE3edge );
-        
+
     }
 
     // if (!robots.at(uwb->requester_id).is_static())
@@ -436,18 +384,6 @@ void Localization::addImuEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const se
     // }
 
     }
-
-    if (uwb_number <=20)
-    {
-
-        ROS_WARN("before");
-        auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, cov_requester);
-        optimizer.addEdge(edge_requester_range);
-
-    }
-
-
-
 
     ROS_WARN("Localization: added range edge id: %d", uwb->header.seq);
 
