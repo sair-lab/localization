@@ -52,12 +52,12 @@ Localization::Localization(ros::NodeHandle n, std::vector<int> nodesId, std::vec
 
     self_id = nodesId.back();
 
-    robots.emplace(self_id, Robot(self_id%100, false, optimizer));
+    robots.emplace(self_id, Robot(self_id, false, optimizer));
     ROS_INFO("Init self robot ID: %d with moving option", self_id);
 
     for (size_t i = 0; i < nodesId.size()-1; ++i)
     {
-        robots.emplace(nodesId[i], Robot(nodesId[i]%100, true));
+        robots.emplace(nodesId[i], Robot(nodesId[i], true));
         Eigen::Isometry3d pose = Eigen::Isometry3d::Identity();
         pose(0,3) = nodesPos[i*3];
         pose(1,3) = nodesPos[i*3+1];
