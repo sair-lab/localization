@@ -7,7 +7,7 @@
 
     <include file="$(find vicon_xb)/launch/vicon_xb.launch"/>
 
-    <node pkg="rosbag" type="record" name = "map_record_node" output="screen" args="-o $(find localization)/bag/ni_slam_uwb /ni_slam_node/refined/image_color /ni_slam_node/refined/image_depth /ni_slam_node/posestamped_key /ni_slam_node/incremental_pose_cov /uwb_endorange_info /vicon_xb_node/mocap/pose /ni_slam_node/posestamped /tf">
+    <node pkg="rosbag" type="record" name = "map_record_node" output="screen" args="-o $(find localization)/bag/slam_uwb /ni_slam_node/refined/image_color /ni_slam_node/refined/image_depth /ni_slam_node/incremental_pose_cov /ni_slam_node/refined/map_info /ni_slam_node/posestamped /uwb_endorange_info /vicon_xb_node/mocap/pose /tf">
     </node>
 
 </launch>
