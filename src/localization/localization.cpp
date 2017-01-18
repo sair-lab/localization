@@ -150,6 +150,9 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 {
     double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
     double dt_responder = uwb->header.stamp.toSec() - robots.at(uwb->responder_id).last_header().stamp.toSec();
+    // double distance_cov = (uwb->distance_err < 0.04) ? pow(uwb->distance_err, 2) : 1;
+    double distance_cov = pow(uwb->distance_err, 2);
+
 
     double cov_requester = pow(robot_max_velocity*dt_requester/3, 2); //3 sigma priciple
 
@@ -163,7 +166,7 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     {    
         auto vertex_requester = robots.at(uwb->requester_id).new_vertex(sensor_type.range, uwb->header, optimizer);
 
-        auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, pow(uwb->distance_err, 2));
+        auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, distance_cov);
 
         auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, cov_requester);
 
@@ -175,7 +178,7 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     }
     else
     {
-        auto edge = create_range_edge(vertex_last_requester, vertex_responder, uwb->distance, pow(uwb->distance_err, 2) + cov_requester);
+        auto edge = create_range_edge(vertex_last_requester, vertex_responder, uwb->distance, distance_cov + cov_requester);
 
         optimizer.addEdge(edge);
 
