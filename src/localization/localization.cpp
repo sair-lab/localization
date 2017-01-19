@@ -150,10 +150,7 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 {
     double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
     double dt_responder = uwb->header.stamp.toSec() - robots.at(uwb->responder_id).last_header().stamp.toSec();
-    // double distance_cov = (uwb->distance_err < 0.04) ? pow(uwb->distance_err, 2) : 1;
     double distance_cov = pow(uwb->distance_err, 2);
-
-
     double cov_requester = pow(robot_max_velocity*dt_requester/3, 2); //3 sigma priciple
 
     auto vertex_last_requester = robots.at(uwb->requester_id).last_vertex();

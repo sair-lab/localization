@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-	<arg name="dataset" value="mapping/slam_uwb_2017-01-18-20-53-21"/>
+	<arg name="dataset" value="mapping/slam_uwb_man"/>
 
     <rosparam param="/uwb/nodesId"> [100, 101, 102, 103, 201]</rosparam>
     <rosparam param="/uwb/nodesPos"> [3, -3, 0.75, 3, 3, 1.95, -3, 3, 0.5, -3, -3, 1.7, 0, 0, 1.0]</rosparam>
