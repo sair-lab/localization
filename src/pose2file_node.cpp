@@ -55,7 +55,7 @@ int main(int argc, char** argv)
 
     ros::Subscriber estimate_sub = n.subscribe("/localization_node/optimized/pose", 100, estimate_record);
 
-    ros::Subscriber true_sub = n.subscribe("/viconxbee_node/mocap/pose", 100, truth_record);
+    ros::Subscriber true_sub = n.subscribe("/vicon_xb_node/mocap/pose", 100, truth_record);
 
     ros::spin();
 

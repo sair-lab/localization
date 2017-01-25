@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <launch>
 
-	<arg name="dataset" value="uwb_imu_circle"/>
+	<arg name="dataset" value="test12"/>
 
-    <rosparam param="/uwb/nodesId"> [100, 101, 102, 103, 204]</rosparam>
+    <rosparam param="/uwb/nodesId"> [100, 101, 102, 103, 201]</rosparam>
     <rosparam param="/uwb/nodesPos">[3, 3, 0.65, 3, -3, 0.25, -3, -3, 0.25, -3, 3, 0.25, 0, 0, 1.0]</rosparam>
 
     <node name="rosbag_play" pkg="rosbag" type="play" output="screen" args="$(find localization)/bag/$(arg dataset).bag"/>

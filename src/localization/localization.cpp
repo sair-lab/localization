@@ -54,13 +54,13 @@ Localization::Localization(ros::NodeHandle n, std::vector<int> nodesId, std::vec
 
     last_last_vertex->setEstimate(g2o::SE3Quat(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(0,0,0)));
 
-    iteration_max = 3;
+    iteration_max = 20; // 3
 
-    robot_max_velocity = 2;
+    robot_max_velocity = 1; // 2
 
     self_id = nodesId.back();
 
-    robots.emplace(self_id, Robot(self_id%100, false, optimizer));
+    robots.emplace(self_id, Robot(self_id%100+3, false, optimizer));
     ROS_INFO("Init self robot ID: %d with moving option", self_id);
 
     for (size_t i = 0; i < nodesId.size()-1; ++i)
