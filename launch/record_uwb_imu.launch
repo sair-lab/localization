@@ -5,7 +5,7 @@
 
     <include file="$(find localization)/launch/myahrs_driver.launch"/>
 
-    <include file="$(find viconxbee)/launch/viconxbee.launch"/>
+    <include file="$(find vicon_xb)/launch/vicon_xb.launch"/>
 
     <node name="uwb_driver_record" pkg="rosbag" type="record" args="-o $(find localization)/bag/uwb_slam /uwb_data_info /uwb_endorange_info /viconxbee_node/mocap/imu /viconxbee_node/mocap/pose /viconxbee_node/mocap/twist /viconxbee_node/viconPoseTopic /imu/data /ni_slam_node/incremental_pose_cov "/>
 

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+
+    <include file="$(find ni_slam)/launch/ni_slam_upboard.launch"/>
+
+    <include file="$(find uwb_driver)/launch/uwb_driver.launch"/>
+
+    <include file="$(find vicon_xb)/launch/vicon_xb.launch"/>
+
+    <node pkg="rosbag" type="record" name = "map_record_node" output="screen" args="-o $(find localization)/bag/slam_uwb /ni_slam_node/refined/image_color /ni_slam_node/refined/image_depth /ni_slam_node/incremental_pose_cov /ni_slam_node/refined/map_info /ni_slam_node/posestamped /uwb_endorange_info /vicon_xb_node/mocap/pose /tf">
+    </node>
+
+</launch>

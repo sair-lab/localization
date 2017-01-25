@@ -52,12 +52,12 @@ Localization::Localization(ros::NodeHandle n, std::vector<int> nodesId, std::vec
 
     self_id = nodesId.back();
 
-    robots.emplace(self_id, Robot(self_id%100, false, optimizer));
+    robots.emplace(self_id, Robot(self_id, false, optimizer));
     ROS_INFO("Init self robot ID: %d with moving option", self_id);
 
     for (size_t i = 0; i < nodesId.size()-1; ++i)
     {
-        robots.emplace(nodesId[i], Robot(nodesId[i]%100, true));
+        robots.emplace(nodesId[i], Robot(nodesId[i], true));
         Eigen::Isometry3d pose = Eigen::Isometry3d::Identity();
         pose(0,3) = nodesPos[i*3];
         pose(1,3) = nodesPos[i*3+1];
@@ -150,7 +150,7 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 {
 double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
     double dt_responder = uwb->header.stamp.toSec() - robots.at(uwb->responder_id).last_header().stamp.toSec();
-
+    double distance_cov = pow(uwb->distance_err, 2);
     double cov_requester = pow(robot_max_velocity*dt_requester/3, 2); //3 sigma priciple
 
     auto vertex_last_requester = robots.at(uwb->requester_id).last_vertex();
@@ -163,7 +163,7 @@ double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).l
     {    
         auto vertex_requester = robots.at(uwb->requester_id).new_vertex(sensor_type.range, uwb->header, optimizer);
 
-        auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, pow(uwb->distance_err, 2));
+        auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, distance_cov);
 
         auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, cov_requester);
 
@@ -175,7 +175,7 @@ double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).l
     }
     else
     {
-        auto edge = create_range_edge(vertex_last_requester, vertex_responder, uwb->distance, pow(uwb->distance_err, 2) + cov_requester);
+        auto edge = create_range_edge(vertex_last_requester, vertex_responder, uwb->distance, distance_cov + cov_requester);
 
         optimizer.addEdge(edge);
 
@@ -289,7 +289,7 @@ inline g2o::EdgeSE3Range* Localization::create_range_edge(g2o::VertexSE3* vertex
 
     edge->setInformation(covariance_matrix.inverse());
 
-    edge->setRobustKernel(new g2o::RobustKernelHuber());
+    edge->setRobustKernel(new g2o::RobustKernelPseudoHuber());
 
     return edge;
 }

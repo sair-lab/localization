@@ -41,7 +41,7 @@ void Robot::init(g2o::SparseOptimizer& optimizer, Eigen::Isometry3d vertex_init)
     {
         g2o::VertexSE3* vertex = new g2o::VertexSE3();
 
-        vertex->setId(ID + i*10);
+        vertex->setId(ID + i*300);
 
         vertex->setEstimate(vertex_init);
 
@@ -64,7 +64,7 @@ nav_msgs::Path* Robot::vertices2path()
     for (size_t i= 0; i < trajectory_length; ++i)
         tf::poseEigenToMsg(vertices[(index+1+i)%trajectory_length]->estimate(), path->poses[i].pose);
     path->header = last_header();
-    path->header.frame_id = "world";
+    path->header.frame_id = "local_origin";
     return path;
 }
 
@@ -87,7 +87,7 @@ g2o::VertexSE3* Robot::new_vertex(unsigned char type, std_msgs::Header new_heade
 
         index = (index+1)%trajectory_length;
 
-        vertex->setId(index*10 + ID);
+        vertex->setId(index*300 + ID);
 
         optimizer.removeVertex(vertices[index], false);
 
@@ -139,7 +139,7 @@ geometry_msgs::PoseStamped Robot::current_pose()
 
     pose.header = last_header();
 
-    pose.header.frame_id = "world";
+    pose.header.frame_id = "local_origin";
 
     tf::poseEigenToMsg(vertex, pose.pose);
 
