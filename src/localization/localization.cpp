@@ -138,16 +138,37 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 
     optimizer.addEdge(edge);
 
-    ROS_INFO("Localization: added pose edge id: %d frame_id: %s;", pose_cov.header.seq, pose_cov.header.frame_id.c_str());
+    ROS_INFO("added pose edge id: %d frame_id: %s;", pose_cov.header.seq, pose_cov.header.frame_id.c_str());
 
     solve();
 
     publish();
 }
 
+int num_uwb=100;
+int uwb_index=0;
+unsigned char index_uwb[4]={100,101,102,103};
 
 void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 {
+
+    if(num_uwb > 2)
+    {
+        num_uwb++;
+        if (uwb->responder_id != index_uwb[uwb_index])
+            return;
+        else
+        {
+            uwb_index=(uwb_index+1)%4;
+            num_uwb=0;
+        }
+    }
+    else
+    {
+        num_uwb++;
+        return;
+    }
+
     double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
     double dt_responder = uwb->header.stamp.toSec() - robots.at(uwb->responder_id).last_header().stamp.toSec();
     double distance_cov = pow(uwb->distance_err, 2);
