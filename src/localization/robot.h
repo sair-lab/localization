@@ -61,19 +61,19 @@ class Robot
 {
 public:
 
-    Robot(int ID, bool FLAG_STATIC, g2o::SparseOptimizer& optimizer)
-        :ID(ID), FLAG_STATIC(FLAG_STATIC)
+    Robot(int ID, bool FLAG_STATIC, int trajectory_length, g2o::SparseOptimizer& optimizer)
+        :ID(ID), FLAG_STATIC(FLAG_STATIC), trajectory_length(trajectory_length)
     {
         Eigen::Isometry3d pose = Eigen::Isometry3d::Identity();
         pose(0,3) = 0; 
         pose(1,3) = 0; 
         pose(2,3) = 2;
         init(optimizer, pose);
-
     }; 
     // only call this constructor without following an init()
 
-    Robot(int ID, bool FLAG_STATIC):ID(ID), FLAG_STATIC(FLAG_STATIC){};
+    Robot(int ID, bool FLAG_STATIC, int trajectory_length)
+        :ID(ID), FLAG_STATIC(FLAG_STATIC), trajectory_length(trajectory_length){};
     // call this constructor, then init(optimizer, vertex_init)
 
     void init(g2o::SparseOptimizer&, Eigen::Isometry3d vertex_init=Eigen::Isometry3d::Identity());
@@ -110,7 +110,7 @@ private:
 
     geometry_msgs::TwistWithCovariance velocity;
 
-    size_t trajectory_length;
+    int trajectory_length;
 
     int ID; // Robot ID
 

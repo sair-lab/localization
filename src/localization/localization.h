@@ -82,7 +82,7 @@ public:
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    Localization(ros::NodeHandle, std::vector<int>, std::vector<double>);
+    Localization(ros::NodeHandle);
 
     void solve();
 

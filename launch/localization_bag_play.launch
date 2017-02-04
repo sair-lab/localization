@@ -1,19 +1,15 @@
 <?xml version="1.0"?>
 <launch>
 
-	<arg name="dataset" value="mapping/slam_uwb_man"/>
+    <arg name="dataset" value="mapping/slam_uwb_man"/>
 
-    <rosparam param="/uwb/nodesId"> [100, 101, 102, 103, 201]</rosparam>
-    <rosparam param="/uwb/nodesPos"> [3, -3, 0.75, 3, 3, 1.95, -3, 3, 0.5, -3, -3, 1.7, 0, 0, 1.0]</rosparam>
+    <rosparam file="$(find uwb_driver)/cfg/anchor.yaml" command="load" />
 
     <node name="rosbag_play" pkg="rosbag" type="play" output="screen" args="$(find localization)/bag/$(arg dataset).bag"/>
   
     <node pkg="localization" type="localization_node" name="localization_node" output="screen">
-		<remap from="~/pose" to="/ni_slam_node/incremental_pose_cov"/>
-		<remap from="~/range" to="/uwb_endorange_info"/>
-		<!-- <remap from="~/imu" to="/imu/data"/> -->
-		<!-- <remap from="~/twist" to="/viconxbee_node/mocap/twist"/> -->
-		<param name="localization/filename_prefix" value="$(find localization)/bag/$(arg dataset)" />
+        <rosparam file="$(find localization)/cfg/uwb_slam.yaml" command="load" />
+        <param name="log/filename_prefix" value="$(find localization)/bag/$(arg dataset)" />
     </node>
 
 </launch>

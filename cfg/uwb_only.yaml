@@ -1,0 +1,13 @@
+# parameters for robots
+robot:
+  trajectory_length: 100
+  maximum_velocity: 1.5
+
+# parameters for g2o optimizer
+optimizer:
+  maximum_iteration: 20
+  verbose: false
+
+# parameters for topic subscription
+topic:
+  range: /uwb_endorange_info

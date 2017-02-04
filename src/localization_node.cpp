@@ -38,41 +38,35 @@ int main(int argc, char** argv)
 
     ros::NodeHandle n("~");
 
-	std::vector<int> nodesId;
+    Localization localization(n);
 
-	std::vector<double> nodesPos;
+    string pose_topic, range_topic, imu_topic, twist_topic;
 
-    string filename_prefix;
+    ros::Subscriber pose_sub, range_sub, imu_sub, twist_sub;
 
-    if(n.getParam("/uwb/nodesId", nodesId))
-        for (auto it:nodesId)
-            ROS_WARN("Get node ID: %d", it);
-    else
-        ROS_ERROR("Can't get parameter nodesId from UWB");
-
-    if(n.getParam("/uwb/nodesPos", nodesPos))
-        for(auto it:nodesPos)
-            ROS_WARN("Get node position: %4.2f", it);
-    else
-        ROS_ERROR("Can't get parameter nodesPos from UWB");
-
-    Localization localization(n, nodesId, nodesPos);
-
-    if(n.getParam("localization/filename_prefix", filename_prefix))
+    if(n.getParam("topic/pose", pose_topic))
     {
-        ROS_WARN("Get filename prefix: %s", filename_prefix.c_str());
-        localization.set_file(filename_prefix);
+        pose_sub = n.subscribe(pose_topic, 1000, &Localization::addPoseEdge, &localization);
+        ROS_WARN("Subscribing to: %s",pose_topic.c_str());
     }
-    else
-        ROS_WARN("Won't save any files!");
 
-    ros::Subscriber pose_sub = n.subscribe("pose", 1000, &Localization::addPoseEdge, &localization);
+    if(n.getParam("topic/range", range_topic))
+    {
+        range_sub = n.subscribe(range_topic, 1, &Localization::addRangeEdge, &localization);
+        ROS_WARN("Subscribing to: %s", range_topic.c_str());
+    }
 
-    ros::Subscriber range_sub = n.subscribe("range", 1, &Localization::addRangeEdge, &localization);
+    if(n.getParam("topic/twist", twist_topic))
+    {
+        twist_sub = n.subscribe(twist_topic, 1, &Localization::addTwistEdge, &localization);
+        ROS_WARN("Subscribing to: %s", twist_topic.c_str());
+    }
 
-    ros::Subscriber twist_sub = n.subscribe("twist", 1, &Localization::addTwistEdge, &localization);
-
-    ros::Subscriber imu_sub = n.subscribe("imu", 1, &Localization::addImuEdge, &localization);
+    if(n.getParam("topic/imu", imu_topic))
+    {
+        imu_sub = n.subscribe(imu_topic, 1, &Localization::addImuEdge, &localization);
+        ROS_WARN("Subscribing to: %s", imu_topic.c_str());
+    }
 
     ros::spin();
 

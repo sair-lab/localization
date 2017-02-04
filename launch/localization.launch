@@ -2,11 +2,8 @@
 <launch>
 
     <node pkg="localization" type="localization_node" name="localization_node" output="screen">
-		<remap from="~/pose" to="/ni_slam_node/incremental_pose_cov"/>
-		<remap from="~/range" to="/uwb_endorange_info"/>
-		<remap from="~/imu" to="/imu/data"/>
-		<remap from="~/twist" to="/dvs/twist"/>
-		<param name="localization/filename_prefix" value="$(find localization)/bag/real_time" />
+        <rosparam file="$(find localization)/cfg/uwb_slam.yaml" command="load" />
+        <param name="log/filename_prefix" value="$(find localization)/bag/real_time" />
     </node>
 
 </launch>

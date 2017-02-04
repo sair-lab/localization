@@ -28,12 +28,13 @@
 
 #include "localization.h"
 
-Localization::Localization(ros::NodeHandle n, std::vector<int> nodesId, std::vector<double> nodesPos)
+Localization::Localization(ros::NodeHandle n)
 {
     pose_pub = n.advertise<geometry_msgs::PoseStamped>("optimized/pose", 1);
 
     path_pub = n.advertise<nav_msgs::Path>("optimized/path", 1);
 
+// For g2o optimizer
     solver = new Solver();
 
     solver->setBlockOrdering(false);
@@ -44,20 +45,59 @@ Localization::Localization(ros::NodeHandle n, std::vector<int> nodesId, std::vec
 
     optimizer.setAlgorithm(optimizationsolver);
 
-    optimizer.setVerbose(false);
+    bool verbose_flag;
+    if(n.param("optimizer/verbose", verbose_flag, false))
+    {
+        ROS_WARN("Using optimizer verbose flag: %s!", verbose_flag ? "true":"false");
+        optimizer.setVerbose(verbose_flag);
+    }
 
-    iteration_max = 20;
+    if(n.param("optimizer/maximum_iteration", iteration_max, 20))
+        ROS_WARN("Using optimizer maximum iteration: %d!", iteration_max);
 
-    robot_max_velocity = 1;
+// For log files
+    string filename_prefix;
+    if(n.getParam("log/filename_prefix", filename_prefix))
+    {
+        // ROS_WARN("Get log file name prefix: %s", filename_prefix.c_str());
+        set_file(filename_prefix);
+    }
+    else
+        ROS_WARN("Won't save any log files!");
+
+// For robot max velocity
+    int trajectory_length;
+    if(n.getParam("robot/trajectory_length", trajectory_length))
+        ROS_WARN("Using robot trajectory_length: %d!", trajectory_length);
+
+    if(n.param("robot/maximum_velocity", robot_max_velocity, 1.0))
+        ROS_WARN("Using robot maximum_velocity: %fm/s!", robot_max_velocity);
+
+// For UWB anchor parameters reading
+    std::vector<int> nodesId;
+
+    std::vector<double> nodesPos;
+
+    if(n.getParam("/uwb/nodesId", nodesId))
+        for (auto it:nodesId)
+            ROS_WARN("Get node ID: %d", it);
+    else
+        ROS_ERROR("Can't get parameter nodesId from UWB");
+
+    if(n.getParam("/uwb/nodesPos", nodesPos))
+        for(auto it:nodesPos)
+            ROS_WARN("Get node position: %4.2f", it);
+    else
+        ROS_ERROR("Can't get parameter nodesPos from UWB");
 
     self_id = nodesId.back();
 
-    robots.emplace(self_id, Robot(self_id, false, optimizer));
+    robots.emplace(self_id, Robot(self_id, false, trajectory_length, optimizer));
     ROS_INFO("Init self robot ID: %d with moving option", self_id);
 
     for (size_t i = 0; i < nodesId.size()-1; ++i)
     {
-        robots.emplace(nodesId[i], Robot(nodesId[i], true));
+        robots.emplace(nodesId[i], Robot(nodesId[i], true, trajectory_length));
         Eigen::Isometry3d pose = Eigen::Isometry3d::Identity();
         pose(0,3) = nodesPos[i*3];
         pose(1,3) = nodesPos[i*3+1];
@@ -346,4 +386,5 @@ void Localization::set_file(string name_prefix)
     file.open(filename.c_str(), ios::trunc|ios::out);
     file<<"# "<<"iteration_max:"<<iteration_max<<"\n";
     file.close();
+    ROS_WARN("Loging to file: %s",filename.c_str());
 }
