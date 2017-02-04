@@ -9,7 +9,7 @@
   
     <node pkg="localization" type="localization_node" name="localization_node" output="screen">
         <rosparam file="$(find localization)/cfg/uwb_slam.yaml" command="load" />
-        <param name="log/filename_prefix" value="$(find localization)/bag/$(arg dataset)" />
+        <!-- <param name="log/filename_prefix" value="$(find localization)/bag/$(arg dataset)" /> -->
     </node>
 
 </launch>

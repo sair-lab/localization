@@ -84,6 +84,8 @@ public:
 
     Localization(ros::NodeHandle);
 
+    ~Localization();
+
     void solve();
 
     void publish();
@@ -113,6 +115,8 @@ private:
 
     g2o::VertexSE3* key_vertex;
 
+    int trajectory_length;
+
 // for g2o solver
     Solver *solver;
 
@@ -125,7 +129,7 @@ private:
     int iteration_max;
 
 // for debug
-    string filename;
+    string filename, name_prefix;
 
     ofstream file;
 
@@ -143,7 +147,7 @@ private:
     inline void save_file(geometry_msgs::PoseStamped);
 
 public:
-    void set_file(string name_prefix);
+    void set_file();
 
 };
 

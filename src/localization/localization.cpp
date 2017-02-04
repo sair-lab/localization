@@ -56,17 +56,12 @@ Localization::Localization(ros::NodeHandle n)
         ROS_WARN("Using optimizer maximum iteration: %d!", iteration_max);
 
 // For log files
-    string filename_prefix;
-    if(n.getParam("log/filename_prefix", filename_prefix))
-    {
-        // ROS_WARN("Get log file name prefix: %s", filename_prefix.c_str());
-        set_file(filename_prefix);
-    }
+    if(n.getParam("log/filename_prefix", name_prefix))
+        set_file();
     else
         ROS_WARN("Won't save any log files!");
 
 // For robot max velocity
-    int trajectory_length;
     if(n.getParam("robot/trajectory_length", trajectory_length))
         ROS_WARN("Using robot trajectory_length: %d!", trajectory_length);
 
@@ -97,7 +92,7 @@ Localization::Localization(ros::NodeHandle n)
 
     for (size_t i = 0; i < nodesId.size()-1; ++i)
     {
-        robots.emplace(nodesId[i], Robot(nodesId[i], true, trajectory_length));
+        robots.emplace(nodesId[i], Robot(nodesId[i], true, 1));
         Eigen::Isometry3d pose = Eigen::Isometry3d::Identity();
         pose(0,3) = nodesPos[i*3];
         pose(1,3) = nodesPos[i*3+1];
@@ -373,7 +368,7 @@ inline void Localization::save_file(geometry_msgs::PoseStamped pose)
 }
 
 
-void Localization::set_file(string name_prefix)
+void Localization::set_file()
 {
     flag_save_file = true;
     char s[30];
@@ -385,6 +380,28 @@ void Localization::set_file(string name_prefix)
     filename = name_prefix + string(s);
     file.open(filename.c_str(), ios::trunc|ios::out);
     file<<"# "<<"iteration_max:"<<iteration_max<<"\n";
+    file<<"# "<<"trajectory_length:"<<trajectory_length<<"\n";
+    file<<"# "<<"maximum_velocity:"<<robot_max_velocity<<"\n";
     file.close();
     ROS_WARN("Loging to file: %s",filename.c_str());
+}
+
+Localization::~Localization()
+{
+    char s[30];
+    struct tm tim;
+    time_t now;
+    now = time(NULL);
+    tim = *(localtime(&now));
+    strftime(s,30,"_%Y_%b_%d_%H_%M_%S.txt",&tim);
+    string filename = name_prefix + string(s);
+    file.open(filename.c_str(), ios::trunc|ios::out);
+    file<<"# "<<"iteration_max:"<<iteration_max<<"\n";
+    file<<"# "<<"trajectory_length:"<<trajectory_length<<"\n";
+    file<<"# "<<"maximum_velocity:"<<robot_max_velocity<<"\n";
+    auto path = robots.at(self_id).vertices2path();
+    // for 
+
+    file.close();
+    cout<<"Results Loged to file: "<<filename<<endl;
 }
