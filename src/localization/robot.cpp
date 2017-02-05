@@ -31,10 +31,9 @@
 void Robot::init(g2o::SparseOptimizer& optimizer, Eigen::Isometry3d vertex_init)
 {
     index = 0;
-    velocity = geometry_msgs::TwistWithCovariance();
-
     path = new nav_msgs::Path();
     path->poses = vector<geometry_msgs::PoseStamped>(trajectory_length, geometry_msgs::PoseStamped());
+    header = std::vector<std_msgs::Header>(trajectory_length, std_msgs::Header());
 
     for (int i = 0; i < trajectory_length; ++i)
     {
@@ -54,7 +53,8 @@ void Robot::init(g2o::SparseOptimizer& optimizer, Eigen::Isometry3d vertex_init)
         optimizer.addVertex(vertex);
     }
 
-    header.frame_id = "none";
+
+    header[0].frame_id = "none";
 }
 
 
@@ -72,10 +72,10 @@ g2o::VertexSE3* Robot::new_vertex(unsigned char type, std_msgs::Header new_heade
 {
     type_index.emplace(type, index);
     headers.emplace(type, new_header);
-    header = new_header;
 
     if(FLAG_STATIC)
     {
+        header[index] = new_header;
         return last_vertex(type);
     }
     else
@@ -90,7 +90,9 @@ g2o::VertexSE3* Robot::new_vertex(unsigned char type, std_msgs::Header new_heade
 
         optimizer.removeVertex(vertices[index], false);
 
-        vertices[index] = vertex;        
+        vertices[index] = vertex;
+
+        header[index] = new_header;
 
         type_index.at(type) = index;
 
@@ -106,7 +108,7 @@ g2o::VertexSE3* Robot::new_vertex(unsigned char type, std_msgs::Header new_heade
 g2o::VertexSE3* Robot::last_vertex(unsigned char type)
 {
     type_index.emplace(type, index);
-    headers.emplace(type, header);
+    headers.emplace(type, header[index]);
     return vertices.at(type_index[type]);
 }
 
@@ -119,14 +121,14 @@ g2o::VertexSE3* Robot::last_vertex()
 
 std_msgs::Header Robot::last_header(unsigned char type)
 {
-    headers.emplace(type, header);
+    headers.emplace(type, header[index]);
     return headers.at(type);
 }
 
 
 std_msgs::Header Robot::last_header()
 {
-    return header;
+    return header[index];
 }
 
 

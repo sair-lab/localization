@@ -98,7 +98,7 @@ private:
 
     map<unsigned char, std_msgs::Header> headers;
 
-    std_msgs::Header header;
+    std::vector<std_msgs::Header> header; // headr corresponding to vertices
 
     vector<g2o::VertexSE3*> vertices; //sensor type-> vertices
 
@@ -107,8 +107,6 @@ private:
     map<unsigned char, size_t> type_index; //sensor type -> current vertex index
 
     size_t index; // current vertex index
-
-    geometry_msgs::TwistWithCovariance velocity;
 
     int trajectory_length;
 
