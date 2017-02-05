@@ -55,19 +55,6 @@ Localization::Localization(ros::NodeHandle n)
     if(n.param("optimizer/maximum_iteration", iteration_max, 20))
         ROS_WARN("Using optimizer maximum iteration: %d!", iteration_max);
 
-// For debug
-    if(n.getParam("log/filename_prefix", name_prefix))
-        set_file();
-    else
-        ROS_WARN("Won't save any log files!");
-
-    if(n.param<string>("frame/target", frame_target, "estimation"))
-        ROS_WARN("Using topic target frame: %s!", frame_target.c_str());
-
-    if(n.param<string>("frame/source", frame_source, "local_origin"))
-        ROS_WARN("Using topic target frame: %s!", frame_source.c_str());
-
-
 // For robot max velocity
     if(n.getParam("robot/trajectory_length", trajectory_length))
         ROS_WARN("Using robot trajectory_length: %d!", trajectory_length);
@@ -107,6 +94,18 @@ Localization::Localization(ros::NodeHandle n)
         robots.at(nodesId[i]).init(optimizer, pose);
         ROS_INFO("Init robot ID: %d with position (%.2f,%.2f,%.2f)", nodesId[i], pose(0,3), pose(1,3), pose(2,3));
     }
+
+// For debug
+    if(n.getParam("log/filename_prefix", name_prefix))
+        set_file();
+    else
+        ROS_WARN("Won't save any log files!");
+
+    if(n.param<string>("frame/target", frame_target, "estimation"))
+        ROS_WARN("Using topic target frame: %s!", frame_target.c_str());
+
+    if(n.param<string>("frame/source", frame_source, "local_origin"))
+        ROS_WARN("Using topic target frame: %s!", frame_source.c_str());
 }
 
 
@@ -146,14 +145,17 @@ void Localization::publish()
 
     pose_pub.publish(pose);
 
-    if(flag_save_file)
-        save_file(pose);
-
     auto path = robots.at(self_id).vertices2path();
 
     path->header.frame_id = frame_source;
 
     path_pub.publish(*path);
+
+    if(flag_save_file)
+    {
+        save_file(pose, realtime_filename);
+        save_file(path->poses[trajectory_length/2], optimized_filename);        
+    }
 }
 
 
@@ -364,10 +366,9 @@ inline g2o::EdgeSE3Range* Localization::create_range_edge(g2o::VertexSE3* vertex
 }
 
 
-inline void Localization::save_file(geometry_msgs::PoseStamped pose)
+inline void Localization::save_file(geometry_msgs::PoseStamped pose, string filename)
 {
     file.open(filename.c_str(), ios::app);
-
     file<<boost::format("%.9f") % (pose.header.stamp.toSec())<<" "
         <<pose.pose.position.x<<" "
         <<pose.pose.position.y<<" "
@@ -376,7 +377,6 @@ inline void Localization::save_file(geometry_msgs::PoseStamped pose)
         <<pose.pose.orientation.y<<" "
         <<pose.pose.orientation.z<<" "
         <<pose.pose.orientation.w<<endl;
-    
     file.close();
 }
 
@@ -390,31 +390,32 @@ void Localization::set_file()
     now = time(NULL);
     tim = *(localtime(&now));
     strftime(s,30,"_%Y_%b_%d_%H_%M_%S.txt",&tim);
-    filename = name_prefix + string(s);
-    file.open(filename.c_str(), ios::trunc|ios::out);
+    realtime_filename = name_prefix+"_realtime" + string(s);
+    optimized_filename = name_prefix+"_optimized" + string(s);
+
+    file.open(realtime_filename.c_str(), ios::trunc|ios::out);
     file<<"# "<<"iteration_max:"<<iteration_max<<"\n";
     file<<"# "<<"trajectory_length:"<<trajectory_length<<"\n";
     file<<"# "<<"maximum_velocity:"<<robot_max_velocity<<"\n";
     file.close();
-    ROS_WARN("Loging to file: %s",filename.c_str());
+
+    file.open(optimized_filename.c_str(), ios::trunc|ios::out);
+    file<<"# "<<"iteration_max:"<<iteration_max<<"\n";
+    file<<"# "<<"trajectory_length:"<<trajectory_length<<"\n";
+    file<<"# "<<"maximum_velocity:"<<robot_max_velocity<<"\n";
+    file.close();
+
+    ROS_WARN("Loging to file: %s",realtime_filename.c_str());
+    ROS_WARN("Loging to file: %s",optimized_filename.c_str());
 }
 
 Localization::~Localization()
 {
-    char s[30];
-    struct tm tim;
-    time_t now;
-    now = time(NULL);
-    tim = *(localtime(&now));
-    strftime(s,30,"_%Y_%b_%d_%H_%M_%S.txt",&tim);
-    string filename = name_prefix + string(s);
-    file.open(filename.c_str(), ios::trunc|ios::out);
-    file<<"# "<<"iteration_max:"<<iteration_max<<"\n";
-    file<<"# "<<"trajectory_length:"<<trajectory_length<<"\n";
-    file<<"# "<<"maximum_velocity:"<<robot_max_velocity<<"\n";
-    auto path = robots.at(self_id).vertices2path();
-    // for 
-
-    file.close();
-    cout<<"Results Loged to file: "<<filename<<endl;
+    if (flag_save_file)
+    {
+        auto path = robots.at(self_id).vertices2path();
+        for (int i = trajectory_length/2; i < trajectory_length; ++i)
+            save_file(path->poses[i], optimized_filename);
+        cout<<"Results Loged to file: "<<optimized_filename<<endl;
+    }
 }

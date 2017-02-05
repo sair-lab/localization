@@ -53,7 +53,6 @@ void Robot::init(g2o::SparseOptimizer& optimizer, Eigen::Isometry3d vertex_init)
         optimizer.addVertex(vertex);
     }
 
-
     header[0].frame_id = "none";
 }
 

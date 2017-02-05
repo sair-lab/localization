@@ -129,7 +129,7 @@ private:
     int iteration_max;
 
 // for debug
-    string filename, name_prefix, frame_source, frame_target;
+    string realtime_filename, optimized_filename, name_prefix, frame_source, frame_target;
 
     ofstream file;
 
@@ -144,7 +144,7 @@ private:
 
     inline Eigen::Isometry3d twist2transform(geometry_msgs::TwistWithCovariance&, Eigen::MatrixXd&, double);
 
-    inline void save_file(geometry_msgs::PoseStamped);
+    inline void save_file(geometry_msgs::PoseStamped, string);
 
 public:
     void set_file();
