@@ -133,7 +133,7 @@ private:
 
     ofstream file;
 
-    bool flag_save_file;
+    bool flag_save_file, publish_range, publish_pose, publish_twist, publish_imu;
 
 // for data convertion
     inline g2o::EdgeSE3* create_se3_edge_from_twist(g2o::VertexSE3*, g2o::VertexSE3*, geometry_msgs::TwistWithCovariance&, double);

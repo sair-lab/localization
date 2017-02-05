@@ -1,7 +1,7 @@
 # parameters for robots
 robot:
   trajectory_length: 500
-  maximum_velocity: 1.0
+  maximum_velocity: 0.5
 
 # parameters for g2o optimizer
 optimizer:
@@ -12,6 +12,12 @@ optimizer:
 topic:
   range: /uwb_endorange_info
   pose: /ni_slam_node/incremental_pose_cov
+
+publish_flag:
+  tf: true
+  # publish estimation when the following topics are received.
+  # topics available in {range, pose, twist, imu}. false in default
+  pose: true
 
 # fused pose topic frame
 frame:

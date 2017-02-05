@@ -48,19 +48,19 @@ Localization::Localization(ros::NodeHandle n)
     bool verbose_flag;
     if(n.param("optimizer/verbose", verbose_flag, false))
     {
-        ROS_WARN("Using optimizer verbose flag: %s!", verbose_flag ? "true":"false");
+        ROS_WARN("Using optimizer verbose flag: %s", verbose_flag ? "true":"false");
         optimizer.setVerbose(verbose_flag);
     }
 
     if(n.param("optimizer/maximum_iteration", iteration_max, 20))
-        ROS_WARN("Using optimizer maximum iteration: %d!", iteration_max);
+        ROS_WARN("Using optimizer maximum iteration: %d", iteration_max);
 
 // For robot max velocity
     if(n.getParam("robot/trajectory_length", trajectory_length))
-        ROS_WARN("Using robot trajectory_length: %d!", trajectory_length);
+        ROS_WARN("Using robot trajectory_length: %d", trajectory_length);
 
     if(n.param("robot/maximum_velocity", robot_max_velocity, 1.0))
-        ROS_WARN("Using robot maximum_velocity: %fm/s!", robot_max_velocity);
+        ROS_WARN("Using robot maximum_velocity: %fm/s", robot_max_velocity);
 
 // For UWB anchor parameters reading
     std::vector<int> nodesId;
@@ -99,13 +99,25 @@ Localization::Localization(ros::NodeHandle n)
     if(n.getParam("log/filename_prefix", name_prefix))
         set_file();
     else
-        ROS_WARN("Won't save any log files!");
+        ROS_WARN("Won't save any log files.");
 
     if(n.param<string>("frame/target", frame_target, "estimation"))
-        ROS_WARN("Using topic target frame: %s!", frame_target.c_str());
+        ROS_WARN("Using topic target frame: %s", frame_target.c_str());
 
     if(n.param<string>("frame/source", frame_source, "local_origin"))
-        ROS_WARN("Using topic target frame: %s!", frame_source.c_str());
+        ROS_WARN("Using topic target frame: %s", frame_source.c_str());
+
+    if(n.param<bool>("publish_flag/range", publish_range, false))
+        ROS_WARN("Using publish_flag/range: %s", publish_range ? "true":"false");
+
+    if(n.param<bool>("publish_flag/pose", publish_pose, false))
+        ROS_WARN("Using publish_flag/pose: %s", publish_pose ? "true":"false");
+
+    if(n.param<bool>("publish_flag/twist", publish_twist, false))
+        ROS_WARN("Using publish_flag/twist: %s", publish_twist ? "true":"false");
+
+    if(n.param<bool>("publish_flag/imu", publish_imu, false))
+        ROS_WARN("Using publish_flag/imu: %s", publish_imu ? "true":"false");
 }
 
 
@@ -131,7 +143,7 @@ void Localization::solve()
     // }
     // optimizer.optimize(iteration_max);
 
-    ROS_INFO("Graph optimized with error: %f!", optimizer.chi2());
+    ROS_INFO("Graph optimized with error: %f", optimizer.chi2());
 
     timer.toc();
 }
@@ -190,35 +202,16 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 
     ROS_INFO("added pose edge id: %d frame_id: %s;", pose_cov.header.seq, pose_cov.header.frame_id.c_str());
 
-    solve();
-
-    publish();
+    if (publish_pose)
+    {
+        solve();
+        publish();
+    }
 }
 
-int num_uwb=100;
-int uwb_index=0;
-unsigned char index_uwb[4]={100,101,102,103};
 
 void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 {
-
-    if(num_uwb > 2)
-    {
-        num_uwb++;
-        if (uwb->responder_id != index_uwb[uwb_index])
-            return;
-        else
-        {
-            uwb_index=(uwb_index+1)%4;
-            num_uwb=0;
-        }
-    }
-    else
-    {
-        num_uwb++;
-        return;
-    }
-
     double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
     double dt_responder = uwb->header.stamp.toSec() - robots.at(uwb->responder_id).last_header().stamp.toSec();
     double distance_cov = pow(uwb->distance_err, 2);
@@ -263,10 +256,11 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
         ROS_INFO("added responder trajectory edge;");
     }
-
-    solve();
-
-    publish();
+    if (publish_range)
+    {
+        solve();
+        publish();
+    }
 }
 
 
@@ -284,15 +278,23 @@ void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped:
 
     optimizer.addEdge(edge);
 
-    ROS_INFO("Localization: added twist edge id: %d!", twist.header.seq);
+    ROS_INFO("added twist edge id: %d", twist.header.seq);
 
-    solve();
+    if (publish_twist)
+    {
+        solve();
+        publish();
+    }
 }
 
 
 void Localization::addImuEdge(const sensor_msgs::Imu::ConstPtr& imu)
 {
-
+    if (publish_imu)
+    {
+        solve();
+        publish();
+    }
 }
 
 
