@@ -12,3 +12,8 @@ optimizer:
 topic:
   range: /uwb_endorange_info
   twist: /dvs/twist
+
+# fused pose topic frame
+frame:
+  target: /camera_link
+  source: /local_origin

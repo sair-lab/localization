@@ -55,11 +55,18 @@ Localization::Localization(ros::NodeHandle n)
     if(n.param("optimizer/maximum_iteration", iteration_max, 20))
         ROS_WARN("Using optimizer maximum iteration: %d!", iteration_max);
 
-// For log files
+// For debug
     if(n.getParam("log/filename_prefix", name_prefix))
         set_file();
     else
         ROS_WARN("Won't save any log files!");
+
+    if(n.param<string>("frame/target", frame_target, "estimation"))
+        ROS_WARN("Using topic target frame: %s!", frame_target.c_str());
+
+    if(n.param<string>("frame/source", frame_source, "local_origin"))
+        ROS_WARN("Using topic target frame: %s!", frame_source.c_str());
+
 
 // For robot max velocity
     if(n.getParam("robot/trajectory_length", trajectory_length))
@@ -135,12 +142,18 @@ void Localization::publish()
 {
     auto pose = robots.at(self_id).current_pose();
 
+    pose.header.frame_id = frame_source;
+
     pose_pub.publish(pose);
 
     if(flag_save_file)
         save_file(pose);
 
-    path_pub.publish(*robots.at(self_id).vertices2path());
+    auto path = robots.at(self_id).vertices2path();
+
+    path->header.frame_id = frame_source;
+
+    path_pub.publish(*path);
 }
 
 

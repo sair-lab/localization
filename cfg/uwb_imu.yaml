@@ -12,3 +12,8 @@ optimizer:
 topic:
   range: /uwb_endorange_info
   imu: /imu/data
+
+# fused pose topic frame
+frame:
+  target: /move_base
+  source: /local_origin

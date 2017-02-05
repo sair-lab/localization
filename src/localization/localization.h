@@ -129,7 +129,7 @@ private:
     int iteration_max;
 
 // for debug
-    string filename, name_prefix;
+    string filename, name_prefix, frame_source, frame_target;
 
     ofstream file;
 

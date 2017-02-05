@@ -12,3 +12,8 @@ optimizer:
 topic:
   range: /uwb_endorange_info
   pose: /ni_slam_node/incremental_pose_cov
+
+# fused pose topic frame
+frame:
+  target: /camera_link
+  source: /local_origin

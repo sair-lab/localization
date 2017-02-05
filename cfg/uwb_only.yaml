@@ -11,3 +11,8 @@ optimizer:
 # parameters for topic subscription
 topic:
   range: /uwb_endorange_info
+
+# fused pose topic frame
+frame:
+  target: /uwb
+  source: /local_origin

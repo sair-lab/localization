@@ -61,9 +61,13 @@ void Robot::init(g2o::SparseOptimizer& optimizer, Eigen::Isometry3d vertex_init)
 nav_msgs::Path* Robot::vertices2path()
 {
     for (int i = 0; i < trajectory_length; ++i)
-        tf::poseEigenToMsg(vertices[(index+1+i)%trajectory_length]->estimate(), path->poses[i].pose);
+    {
+        int idx = (index+1+i)%trajectory_length;
+        tf::poseEigenToMsg(vertices[idx]->estimate(), path->poses[i].pose);
+        path->poses[i].header = header[idx];
+    }
     path->header = last_header();
-    path->header.frame_id = "local_origin";
+
     return path;
 }
 
@@ -139,8 +143,6 @@ geometry_msgs::PoseStamped Robot::current_pose()
     geometry_msgs::PoseStamped pose;
 
     pose.header = last_header();
-
-    pose.header.frame_id = "local_origin";
 
     tf::poseEigenToMsg(vertex, pose.pose);
 
