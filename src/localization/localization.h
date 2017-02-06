@@ -50,6 +50,7 @@
 #include <g2o/solvers/csparse/linear_solver_csparse.h>
 #include <g2o/types/slam3d/types_slam3d.h>
 #include "types_edge_se3range.h"
+#include <tf/transform_broadcaster.h>
 #include <tf/transform_datatypes.h>
 #include <tf_conversions/tf_eigen.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
@@ -133,7 +134,11 @@ private:
 
     ofstream file;
 
-    bool flag_save_file, publish_range, publish_pose, publish_twist, publish_imu;
+    bool flag_save_file, publish_tf, publish_range, publish_pose, publish_twist, publish_imu;
+
+    tf::TransformBroadcaster br;
+
+    tf::Transform transform;
 
 // for data convertion
     inline g2o::EdgeSE3* create_se3_edge_from_twist(g2o::VertexSE3*, g2o::VertexSE3*, geometry_msgs::TwistWithCovariance&, double);

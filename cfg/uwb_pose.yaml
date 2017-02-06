@@ -22,5 +22,5 @@ publish_flag:
 
 # fused pose topic frame
 frame:
-  target: /camera_link
-  source: /local_origin
+  target: /optimizer
+  source: /vicon

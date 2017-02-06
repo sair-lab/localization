@@ -105,7 +105,10 @@ Localization::Localization(ros::NodeHandle n)
         ROS_WARN("Using topic target frame: %s", frame_target.c_str());
 
     if(n.param<string>("frame/source", frame_source, "local_origin"))
-        ROS_WARN("Using topic target frame: %s", frame_source.c_str());
+        ROS_WARN("Using topic source frame: %s", frame_source.c_str());
+
+    if(n.param<bool>("publish_flag/tf", publish_tf, false))
+        ROS_WARN("Using publish_flag/tf: %s", publish_tf ? "true":"false");
 
     if(n.param<bool>("publish_flag/range", publish_range, false))
         ROS_WARN("Using publish_flag/range: %s", publish_range ? "true":"false");
@@ -167,6 +170,12 @@ void Localization::publish()
     {
         save_file(pose, realtime_filename);
         save_file(path->poses[trajectory_length/2], optimized_filename);        
+    }
+
+    if(publish_tf)
+    {
+        tf::poseMsgToTF(pose.pose, transform);
+        br.sendTransform(tf::StampedTransform(transform, pose.header.stamp, frame_source, frame_target));
     }
 }
 

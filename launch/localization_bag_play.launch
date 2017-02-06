@@ -9,9 +9,15 @@
   
     <node pkg="localization" type="localization_node" name="localization_node" output="screen">
         <rosparam command="delete" param="topic" />
-        <rosparam file="$(find localization)/cfg/uwb_slam.yaml" command="load" />
+        <rosparam file="$(find localization)/cfg/uwb_pose.yaml" command="load" />
         <param name="log/filename_prefix" value="$(find localization)/bag/$(arg dataset)" />
     </node>
 
-</launch>
+    <node pkg="hector_trajectory_server" type="hector_trajectory_server" name="localization_trajectory_server">
+        <param name="/target_frame_name" value="vicon" />
+        <param name="/source_frame_name" value="optimizer" />
+        <param name="/trajectory_update_rate" value="20.0" />
+        <param name="/trajectory_publish_rate" value="20.0" />
+    </node>
 
+</launch>
