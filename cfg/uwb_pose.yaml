@@ -1,23 +1,24 @@
 # parameters for robots
 robot:
-  trajectory_length: 200
-  maximum_velocity: 1.0
+  trajectory_length: 500
+  maximum_velocity: 0.5
 
 # parameters for g2o optimizer
 optimizer:
   maximum_iteration: 20
   verbose: false
 
-# parameters for topic subscription, of->optical flow
+# parameters for topic subscription
 topic:
   range: /uwb_endorange_info
-  twist: /dvs/twist
+  pose: /ni_slam_node/incremental_pose_cov
 
 publish_flag:
   tf: true
   # publish estimation when the following topics are received.
   # topics available in {range, pose, twist, imu}. false in default
-  range: true
+  range: false
+  pose: true
 
 # fused pose topic frame
 frame:

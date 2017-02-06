@@ -55,7 +55,7 @@ Localization::Localization(ros::NodeHandle n)
     if(n.param("optimizer/maximum_iteration", iteration_max, 20))
         ROS_WARN("Using optimizer maximum iteration: %d", iteration_max);
 
-// For robot max velocity
+// For robots
     if(n.getParam("robot/trajectory_length", trajectory_length))
         ROS_WARN("Using robot trajectory_length: %d", trajectory_length);
 
