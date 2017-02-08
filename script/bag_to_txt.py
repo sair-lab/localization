@@ -55,11 +55,11 @@ if __name__ == '__main__':
 
     for topic, msg, t in inbag.read_messages():
         if topic == "/vicon_xb_node/mocap/pose":
-            outtxt.write(str(t.to_sec())+' ')
-            outtxt.write(str(msg.pose.position.x)+' ')
-            outtxt.write(str(msg.pose.position.y)+' ')
-            outtxt.write(str(msg.pose.position.z)+' ')
-            outtxt.write(str(msg.pose.orientation.x)+' ')
-            outtxt.write(str(msg.pose.orientation.y)+' ')
-            outtxt.write(str(msg.pose.orientation.z)+' ')
-            outtxt.write(str(msg.pose.orientation.w)+' \n')
+            outtxt.write(str.format("{0:.9f} ", t.to_sec()))
+            outtxt.write(str.format("{0:.9f} ", msg.pose.position.x))
+            outtxt.write(str.format("{0:.9f} ", msg.pose.position.y))
+            outtxt.write(str.format("{0:.9f} ", msg.pose.position.z))
+            outtxt.write(str.format("{0:.9f} ", msg.pose.orientation.x))
+            outtxt.write(str.format("{0:.9f} ", msg.pose.orientation.y))
+            outtxt.write(str.format("{0:.9f} ", msg.pose.orientation.z))
+            outtxt.write(str.format("{0:.9f}\n", msg.pose.orientation.w))
