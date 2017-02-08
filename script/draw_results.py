@@ -39,34 +39,35 @@ from tf import transformations
 
 if __name__ == "__main__":
 
-	if len(sys.argv) == 2 :
-		filename = sys.argv[1]
-	else:
-		print "Usage: python draw_results.py [filename]"
-		exit(0)
+    if len(sys.argv) == 2 :
+        filename = sys.argv[1]
+    else:
+        print "Usage: python draw_results.py [filename]"
+        exit(0)
 
-	file = open(filename, 'r')
-	file.readline()
-	results = array([map(float, line.split(' ')) for line in file if line.strip() !=""])
-	pos_est = results[:,1:4]
-	rot_est = results[:,4:8]
-	time = results[:,0] - results[0,0]
+    file = open(filename, 'r')
+    while file.readline()[0] == '#':
+        continue
+    results = array([map(float, line.split(' ')) for line in file if line.strip() !=""])
+    pos_est = results[:,1:4]
+    rot_est = results[:,4:8]
+    time = results[:,0] - results[0,0]
 
-	fig = plt.figure()
+    fig = plt.figure()
 
-	ax = fig.add_subplot(211)
-	ax.plot(time, pos_est, marker=".")
-	
-	plt.legend(['est x', 'est y', 'est z'])
-	plt.grid()
+    ax = fig.add_subplot(211)
+    ax.plot(time, pos_est, marker=".")
+    
+    plt.legend(['est x', 'est y', 'est z'])
+    plt.grid()
 
-	ax = fig.add_subplot(212)
-	plt.plot(time,rot_est,marker=".")
-	plt.legend(['est qx', 'est qy', 'est qz', 'est qw'])
-	plt.grid()
+    ax = fig.add_subplot(212)
+    plt.plot(time,rot_est,marker=".")
+    plt.legend(['est qx', 'est qy', 'est qz', 'est qw'])
+    plt.grid()
 
-	fig = plt.figure()
-	ax = fig.add_subplot(111, projection='3d')
-	ax.plot(pos_est[:,0], pos_est[:,1], pos_est[:,2])
-	
-	plt.show()
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot(pos_est[:,0], pos_est[:,1], pos_est[:,2])
+    
+    plt.show()
