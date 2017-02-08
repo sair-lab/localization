@@ -30,9 +30,11 @@
 
 Localization::Localization(ros::NodeHandle n)
 {
-    pose_pub = n.advertise<geometry_msgs::PoseStamped>("optimized/pose", 1);
+    pose_pub = n.advertise<geometry_msgs::PoseStamped>("realtime/pose", 1);
 
-    path_pub = n.advertise<nav_msgs::Path>("optimized/path", 1);
+    pose_optimized_pub = n.advertise<geometry_msgs::PoseStamped>("optimized/pose", 1);
+
+    path_optimized_pub = n.advertise<nav_msgs::Path>("optimized/path", 1);
 
 // For g2o optimizer
     solver = new Solver();
@@ -132,8 +134,6 @@ void Localization::solve()
 
     optimizer.optimize(iteration_max);
 
-    // optimizer.save("/home/eee/after.g2o");
-
     // auto edges = optimizer.activeEdges();
     // if(edges.size()>100)
     // {
@@ -144,7 +144,6 @@ void Localization::solve()
     //             ROS_WARN("Removed one Range Edge");
     //         }
     // }
-    // optimizer.optimize(iteration_max);
 
     ROS_INFO("Graph optimized with error: %f", optimizer.chi2());
 
@@ -164,7 +163,9 @@ void Localization::publish()
 
     path->header.frame_id = frame_source;
 
-    path_pub.publish(*path);
+    path_optimized_pub.publish(*path);
+
+    pose_optimized_pub.publish(path->poses[trajectory_length/2]);
 
     if(flag_save_file)
     {
@@ -265,6 +266,7 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
         ROS_INFO("added responder trajectory edge;");
     }
+
     if (publish_range)
     {
         solve();
@@ -426,7 +428,10 @@ Localization::~Localization()
     {
         auto path = robots.at(self_id).vertices2path();
         for (int i = trajectory_length/2; i < trajectory_length; ++i)
+        {
             save_file(path->poses[i], optimized_filename);
+            pose_optimized_pub.publish(path->poses[i]);
+        }
         cout<<"Results Loged to file: "<<optimized_filename<<endl;
     }
 }
