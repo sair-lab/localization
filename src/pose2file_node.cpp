@@ -1,10 +1,12 @@
 #include <ros/ros.h>
 #include "localization.h"
 #include "geometry_msgs/PoseStamped.h"
+#include "sensor_msgs/Imu.h"
 using namespace std;
 
 std::ofstream file1;
 std::ofstream file2;
+std::ofstream file3;
 
  void estimate_record(const geometry_msgs::PoseStamped::ConstPtr& pose_)
 {
@@ -38,6 +40,21 @@ void truth_record(const geometry_msgs::PoseStamped::ConstPtr& pose_)
 
 
 
+void imu_record(const sensor_msgs::Imu::ConstPtr& pose_)
+{
+
+    // ROS_WARN("WE ARE HERE!!");
+    sensor_msgs::Imu pose(*pose_);
+
+    file3.open("/home/xufang/experiment_data/imu_data.txt",ios::app); 
+
+    file3<< pose.header.stamp <<" "<<pose.orientation.w<<" "<<pose.orientation.x<<" "<<pose.orientation.y <<" "\
+        <<pose.orientation.z <<endl; 
+    file3.close();
+}
+
+
+
 int main(int argc, char** argv)
 {
    
@@ -53,9 +70,19 @@ int main(int argc, char** argv)
               
     file2.close();
 
+    file3.open("/home/xufang/experiment_data/imu_data.txt", ios::trunc|ios::out);
+              
+    file3.close();
+
+
+
     ros::Subscriber estimate_sub = n.subscribe("/localization_node/optimized/pose", 100, estimate_record);
 
-    ros::Subscriber true_sub = n.subscribe("/vicon_xb_node/mocap/pose", 100, truth_record);
+    // ros::Subscriber true_sub = n.subscribe("/vicon_xb_node/mocap/pose", 100, truth_record);
+
+    ros::Subscriber true_sub = n.subscribe("/viconxbee_node/mocap/pose", 100, truth_record);
+
+    ros::Subscriber imu_sub = n.subscribe("/imu/data", 100, imu_record);
 
     ros::spin();
 

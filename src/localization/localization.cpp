@@ -54,7 +54,7 @@ Localization::Localization(ros::NodeHandle n, std::vector<int> nodesId, std::vec
 
     last_last_vertex->setEstimate(g2o::SE3Quat(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(0,0,0)));
 
-    iteration_max = 20; // 3
+    iteration_max = 3; // 3
 
     robot_max_velocity = 1; // 2
 
@@ -111,8 +111,8 @@ void Localization::publish()
 
     pose_pub.publish(pose);
 
-    if(flag_save_file)
-        save_file(pose);
+    // if(flag_save_file)
+    //     save_file(pose);
 
     path_pub.publish(*robots.at(self_id).vertices2path());
 }
@@ -301,7 +301,8 @@ void Localization::addImuEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const se
     Eigen::Isometry3d current_pose;
     current_pose.setIdentity(); // very important
 
-    Quaterniond imu_rotation = Quaterniond(Imu.orientation.w,Imu.orientation.x,Imu.orientation.y,Imu.orientation.z);
+    // Quaterniond imu_rotation = Quaterniond(Imu.orientation.w,Imu.orientation.x,Imu.orientation.y,Imu.orientation.z);
+    Quaterniond imu_rotation = Quaterniond(1,0,0,0);
 
     current_pose.rotate(imu_rotation);
     current_pose.translate(g2o::Vector3D(1, 1, 1));

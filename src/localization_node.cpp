@@ -66,33 +66,33 @@ int main(int argc, char** argv)
     if(n.getParam("localization/filename_prefix", filename_prefix))
     {
         ROS_WARN("Get filename prefix: %s", filename_prefix.c_str());
-        localization.set_file(filename_prefix);
+        // localization.set_file(filename_prefix);
     }
     else
         ROS_WARN("Won't save any files!");
 
     // ros::Subscriber pose_sub = n.subscribe("pose", 1000, &Localization::addPoseEdge, &localization);
 
-    ros::Subscriber range_sub = n.subscribe("range", 1, &Localization::addRangeEdge, &localization);
+    // ros::Subscriber range_sub = n.subscribe("range", 1, &Localization::addRangeEdge, &localization);
 
     // ros::Subscriber twist_sub = n.subscribe("twist", 1, &Localization::addTwistEdge, &localization);
 
     // ros::Subscriber imu_sub = n.subscribe("range", 1, &Localization::addImuEdge, &localization);
 
-    // message_filters::Subscriber<uwb_driver::UwbRange> uwb_sub(n, "range", 1);
-    // message_filters::Subscriber<sensor_msgs::Imu> imu_sub(n, "imu", 10);
+    message_filters::Subscriber<uwb_driver::UwbRange> uwb_sub(n, "range", 1);
+    message_filters::Subscriber<sensor_msgs::Imu> imu_sub(n, "imu", 10);
 
-    // typedef sync_policies::ApproximateTime<uwb_driver::UwbRange, sensor_msgs::Imu> imu_uwbSyncPolicy;
+    typedef sync_policies::ApproximateTime<uwb_driver::UwbRange, sensor_msgs::Imu> imu_uwbSyncPolicy;
 
-    // // ApproximateTime takes a queue size as its constructor argument, hence MySyncPolicy(10)
+    // ApproximateTime takes a queue size as its constructor argument, hence MySyncPolicy(10)
 
 
-    // Synchronizer<imu_uwbSyncPolicy> sync(imu_uwbSyncPolicy(10), uwb_sub, imu_sub);
-    // // ros::Subscriber twist_sub = n.subscribe("twist", 1, &Localization::addTwistEdge, &localization);
+    Synchronizer<imu_uwbSyncPolicy> sync(imu_uwbSyncPolicy(10), uwb_sub, imu_sub);
+    // ros::Subscriber twist_sub = n.subscribe("twist", 1, &Localization::addTwistEdge, &localization);
 
-    // ros::Subscriber twist_sub = n.subscribe("dvs", 1, &Localization::addTwistEdge, &localization);
+    ros::Subscriber twist_sub = n.subscribe("dvs", 1, &Localization::addTwistEdge, &localization);
 
-    // sync.registerCallback(boost::bind(&Localization::addImuEdge, &localization, _1, _2));
+    sync.registerCallback(boost::bind(&Localization::addImuEdge, &localization, _1, _2));
 
     ros::spin();
 
