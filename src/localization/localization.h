@@ -134,6 +134,8 @@ private:
 
     Eigen::Matrix3d  record_imu;
 
+    Quaterniond last_rotation;
+
 // for debug
     string filename;
 
