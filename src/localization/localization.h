@@ -57,6 +57,8 @@
 #include <geometry_msgs/TwistWithCovarianceStamped.h>
 #include <uwb_driver/UwbRange.h>
 #include <sensor_msgs/Imu.h>
+#include <dynamic_reconfigure/server.h>
+#include <localization/localizationConfig.h>
 #include "lib.h"
 #include "robot.h"
 
@@ -99,11 +101,13 @@ public:
 
     void addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped::ConstPtr&);
 
+    void configCallback(localization::localizationConfig&, uint32_t);
+
 private:
 
     Jeffsan::CPPTimer timer;
 
-    ros::Publisher pose_pub;
+    ros::Publisher pose_realtime_pub;
 
     ros::Publisher pose_optimized_pub;
 

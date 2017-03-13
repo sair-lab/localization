@@ -8,15 +8,16 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  eigen_conversions
-  tf_conversions
-  geometry_msgs
-  message_filters
-  message_generation
-  message_runtime
-  roscpp
-  rospy
-  std_msgs
+    dynamic_reconfigure
+    eigen_conversions
+    tf_conversions
+    geometry_msgs
+    message_filters
+    message_generation
+    message_runtime
+    roscpp
+    rospy
+    std_msgs
 )
 
 set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -O2 -march=native")
@@ -99,10 +100,9 @@ generate_messages(
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
-#   cfg/DynReconf2.cfg
-# )
+generate_dynamic_reconfigure_options(
+   cfg/localization.cfg
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -144,6 +144,7 @@ add_executable(localization_node
 add_dependencies(localization_node 
     ${${PROJECT_NAME}_EXPORTED_TARGETS}
     ${catkin_EXPORTED_TARGETS}
+    ${PROJECT_NAME}_gencfg
 )
 
 target_link_libraries(localization_node

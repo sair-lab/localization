@@ -30,7 +30,7 @@
 
 Localization::Localization(ros::NodeHandle n)
 {
-    pose_pub = n.advertise<geometry_msgs::PoseStamped>("realtime/pose", 1);
+    pose_realtime_pub = n.advertise<geometry_msgs::PoseStamped>("realtime/pose", 1);
 
     pose_optimized_pub = n.advertise<geometry_msgs::PoseStamped>("optimized/pose", 1);
 
@@ -157,7 +157,7 @@ void Localization::publish()
 
     pose.header.frame_id = frame_source;
 
-    pose_pub.publish(pose);
+    pose_realtime_pub.publish(pose);
 
     auto path = robots.at(self_id).vertices2path();
 
@@ -309,6 +309,28 @@ void Localization::addImuEdge(const sensor_msgs::Imu::ConstPtr& imu)
 }
 
 
+void Localization::configCallback(localization::localizationConfig &config, uint32_t level)
+{
+    ROS_WARN("Get publish_optimized_poses: %s", config.publish_optimized_poses? "ture":"false");
+
+    if (config.publish_optimized_poses)
+    {
+        ROS_WARN("Publishing Optimized poses");
+
+        ros::Rate r(100);
+
+        auto path = robots.at(self_id).vertices2path();
+        
+        for (int i = trajectory_length/2; i < trajectory_length; ++i)
+        {
+            pose_optimized_pub.publish(path->poses[i]);
+            r.sleep();
+        }
+        ROS_WARN("Published. Done");
+    }
+}
+
+
 inline Eigen::Isometry3d Localization::twist2transform(geometry_msgs::TwistWithCovariance& twist, Eigen::MatrixXd& covariance, double dt)
 {
     tf::Vector3 translation, euler;
@@ -428,10 +450,7 @@ Localization::~Localization()
     {
         auto path = robots.at(self_id).vertices2path();
         for (int i = trajectory_length/2; i < trajectory_length; ++i)
-        {
             save_file(path->poses[i], optimized_filename);
-            pose_optimized_pub.publish(path->poses[i]);
-        }
         cout<<"Results Loged to file: "<<optimized_filename<<endl;
     }
 }

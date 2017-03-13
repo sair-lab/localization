@@ -68,6 +68,14 @@ int main(int argc, char** argv)
         ROS_WARN("Subscribing to: %s", imu_topic.c_str());
     }
 
+    dynamic_reconfigure::Server<localization::localizationConfig> dr_srv;
+
+    dynamic_reconfigure::Server<localization::localizationConfig>::CallbackType cb;
+
+    cb = boost::bind(&Localization::configCallback, &localization, _1, _2);
+
+    dr_srv.setCallback(cb);
+
     ros::spin();
 
     return 0;
