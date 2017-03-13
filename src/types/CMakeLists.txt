@@ -7,7 +7,8 @@ ADD_LIBRARY(types_edge_se3range SHARED
 
 SET_TARGET_PROPERTIES(types_edge_se3range PROPERTIES OUTPUT_NAME types_edge_se3range)
 
-TARGET_LINK_LIBRARIES(types_edge_se3range
+TARGET_LINK_LIBRARIES(
+	types_edge_se3range
 	g2o_core
 	g2o_types_slam3d
 )

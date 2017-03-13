@@ -32,6 +32,7 @@ void Robot::init(g2o::SparseOptimizer& optimizer, Eigen::Isometry3d vertex_init)
 {
     index = 0;
     path = new nav_msgs::Path();
+
     path->poses = vector<geometry_msgs::PoseStamped>(trajectory_length, geometry_msgs::PoseStamped());
     header = std::vector<std_msgs::Header>(trajectory_length, std_msgs::Header());
 
@@ -81,6 +82,7 @@ g2o::VertexSE3* Robot::new_vertex(unsigned char type, std_msgs::Header new_heade
         header[index] = new_header;
         return last_vertex(type);
     }
+    
     else
     {   
         auto vertex = new g2o::VertexSE3();
