@@ -251,7 +251,7 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     {
         auto edge = create_range_edge(vertex_last_requester, vertex_responder, uwb->distance, distance_cov + cov_requester);
 
-        optimizer.addEdge(edge);
+        optimizer.addEdge(edge); // decrease computation
 
         ROS_INFO("added requester edge with id: <%d>", uwb->responder_id);
     }
