@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+    
+
+    <rosparam file="$(find uwb_driver)/cfg/anchor_with_bool.yaml" command="load" />
+
+   
+    <node pkg="localization" type="uwb_coord_node" name="uwb_coord_node" output="screen">
+        <rosparam command="delete" param="topic" />
+        <rosparam file="$(find localization)/cfg/uwb_coord.yaml" command="load" />
+        
+    </node>
+
+</launch>

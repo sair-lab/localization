@@ -4,6 +4,8 @@ ADD_LIBRARY(localization SHARED
   	localization.cpp
   	robot.cpp
   	robot.h
+	uwb.h
+	uwb.cpp
 )
 
 SET_TARGET_PROPERTIES(localization PROPERTIES OUTPUT_NAME localization)

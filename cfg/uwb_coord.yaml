@@ -1,0 +1,8 @@
+# parameters for g2o optimizer
+optimizer:
+  maximum_iteration: 50
+
+# parameters for topic subscription
+topic:
+  uwb_coord: /uwb_endorange_info
+

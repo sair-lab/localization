@@ -60,6 +60,8 @@ find_package(Cholmod REQUIRED)
 add_message_files(
   FILES
   UwbData.msg
+  UwbRange.msg
+  UwbRangeSimple.msg
   # Message2.msg
 )
 
@@ -151,6 +153,24 @@ target_link_libraries(localization_node
     ${catkin_LIBRARIES}
     localization
 )
+
+
+add_executable(uwb_coord_node
+    src/uwb_coord_node.cpp
+)
+
+add_dependencies(uwb_coord_node 
+    ${${PROJECT_NAME}_EXPORTED_TARGETS}
+    ${catkin_EXPORTED_TARGETS}
+    ${PROJECT_NAME}_gencfg
+)
+
+target_link_libraries(uwb_coord_node
+    ${EIGEN3_LIBRARIES}
+    ${catkin_LIBRARIES}
+    localization
+)
+
 
 #############
 ## Install ##
