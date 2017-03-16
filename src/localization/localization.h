@@ -59,6 +59,7 @@
 #include <sensor_msgs/Imu.h>
 #include <dynamic_reconfigure/server.h>
 #include <localization/localizationConfig.h>
+#include <message_filters/subscriber.h>
 #include "lib.h"
 #include "robot.h"
 
@@ -97,7 +98,7 @@ public:
 
     void addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&);
 
-    void addImuEdge(const sensor_msgs::Imu::ConstPtr&);
+    void addImuEdge(const uwb_driver::UwbRange::ConstPtr&, const sensor_msgs::Imu::ConstPtr&);
 
     void addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped::ConstPtr&);
 
@@ -123,6 +124,11 @@ private:
     g2o::VertexSE3* key_vertex;
 
     int trajectory_length;
+
+// xu fang
+    int uwb_number;
+
+    g2o::VertexSE3* last_last_vertex = new g2o::VertexSE3();
 
 // for g2o solver
     Solver *solver;

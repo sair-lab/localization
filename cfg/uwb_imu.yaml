@@ -18,7 +18,7 @@ publish_flag:
   # publish estimation when the following topics are received.
   # topics available in {range, pose, twist, imu}. false in default
   range: true
-  imu: false
+  imu: true
 
 # fused pose topic frame
 frame:

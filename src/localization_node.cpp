@@ -30,7 +30,11 @@
 
 #include "localization.h"
 
+#include <message_filters/synchronizer.h>
+#include <message_filters/sync_policies/approximate_time.h>
+
 using namespace std;
+using namespace message_filters;
 
 int main(int argc, char** argv)
 {
@@ -50,11 +54,11 @@ int main(int argc, char** argv)
         ROS_WARN("Subscribing to: %s",pose_topic.c_str());
     }
 
-    if(n.getParam("topic/range", range_topic))
-    {
-        range_sub = n.subscribe(range_topic, 1, &Localization::addRangeEdge, &localization);
-        ROS_WARN("Subscribing to: %s", range_topic.c_str());
-    }
+    // if(n.getParam("topic/range", range_topic))
+    // {
+    //     range_sub = n.subscribe(range_topic, 1, &Localization::addRangeEdge, &localization);
+    //     ROS_WARN("Subscribing to: %s", range_topic.c_str());
+    // }
 
     if(n.getParam("topic/twist", twist_topic))
     {
@@ -62,19 +66,35 @@ int main(int argc, char** argv)
         ROS_WARN("Subscribing to: %s", twist_topic.c_str());
     }
 
-    if(n.getParam("topic/imu", imu_topic))
-    {
-        imu_sub = n.subscribe(imu_topic, 1, &Localization::addImuEdge, &localization);
-        ROS_WARN("Subscribing to: %s", imu_topic.c_str());
-    }
+    // if(n.getParam("topic/imu", imu_topic))
+    // {
+    //     imu_sub = n.subscribe(imu_topic, 1, &Localization::addImuEdge, &localization);
+    //     ROS_WARN("Subscribing to: %s", imu_topic.c_str());
+    // }
 
-    dynamic_reconfigure::Server<localization::localizationConfig> dr_srv;
 
-    dynamic_reconfigure::Server<localization::localizationConfig>::CallbackType cb;
 
-    cb = boost::bind(&Localization::configCallback, &localization, _1, _2);
+    // Xu Fang
+    n.getParam("topic/range", range_topic);
+    n.getParam("topic/imu", imu_topic);
+  
+    message_filters::Subscriber<uwb_driver::UwbRange> uwb_sub1(n, range_topic, 1);
+    message_filters::Subscriber<sensor_msgs::Imu> imu_sub1(n, imu_topic, 10);
 
-    dr_srv.setCallback(cb);
+    typedef sync_policies::ApproximateTime<uwb_driver::UwbRange, sensor_msgs::Imu> imu_uwbSyncPolicy;
+
+    Synchronizer<imu_uwbSyncPolicy> sync(imu_uwbSyncPolicy(10), uwb_sub1, imu_sub1);
+
+    sync.registerCallback(boost::bind(&Localization::addImuEdge, &localization, _1, _2));
+
+
+    // dynamic_reconfigure::Server<localization::localizationConfig> dr_srv;
+
+    // dynamic_reconfigure::Server<localization::localizationConfig>::CallbackType cb;
+
+    // cb = boost::bind(&Localization::configCallback, &localization, _1, _2);
+
+    // dr_srv.setCallback(cb);
 
     ros::spin();
 
