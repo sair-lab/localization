@@ -5,7 +5,7 @@ Toturial (Only for ROS kinetic on Ubuntu 16.04)
 
 Install dependencies:
 
-    sudo apt install libcholmod3.0.6 libcsparse3.1.4 libsuitesparse-dev python-cvxopt
+    sudo apt install libcholmod3.0.6 libcsparse3.1.4 libsuitesparse-dev python-cvxopt ros-kinetic-hector-trajectory-server
     
 Install G2O from source. Download g2o to your non-ros source folder, make and install:
   
