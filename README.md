@@ -5,7 +5,17 @@ Toturial (Only for ROS kinetic on Ubuntu 16.04)
 
 Install dependencies:
 
-    sudo apt install libcholmod3.0.6 libcsparse3.1.4 libsuitesparse-dev python-cvxopt ros-kinetic-hector-trajectory-server
+    sudo apt-get update
+
+    sudo apt install python-pip
+
+    sudo pip install --user numpy scipy matplotlib ipython jupyter pandas sympy nose
+    
+    sudo easy_install -U statsmodels
+
+    sudo apt install libcholmod3.0.6 libcsparse3.1.4 libsuitesparse-dev python-cvxopt 
+    
+    sudo apt install ros-kinetic-hector-trajectory-server
     
 Install G2O from source. Download g2o to your non-ros source folder, make and install:
   
@@ -18,4 +28,3 @@ Download uwb_driver to your ros workspace and install its dependencies:
 
     git clone https://github.com/jeffsanc/uwb_driver.git
     sudo apt-get install ros-kinetic-serial
-    
