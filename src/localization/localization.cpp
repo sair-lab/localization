@@ -317,14 +317,12 @@ void Localization::configCallback(localization::localizationConfig &config, uint
     {
         ROS_WARN("Publishing Optimized poses");
 
-        // ros::Rate r(100);
-
         auto path = robots.at(self_id).vertices2path();
         
         for (int i = trajectory_length/2; i < trajectory_length; ++i)
         {
             pose_optimized_pub.publish(path->poses[i]);
-            // r.sleep();
+
             usleep(10000);
         }
         ROS_WARN("Published. Done");

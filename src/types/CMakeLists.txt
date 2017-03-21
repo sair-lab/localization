@@ -1,8 +1,7 @@
 ADD_LIBRARY(types_edge_se3range SHARED
 	${G2O_LIB_TYPE}
- 	types_edge_se3range.h
  	types_edge_se3range.cpp
- 	g2o_types_api.h
+ 	types_edge_se3range_offset.cpp
 )
 
 SET_TARGET_PROPERTIES(types_edge_se3range PROPERTIES OUTPUT_NAME types_edge_se3range)
