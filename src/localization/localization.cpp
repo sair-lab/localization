@@ -233,28 +233,28 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
     auto frame_id = robots.at(uwb->requester_id).last_header().frame_id;
 
-    // if(frame_id == uwb->header.frame_id || frame_id == "none")
-    // {    
-    //     auto vertex_requester = robots.at(uwb->requester_id).new_vertex(sensor_type.range, uwb->header, optimizer);
+    if(frame_id == uwb->header.frame_id || frame_id == "none")
+    {    
+        auto vertex_requester = robots.at(uwb->requester_id).new_vertex(sensor_type.range, uwb->header, optimizer);
 
-    //     auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, distance_cov);
+        auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, distance_cov);
 
-    //     auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, cov_requester);
+        auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, cov_requester);
 
-    //     optimizer.addEdge(edge_requester_range);
+        optimizer.addEdge(edge_requester_range);
 
-    //     optimizer.addEdge(edge);
+        optimizer.addEdge(edge);
 
-    //     ROS_INFO("added two requester range edge with id: <%d>;",uwb->responder_id);
-    // }
-    // else
-    // {
-    auto edge = create_range_edge(vertex_last_requester, vertex_responder, uwb->distance, distance_cov + cov_requester);
+        ROS_INFO("added two requester range edge with id: <%d>;",uwb->responder_id);
+    }
+    else
+    {
+        auto edge = create_range_edge(vertex_last_requester, vertex_responder, uwb->distance, distance_cov + cov_requester);
 
-    optimizer.addEdge(edge);
+        optimizer.addEdge(edge);
 
-    ROS_INFO("added requester edge with id: <%d>", uwb->responder_id);
-    // }
+        ROS_INFO("added requester edge with id: <%d>", uwb->responder_id);
+    }
 
     if (!robots.at(uwb->responder_id).is_static())
     {

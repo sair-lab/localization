@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-    <arg name="dataset" value="kinect_man_pose"/>
+    <arg name="dataset" value="slam_uwb_man"/>
 
     <rosparam file="$(find uwb_driver)/cfg/anchor.yaml" command="load" />
 
@@ -9,7 +9,7 @@
   
     <node pkg="localization" type="localization_node" name="localization_node" output="screen">
         <rosparam command="delete" param="topic" />
-        <rosparam file="$(find localization)/cfg/uwb_pose.yaml" command="load" />
+        <rosparam file="$(find localization)/cfg/uwb_only.yaml" command="load" />
         <param name="log/filename_prefix" value="$(find localization)/bag/$(arg dataset)" />
     </node>
 
