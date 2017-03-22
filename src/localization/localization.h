@@ -97,8 +97,6 @@ public:
 
     void addRangeEdge(const uwb_driver::UwbRange::ConstPtr&);
 
-    void addImu(const sensor_msgs::Imu::ConstPtr&);
-
     void addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&);
 
     void addImuEdge(const uwb_driver::UwbRange::ConstPtr&, const sensor_msgs::Imu::ConstPtr&);
@@ -106,8 +104,6 @@ public:
     void addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped::ConstPtr&);
 
     void configCallback(localization::localizationConfig&, uint32_t);
-
-    void vicon(const geometry_msgs::PoseStamped::ConstPtr&);
 
 private:
 
@@ -136,8 +132,6 @@ private:
     int trajectory_length;
 
 // xu fang
-    int uwb_number;
-
     Eigen::MatrixXd last_covariance_matrix;
 
     Quaterniond last_rotation;

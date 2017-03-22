@@ -51,7 +51,6 @@ Localization::Localization(ros::NodeHandle n)
     optimizer.setAlgorithm(optimizationsolver);
 
 // xu fang
-    uwb_number = 0;
     last_covariance_matrix =  Eigen::MatrixXd::Zero(3, 3);
     last_rotation = Quaterniond(1,0,0,0);
     g2o::ParameterSE3Offset* cameraOffset = new g2o::ParameterSE3Offset;
@@ -163,31 +162,6 @@ void Localization::solve()
 }
 
 
-void Localization::vicon(const geometry_msgs::PoseStamped::ConstPtr& _vicon)
-{
-
-    geometry_msgs::PoseStamped vicondata(*_vicon);
-    vicondata.header.frame_id = frame_target;
-    vicon_pub.publish(vicondata);
-
-    geometry_msgs::Pose viconpose;
-    viconpose.position.z = 0.5;
-    viconpose.orientation.x = 0;
-    viconpose.orientation.y = 0;
-    viconpose.orientation.z = 0;
-    viconpose.orientation.w = 1;
-
-
-    if(publish_tf)
-    {
-        tf::poseMsgToTF(viconpose, transform);
-        br.sendTransform(tf::StampedTransform(transform, vicondata.header.stamp, frame_source, frame_target));
-    }
-
-    
-}
-
-
 void Localization::publish()
 {
     auto pose = robots.at(self_id).current_pose();
@@ -260,7 +234,6 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 
 void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 {
-
     if (publish_range)
     {
         double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
@@ -307,7 +280,6 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
             ROS_INFO("added responder trajectory edge;");
         }
-
 
         if (publish_range)
         {

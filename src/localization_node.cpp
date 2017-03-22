@@ -67,13 +67,12 @@ int main(int argc, char** argv)
         ROS_WARN("Subscribing to: %s", twist_topic.c_str());
     }
 
+    if(n.getParam("topic/imu", imu_topic))
+    {
+        ROS_WARN("Subscribing to: %s", imu_topic.c_str());
+    }
 
-    // Xu Fang
-
-    vicon_sub = n.subscribe("/viconxbee_node/mocap/pose", 1000, &Localization::vicon, &localization);
-
-    n.getParam("topic/imu", imu_topic);
-  
+    // Xu Fang  
     message_filters::Subscriber<uwb_driver::UwbRange> uwb_sub1(n, range_topic, 1);
     message_filters::Subscriber<sensor_msgs::Imu> imu_sub1(n, imu_topic, 10);
 
@@ -82,7 +81,6 @@ int main(int argc, char** argv)
     Synchronizer<imu_uwbSyncPolicy> sync(imu_uwbSyncPolicy(10), uwb_sub1, imu_sub1);
 
     sync.registerCallback(boost::bind(&Localization::addImuEdge, &localization, _1, _2));
-
 
     dynamic_reconfigure::Server<localization::localizationConfig> dr_srv;
 
