@@ -49,20 +49,17 @@ int main(int argc, char** argv)
     ros::Subscriber pose_sub, range_sub, imu_sub, twist_sub, vicon_sub;
 
 
-    vicon_sub = n.subscribe("/viconxbee_node/mocap/pose", 1000, &Localization::vicon, &localization);
-
-
     if(n.getParam("topic/pose", pose_topic))
     {
         pose_sub = n.subscribe(pose_topic, 1000, &Localization::addPoseEdge, &localization);
         ROS_WARN("Subscribing to: %s",pose_topic.c_str());
     }
 
-    // if(n.getParam("topic/range", range_topic))
-    // {
-    //     range_sub = n.subscribe(range_topic, 1, &Localization::addRangeEdge, &localization);
-    //     ROS_WARN("Subscribing to: %s", range_topic.c_str());
-    // }
+    if(n.getParam("topic/range", range_topic))
+    {
+        range_sub = n.subscribe(range_topic, 1, &Localization::addRangeEdge, &localization);
+        ROS_WARN("Subscribing to: %s", range_topic.c_str());
+    }
 
     if(n.getParam("topic/twist", twist_topic))
     {
@@ -70,16 +67,11 @@ int main(int argc, char** argv)
         ROS_WARN("Subscribing to: %s", twist_topic.c_str());
     }
 
-    if(n.getParam("topic/imu", imu_topic))
-    {
-        imu_sub = n.subscribe(imu_topic, 1, &Localization::addImu, &localization);
-        ROS_WARN("Subscribing to: %s", imu_topic.c_str());
-    }
-
-
 
     // Xu Fang
-    n.getParam("topic/range", range_topic);
+
+    vicon_sub = n.subscribe("/viconxbee_node/mocap/pose", 1000, &Localization::vicon, &localization);
+
     n.getParam("topic/imu", imu_topic);
   
     message_filters::Subscriber<uwb_driver::UwbRange> uwb_sub1(n, range_topic, 1);
@@ -92,13 +84,13 @@ int main(int argc, char** argv)
     sync.registerCallback(boost::bind(&Localization::addImuEdge, &localization, _1, _2));
 
 
-    // dynamic_reconfigure::Server<localization::localizationConfig> dr_srv;
+    dynamic_reconfigure::Server<localization::localizationConfig> dr_srv;
 
-    // dynamic_reconfigure::Server<localization::localizationConfig>::CallbackType cb;
+    dynamic_reconfigure::Server<localization::localizationConfig>::CallbackType cb;
 
-    // cb = boost::bind(&Localization::configCallback, &localization, _1, _2);
+    cb = boost::bind(&Localization::configCallback, &localization, _1, _2);
 
-    // dr_srv.setCallback(cb);
+    dr_srv.setCallback(cb);
 
     ros::spin();
 

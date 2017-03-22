@@ -54,7 +54,6 @@ Localization::Localization(ros::NodeHandle n)
     uwb_number = 0;
     last_covariance_matrix =  Eigen::MatrixXd::Zero(3, 3);
     last_rotation = Quaterniond(1,0,0,0);
-    imu_rotation = Quaterniond(1,0,0,0);
     g2o::ParameterSE3Offset* cameraOffset = new g2o::ParameterSE3Offset;
     cameraOffset->setId(0);
     optimizer.addParameter(cameraOffset);
@@ -185,7 +184,6 @@ void Localization::vicon(const geometry_msgs::PoseStamped::ConstPtr& _vicon)
         br.sendTransform(tf::StampedTransform(transform, vicondata.header.stamp, frame_source, frame_target));
     }
 
-   
     
 }
 
@@ -213,11 +211,11 @@ void Localization::publish()
     }
 
 
-    // if(publish_tf)
-    // {
-    //     tf::poseMsgToTF(viconpose, transform);
-    //     br.sendTransform(tf::StampedTransform(transform, pose.header.stamp, frame_source, "vicon"));
-    // }
+    if(publish_tf)
+    {
+        tf::poseMsgToTF(pose.pose, transform);
+        br.sendTransform(tf::StampedTransform(transform, pose.header.stamp, frame_source, frame_target));
+    }
 }
 
 
@@ -262,56 +260,62 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 
 void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 {
-    double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
-    double dt_responder = uwb->header.stamp.toSec() - robots.at(uwb->responder_id).last_header().stamp.toSec();
-    double distance_cov = pow(uwb->distance_err, 2);
-    double cov_requester = pow(robot_max_velocity*dt_requester/3, 2); //3 sigma priciple
-
-    auto vertex_last_requester = robots.at(uwb->requester_id).last_vertex();
-    auto vertex_last_responder = robots.at(uwb->responder_id).last_vertex();
-    auto vertex_responder = robots.at(uwb->responder_id).new_vertex(sensor_type.range, uwb->header, optimizer);
-
-    auto frame_id = robots.at(uwb->requester_id).last_header().frame_id;
-
-    if(frame_id == uwb->header.frame_id || frame_id == "none")
-    {    
-        auto vertex_requester = robots.at(uwb->requester_id).new_vertex(sensor_type.range, uwb->header, optimizer);
-
-        auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, distance_cov);
-
-        auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, cov_requester);
-
-        optimizer.addEdge(edge_requester_range);
-
-        optimizer.addEdge(edge);
-
-        ROS_INFO("added two requester range edge with id: <%d>;",uwb->responder_id);
-    }
-    else
-    {
-        auto edge = create_range_edge(vertex_last_requester, vertex_responder, uwb->distance, distance_cov + cov_requester);
-
-        optimizer.addEdge(edge); // decrease computation
-
-        ROS_INFO("added requester edge with id: <%d>", uwb->responder_id);
-    }
-
-    if (!robots.at(uwb->responder_id).is_static())
-    {
-        double cov_responder = pow(robot_max_velocity*dt_responder/3, 2); //3 sigma priciple
-
-        auto edge_responder_range = create_range_edge(vertex_last_responder, vertex_responder, 0, cov_responder);
-
-        optimizer.addEdge(edge_responder_range);
-
-        ROS_INFO("added responder trajectory edge;");
-    }
 
     if (publish_range)
     {
-        solve();
-        publish();
+        double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
+        double dt_responder = uwb->header.stamp.toSec() - robots.at(uwb->responder_id).last_header().stamp.toSec();
+        double distance_cov = pow(uwb->distance_err, 2);
+        double cov_requester = pow(robot_max_velocity*dt_requester/3, 2); //3 sigma priciple
+
+        auto vertex_last_requester = robots.at(uwb->requester_id).last_vertex();
+        auto vertex_last_responder = robots.at(uwb->responder_id).last_vertex();
+        auto vertex_responder = robots.at(uwb->responder_id).new_vertex(sensor_type.range, uwb->header, optimizer);
+
+        auto frame_id = robots.at(uwb->requester_id).last_header().frame_id;
+
+        if(frame_id == uwb->header.frame_id || frame_id == "none")
+        {    
+            auto vertex_requester = robots.at(uwb->requester_id).new_vertex(sensor_type.range, uwb->header, optimizer);
+
+            auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, distance_cov);
+
+            optimizer.addEdge(edge);
+
+            auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, cov_requester);
+
+            optimizer.addEdge(edge_requester_range); 
+
+            ROS_INFO("added two requester range edge with id: <%d>;",uwb->responder_id);
+        }
+        else
+        {
+            auto edge = create_range_edge(vertex_last_requester, vertex_responder, uwb->distance, distance_cov + cov_requester);
+
+            optimizer.addEdge(edge); // decrease computation
+
+            ROS_INFO("added requester edge with id: <%d>", uwb->responder_id);
+        }
+
+        if (!robots.at(uwb->responder_id).is_static())
+        {
+            double cov_responder = pow(robot_max_velocity*dt_responder/3, 2); //3 sigma priciple
+
+            auto edge_responder_range = create_range_edge(vertex_last_responder, vertex_responder, 0, cov_responder);
+
+            optimizer.addEdge(edge_responder_range);
+
+            ROS_INFO("added responder trajectory edge;");
+        }
+
+
+        if (publish_range)
+        {
+            solve();
+            publish();
+        }
     }
+
 }
 
 
@@ -339,151 +343,111 @@ void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped:
 }
 
 
-
-
-void Localization::addImu(const sensor_msgs::Imu::ConstPtr& Imu_)
-{
-
-  sensor_msgs::Imu Imu(*Imu_);
-
-  // sensor_msgs::Imu 
-
-}
-
-
-
-
 void Localization::addImuEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const sensor_msgs::Imu::ConstPtr& Imu_)
 {
-    
-    double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header(sensor_type.range).stamp.toSec();
-
-    auto vertex_last_requester = robots.at(uwb->requester_id).last_vertex(sensor_type.range);
-
-    sensor_msgs::Imu Imu(*Imu_);
-    double qx = Imu.orientation.x;
-    double qy = Imu.orientation.y;
-    double qz = Imu.orientation.z;
-    double qw = Imu.orientation.w;
-
-    // requester to responder edge
-    auto vertex_requester = robots.at(uwb->requester_id).new_vertex(sensor_type.range, uwb->header, optimizer);
-
-    Eigen::Isometry3d current_pose;
-    current_pose.setIdentity(); // very important
-
-    // Quaterniond imu_rotation = Quaterniond(Imu.orientation.w,Imu.orientation.x,Imu.orientation.y,Imu.orientation.z);
-    current_pose.rotate(imu_rotation);
-
-    cout << "imu" << imu_rotation.matrix() << endl;
-    current_pose.translate(g2o::Vector3D(0, 0, 0));
-
-    vertex_requester->setEstimate(vertex_last_requester->estimate());
-
-    auto vertex_responder = robots.at(uwb->responder_id).new_vertex(sensor_type.range, uwb->header, optimizer);
-
-    auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, pow(uwb->distance_err, 2));
-    optimizer.addEdge(edge);
-
-
-    bool requester_not_static = robots.at(uwb->requester_id).not_static();
-  
-    Matrix3d T_matrix;
-    T_matrix << 1-2*qy*qy-2*qz*qz, 2*qx*qy-2*qz*qw, 2*qx*qz+2*qy*qw,
-                2*qx*qy + 2*qz*qw, 1-2*qx*qx-2*qz*qz, 2*qy*qz-2*qx*qw,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
-                2*qx*qz-2*qy*qw, 2*qy*qz + 2*qx*qw, 1-2*qx*qx-2*qy*qy;
-
-
-    // tf::Quaternion q(Imu.orientation.x,Imu.orientation.y,Imu.orientation.z,Imu.orientation.w);
-    // tf::Matrix3x3 m(q);
-    // cout << "transform" << "" << "abc" << T_matrix <<  endl;
-
-
-    Eigen::Isometry3d last_pose;
-    last_pose.setIdentity(); // very important
-    last_pose.rotate(last_rotation);
-    last_pose.translate(g2o::Vector3D(0, 0, 0));
-
-    Isometry3d transform_matrix = last_pose.inverse()*current_pose;
-    last_rotation = imu_rotation;
-
-    // float64[9] last_rotation_covariance;
-
-
-    Eigen::Map<Eigen::MatrixXd> covariance_orientation(Imu.orientation_covariance.data(), 3, 3);
-    Eigen::Matrix3d zero_matrix = Eigen::Matrix3d::Zero();
-
-    Eigen::MatrixXd sum_covariance(3,3);
-    sum_covariance = last_covariance_matrix + covariance_orientation;
-
-    last_covariance_matrix = covariance_orientation;
-
-    Eigen::MatrixXd SE3information(6,6);
-    Eigen::MatrixXd covariance_translation(3,3);
-
-
-    covariance_translation << pow(robot_max_velocity*dt_requester/3, 2),0,0,
-                              0,pow(robot_max_velocity*dt_requester/3, 2),0,
-                              0,0,pow(robot_max_velocity*dt_requester/3, 2);
-
-    SE3information << covariance_translation,zero_matrix,
-                      zero_matrix,sum_covariance;
-
-
-    if (requester_not_static)
-    {
-
-        g2o::EdgeSE3 *SE3edge = new g2o::EdgeSE3();
-    
-        SE3edge->vertices()[0] = vertex_last_requester;
-
-        SE3edge->vertices()[1] = vertex_requester; 
-
-        SE3edge->setMeasurement(transform_matrix);
-
-        SE3edge->setInformation(SE3information.inverse());
-
-        edge->setRobustKernel(new g2o::RobustKernelHuber());
-    
-        optimizer.addEdge( SE3edge );
-
-    }
-
-    if (requester_not_static)
-    {
-
-        g2o::EdgeSE3Prior* e1=new g2o::EdgeSE3Prior();
-        Eigen::MatrixXd  pinfo_1(6,6);
-        pinfo_1 << zero_matrix,zero_matrix,
-               zero_matrix,zero_matrix;
-
-        pinfo_1(0,0)= 0;
-        pinfo_1(1,1)= 0;
-        pinfo_1(2,2)= 0;
-
-        pinfo_1(3,3)= 1e8; 
-        pinfo_1(4,4)= 1e8;
-        pinfo_1(5,5)= 1e8;// X ,Y ,Z 
-
-
-        e1->setInformation(pinfo_1);
-        e1->vertices()[0]= vertex_requester; 
-
-        e1->setMeasurement(current_pose); 
-        e1->setParameterId(0,0);
-        optimizer.addEdge(e1); 
-
-    }
-    
-
-    ROS_WARN("Localization: added range edge id: %d", uwb->header.seq);
-   
     if (publish_imu)
     {
-        solve();
-        publish();
-    }
+    
+        double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header(sensor_type.range).stamp.toSec();
+        
+        auto vertex_last_requester = robots.at(uwb->requester_id).last_vertex(sensor_type.range);
 
+        // requester to responder edge
+        auto vertex_requester = robots.at(uwb->requester_id).new_vertex(sensor_type.range, uwb->header, optimizer);
+        vertex_requester->setEstimate(vertex_last_requester->estimate());
+        auto vertex_responder = robots.at(uwb->responder_id).new_vertex(sensor_type.range, uwb->header, optimizer);
+
+        auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, pow(uwb->distance_err, 2));
+        optimizer.addEdge(edge);
+
+        Eigen::Isometry3d current_pose;
+        current_pose.setIdentity(); // very important
+
+        sensor_msgs::Imu Imu(*Imu_);
+        Quaterniond imu_rotation = Quaterniond(Imu.orientation.w,Imu.orientation.x,Imu.orientation.y,Imu.orientation.z);
+
+        current_pose.rotate(imu_rotation);
+        current_pose.translate(g2o::Vector3D(0, 0, 0));
+
+
+        Eigen::Isometry3d last_pose;
+        last_pose.setIdentity(); // very important
+        last_pose.rotate(last_rotation);
+        last_pose.translate(g2o::Vector3D(0, 0, 0));
+
+        Isometry3d transform_matrix = last_pose.inverse()*current_pose;
+        last_rotation = imu_rotation;
+
+        Eigen::Map<Eigen::MatrixXd> covariance_orientation(Imu.orientation_covariance.data(), 3, 3);
+        Eigen::Matrix3d zero_matrix = Eigen::Matrix3d::Zero();
+
+        Eigen::MatrixXd sum_covariance(3,3);
+        sum_covariance = last_covariance_matrix + covariance_orientation;
+        last_covariance_matrix = covariance_orientation;
+
+        Eigen::MatrixXd SE3information(6,6);
+        Eigen::MatrixXd covariance_translation(3,3);
+
+        covariance_translation << pow(robot_max_velocity*dt_requester/3, 2),0,0,
+                                0,pow(robot_max_velocity*dt_requester/3, 2),0,
+                                0,0,pow(robot_max_velocity*dt_requester/3, 2);
+
+        SE3information << covariance_translation,zero_matrix,
+                        zero_matrix,sum_covariance;
+
+
+        bool requester_not_static = robots.at(uwb->requester_id).not_static();
+        if (requester_not_static)
+        {
+
+            g2o::EdgeSE3 *SE3edge = new g2o::EdgeSE3();
+    
+            SE3edge->vertices()[0] = vertex_last_requester;
+
+            SE3edge->vertices()[1] = vertex_requester; 
+
+            SE3edge->setMeasurement(transform_matrix);
+
+            SE3edge->setInformation(SE3information.inverse());
+
+            edge->setRobustKernel(new g2o::RobustKernelHuber());
+    
+            optimizer.addEdge( SE3edge );
+        }
+
+        if (requester_not_static)
+        {
+
+            g2o::EdgeSE3Prior* e1=new g2o::EdgeSE3Prior();
+            Eigen::MatrixXd  pinfo_1(6,6);
+            pinfo_1 << zero_matrix,zero_matrix,
+                       zero_matrix,zero_matrix;
+
+            pinfo_1(0,0)= 0;
+            pinfo_1(1,1)= 0;
+            pinfo_1(2,2)= 0;
+
+            pinfo_1(3,3)= 1e8; 
+            pinfo_1(4,4)= 1e8;
+            pinfo_1(5,5)= 1e8;// X ,Y ,Z 
+
+            e1->setInformation(pinfo_1);
+            e1->vertices()[0]= vertex_requester; 
+
+            e1->setMeasurement(current_pose); 
+            e1->setParameterId(0,0);
+            optimizer.addEdge(e1); 
+        }
+    
+
+        ROS_WARN("Localization: added range edge id: %d", uwb->header.seq);
+   
+        if (publish_imu)
+        {
+            solve();
+            publish();
+        }
+    }
 }
 
 
