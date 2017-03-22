@@ -46,7 +46,11 @@ int main(int argc, char** argv)
 
     string pose_topic, range_topic, imu_topic, twist_topic;
 
-    ros::Subscriber pose_sub, range_sub, imu_sub, twist_sub;
+    ros::Subscriber pose_sub, range_sub, imu_sub, twist_sub, vicon_sub;
+
+
+    vicon_sub = n.subscribe("/viconxbee_node/mocap/pose", 1000, &Localization::vicon, &localization);
+
 
     if(n.getParam("topic/pose", pose_topic))
     {
@@ -66,11 +70,11 @@ int main(int argc, char** argv)
         ROS_WARN("Subscribing to: %s", twist_topic.c_str());
     }
 
-    // if(n.getParam("topic/imu", imu_topic))
-    // {
-    //     imu_sub = n.subscribe(imu_topic, 1, &Localization::addImuEdge, &localization);
-    //     ROS_WARN("Subscribing to: %s", imu_topic.c_str());
-    // }
+    if(n.getParam("topic/imu", imu_topic))
+    {
+        imu_sub = n.subscribe(imu_topic, 1, &Localization::addImu, &localization);
+        ROS_WARN("Subscribing to: %s", imu_topic.c_str());
+    }
 
 
 

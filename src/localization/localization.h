@@ -60,6 +60,7 @@
 #include <dynamic_reconfigure/server.h>
 #include <localization/localizationConfig.h>
 #include <message_filters/subscriber.h>
+#include <std_msgs/Float64.h>
 #include "lib.h"
 #include "robot.h"
 
@@ -96,6 +97,8 @@ public:
 
     void addRangeEdge(const uwb_driver::UwbRange::ConstPtr&);
 
+    void addImu(const sensor_msgs::Imu::ConstPtr&);
+
     void addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&);
 
     void addImuEdge(const uwb_driver::UwbRange::ConstPtr&, const sensor_msgs::Imu::ConstPtr&);
@@ -103,6 +106,8 @@ public:
     void addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped::ConstPtr&);
 
     void configCallback(localization::localizationConfig&, uint32_t);
+
+    void vicon(const geometry_msgs::PoseStamped::ConstPtr&);
 
 private:
 
@@ -113,6 +118,11 @@ private:
     ros::Publisher pose_optimized_pub;
 
     ros::Publisher path_optimized_pub;
+
+// for vicon
+    ros::Publisher vicon_pub;
+
+    geometry_msgs::PoseStamped vicondata;
 
 // for robots
     map<unsigned char, Robot> robots;
@@ -127,6 +137,12 @@ private:
 
 // xu fang
     int uwb_number;
+
+    Eigen::MatrixXd last_covariance_matrix;
+
+    Quaterniond last_rotation;
+
+    Quaterniond imu_rotation;
 
     g2o::VertexSE3* last_last_vertex = new g2o::VertexSE3();
 

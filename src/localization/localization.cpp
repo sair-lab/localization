@@ -36,6 +36,9 @@ Localization::Localization(ros::NodeHandle n)
 
     path_optimized_pub = n.advertise<nav_msgs::Path>("optimized/path", 1);
 
+// for vicon
+    vicon_pub = n.advertise<geometry_msgs::PoseStamped>("vicon", 1);
+
 // For g2o optimizer
     solver = new Solver();
 
@@ -49,6 +52,9 @@ Localization::Localization(ros::NodeHandle n)
 
 // xu fang
     uwb_number = 0;
+    last_covariance_matrix =  Eigen::MatrixXd::Zero(3, 3);
+    last_rotation = Quaterniond(1,0,0,0);
+    imu_rotation = Quaterniond(1,0,0,0);
     g2o::ParameterSE3Offset* cameraOffset = new g2o::ParameterSE3Offset;
     cameraOffset->setId(0);
     optimizer.addParameter(cameraOffset);
@@ -158,6 +164,32 @@ void Localization::solve()
 }
 
 
+void Localization::vicon(const geometry_msgs::PoseStamped::ConstPtr& _vicon)
+{
+
+    geometry_msgs::PoseStamped vicondata(*_vicon);
+    vicondata.header.frame_id = frame_target;
+    vicon_pub.publish(vicondata);
+
+    geometry_msgs::Pose viconpose;
+    viconpose.position.z = 0.5;
+    viconpose.orientation.x = 0;
+    viconpose.orientation.y = 0;
+    viconpose.orientation.z = 0;
+    viconpose.orientation.w = 1;
+
+
+    if(publish_tf)
+    {
+        tf::poseMsgToTF(viconpose, transform);
+        br.sendTransform(tf::StampedTransform(transform, vicondata.header.stamp, frame_source, frame_target));
+    }
+
+   
+    
+}
+
+
 void Localization::publish()
 {
     auto pose = robots.at(self_id).current_pose();
@@ -180,11 +212,12 @@ void Localization::publish()
         save_file(path->poses[trajectory_length/2], optimized_filename);        
     }
 
-    if(publish_tf)
-    {
-        tf::poseMsgToTF(pose.pose, transform);
-        br.sendTransform(tf::StampedTransform(transform, pose.header.stamp, frame_source, frame_target));
-    }
+
+    // if(publish_tf)
+    // {
+    //     tf::poseMsgToTF(viconpose, transform);
+    //     br.sendTransform(tf::StampedTransform(transform, pose.header.stamp, frame_source, "vicon"));
+    // }
 }
 
 
@@ -306,14 +339,26 @@ void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped:
 }
 
 
+
+
+void Localization::addImu(const sensor_msgs::Imu::ConstPtr& Imu_)
+{
+
+  sensor_msgs::Imu Imu(*Imu_);
+
+  // sensor_msgs::Imu 
+
+}
+
+
+
+
 void Localization::addImuEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const sensor_msgs::Imu::ConstPtr& Imu_)
 {
     
     double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header(sensor_type.range).stamp.toSec();
 
     auto vertex_last_requester = robots.at(uwb->requester_id).last_vertex(sensor_type.range);
-
-    uwb_number = uwb_number + 1;
 
     sensor_msgs::Imu Imu(*Imu_);
     double qx = Imu.orientation.x;
@@ -327,57 +372,33 @@ void Localization::addImuEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const se
     Eigen::Isometry3d current_pose;
     current_pose.setIdentity(); // very important
 
-    Quaterniond imu_rotation = Quaterniond(Imu.orientation.w,Imu.orientation.x,Imu.orientation.y,Imu.orientation.z);
-    // Quaterniond imu_rotation = Quaterniond(1,0,0,0);
+    // Quaterniond imu_rotation = Quaterniond(Imu.orientation.w,Imu.orientation.x,Imu.orientation.y,Imu.orientation.z);
     current_pose.rotate(imu_rotation);
+
+    cout << "imu" << imu_rotation.matrix() << endl;
     current_pose.translate(g2o::Vector3D(0, 0, 0));
 
-    vertex_requester->setEstimate(current_pose);
+    vertex_requester->setEstimate(vertex_last_requester->estimate());
 
     auto vertex_responder = robots.at(uwb->responder_id).new_vertex(sensor_type.range, uwb->header, optimizer);
 
     auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, pow(uwb->distance_err, 2));
     optimizer.addEdge(edge);
 
+
     bool requester_not_static = robots.at(uwb->requester_id).not_static();
-
-
-
+  
     Matrix3d T_matrix;
     T_matrix << 1-2*qy*qy-2*qz*qz, 2*qx*qy-2*qz*qw, 2*qx*qz+2*qy*qw,
                 2*qx*qy + 2*qz*qw, 1-2*qx*qx-2*qz*qz, 2*qy*qz-2*qx*qw,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
                 2*qx*qz-2*qy*qw, 2*qy*qz + 2*qx*qw, 1-2*qx*qx-2*qy*qy;
 
-    Vector3d imu_acceleration = Vector3d(Imu.linear_acceleration.x,Imu.linear_acceleration.y,Imu.linear_acceleration.z);
-    Vector3d gravity = Vector3d(0,0,-9.8);
-    Vector3d acceleration = T_matrix.inverse()*imu_acceleration+gravity;
 
-    // Vector3d angular = Vector3d(Imu.angular_velocity.x,Imu.angular_velocity.y,Imu.angular_velocity.z);
-    
+    // tf::Quaternion q(Imu.orientation.x,Imu.orientation.y,Imu.orientation.z,Imu.orientation.w);
+    // tf::Matrix3x3 m(q);
+    // cout << "transform" << "" << "abc" << T_matrix <<  endl;
 
 
-    Vector3d  last_vertex_velocity;
-    if(uwb_number < 2)
-    {
-        last_vertex_velocity = Vector3d::Zero();
-    }
-    else
-    {
-        last_vertex_velocity = vertex_last_requester->estimate().translation() - last_last_vertex->estimate().translation();
-
-        last_vertex_velocity = last_vertex_velocity/dt_requester;
-    }
-    last_last_vertex = vertex_last_requester;
-
-
-    if (uwb_number >4)
-    {
-
-    Vector3d  translation = last_vertex_velocity*dt_requester + 0.5*acceleration*pow(dt_requester,2);
-
-    cout << "translation" << translation <<endl;
-
-    Quaterniond last_rotation;
     Eigen::Isometry3d last_pose;
     last_pose.setIdentity(); // very important
     last_pose.rotate(last_rotation);
@@ -386,34 +407,31 @@ void Localization::addImuEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const se
     Isometry3d transform_matrix = last_pose.inverse()*current_pose;
     last_rotation = imu_rotation;
 
-    translation = last_pose.rotation().inverse()*translation;
+    // float64[9] last_rotation_covariance;
 
-    cout << "information" << '\n' <<  transform_matrix.matrix() <<endl;
 
     Eigen::Map<Eigen::MatrixXd> covariance_orientation(Imu.orientation_covariance.data(), 3, 3);
-    Eigen::Map<Eigen::MatrixXd> covariance_translation(Imu.linear_acceleration_covariance.data(), 3, 3);   
     Eigen::Matrix3d zero_matrix = Eigen::Matrix3d::Zero();
 
-    Eigen::MatrixXd SE3information(6,6);
+    Eigen::MatrixXd sum_covariance(3,3);
+    sum_covariance = last_covariance_matrix + covariance_orientation;
 
-    // covariance_translation << abs(translation(0)),0,0,
-    //                           0,abs(translation(1)),0,
-    //                           0,0,abs(translation(2));
+    last_covariance_matrix = covariance_orientation;
+
+    Eigen::MatrixXd SE3information(6,6);
+    Eigen::MatrixXd covariance_translation(3,3);
+
 
     covariance_translation << pow(robot_max_velocity*dt_requester/3, 2),0,0,
                               0,pow(robot_max_velocity*dt_requester/3, 2),0,
                               0,0,pow(robot_max_velocity*dt_requester/3, 2);
 
     SE3information << covariance_translation,zero_matrix,
-                      zero_matrix,covariance_orientation;
+                      zero_matrix,sum_covariance;
 
-    cout << "information" << '\n' <<  SE3information <<endl;
-    cout << "matrix" << '\n' <<  transform_matrix.matrix() <<endl;
 
     if (requester_not_static)
     {
-
-        ROS_WARN("IMU IMU IMU");
 
         g2o::EdgeSE3 *SE3edge = new g2o::EdgeSE3();
     
@@ -434,31 +452,29 @@ void Localization::addImuEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const se
     if (requester_not_static)
     {
 
-    g2o::EdgeSE3Prior* e1=new g2o::EdgeSE3Prior();
-    Eigen::MatrixXd  pinfo_1(6,6);
-    pinfo_1 << zero_matrix,zero_matrix,
+        g2o::EdgeSE3Prior* e1=new g2o::EdgeSE3Prior();
+        Eigen::MatrixXd  pinfo_1(6,6);
+        pinfo_1 << zero_matrix,zero_matrix,
                zero_matrix,zero_matrix;
 
-    pinfo_1(0,0)= 0;
-    pinfo_1(1,1)= 0;
-    pinfo_1(2,2)= 0;
+        pinfo_1(0,0)= 0;
+        pinfo_1(1,1)= 0;
+        pinfo_1(2,2)= 0;
 
-    pinfo_1(3,3)= 1e8;; //a very large number
-    pinfo_1(4,4)= 1e8;;
-    pinfo_1(5,5)= 1e8;; // X ,Y , Z 
+        pinfo_1(3,3)= 1e8; 
+        pinfo_1(4,4)= 1e8;
+        pinfo_1(5,5)= 1e8;// X ,Y ,Z 
 
-    cout << "pin" << pinfo_1 <<endl;
 
-    e1->setInformation(pinfo_1);
-    e1->vertices()[0]= vertex_requester; //This is to fix the g2o graph on this point
+        e1->setInformation(pinfo_1);
+        e1->vertices()[0]= vertex_requester; 
 
-    e1->setMeasurement(current_pose); 
-    e1->setParameterId(0,0);
-    optimizer.addEdge(e1); //e1 is to fix v1 at origin
-
-    }
+        e1->setMeasurement(current_pose); 
+        e1->setParameterId(0,0);
+        optimizer.addEdge(e1); 
 
     }
+    
 
     ROS_WARN("Localization: added range edge id: %d", uwb->header.seq);
    
@@ -467,7 +483,6 @@ void Localization::addImuEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const se
         solve();
         publish();
     }
-
 
 }
 
