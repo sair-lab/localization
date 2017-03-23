@@ -80,6 +80,8 @@ public:
 
     bool is_static(){return FLAG_STATIC;};
 
+    bool not_static(){return ~FLAG_STATIC;};
+
     g2o::VertexSE3* new_vertex(unsigned char, std_msgs::Header, g2o::SparseOptimizer&);
 
     g2o::VertexSE3* last_vertex(unsigned char);
@@ -108,11 +110,11 @@ private:
 
     size_t index; // current vertex index
 
-    int trajectory_length;
-
     int ID; // Robot ID
 
     bool FLAG_STATIC;
+
+    int trajectory_length;
 };
 
 #endif

@@ -5,7 +5,7 @@
 
     <rosparam file="$(find uwb_driver)/cfg/anchor.yaml" command="load" />
 
-    <node name="rosbag_play" pkg="rosbag" type="play" output="screen" args="$(find localization)/bag/$(arg dataset).bag"/>
+    <node name="rosbag_play" pkg="rosbag" type="play" output="screen" args="-l $(find localization)/bag/$(arg dataset).bag"/>
   
     <node pkg="localization" type="localization_node" name="localization_node" output="screen">
         <rosparam command="delete" param="topic" />
@@ -21,3 +21,5 @@
     </node>
 
 </launch>
+
+

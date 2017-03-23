@@ -19,7 +19,8 @@ find_package(catkin REQUIRED COMPONENTS
     rospy
     std_msgs
 )
-set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -O2 -march=native")
+
+set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -O3 -march=native")
 
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED COMPONENTS system)
