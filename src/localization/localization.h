@@ -134,9 +134,7 @@ private:
 
     g2o::SparseOptimizer optimizer;
 
-    std::vector<g2o::ParameterSE3Offset*> se3_offsets;
-
-    // g2o::ParameterSE3Offset* zero_se3_offset = new g2o::ParameterSE3Offset();
+    std::vector<Eigen::Isometry3d> offsets = std::vector<Eigen::Isometry3d>(3, Eigen::Isometry3d::Identity());
 
     int iteration_max;
 
@@ -154,7 +152,7 @@ private:
 // for data convertion
     inline g2o::EdgeSE3* create_se3_edge_from_twist(g2o::VertexSE3*, g2o::VertexSE3*, geometry_msgs::TwistWithCovariance&, double);
 
-    inline g2o::EdgeSE3RangeOffset* create_range_edge(g2o::VertexSE3*, g2o::VertexSE3*, double, double);
+    inline g2o::EdgeSE3Range* create_range_edge(g2o::VertexSE3*, g2o::VertexSE3*, double, double);
 
     inline geometry_msgs::Twist pose2twist(geometry_msgs::Pose, geometry_msgs::Pose, double);
 
