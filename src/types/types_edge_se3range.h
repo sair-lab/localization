@@ -26,8 +26,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef G2O_SBA_TYPES
-#define G2O_SBA_TYPES
+#ifndef G2O_SE3_RANGE
+#define G2O_SE3_RANGE
 
 #include <Eigen/Geometry>
 #include <iostream>

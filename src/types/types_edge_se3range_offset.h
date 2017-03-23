@@ -26,8 +26,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef G2O_SBA_TYPES
-#define G2O_SBA_TYPES
+#ifndef G2O_SE3_RANGE_OFFSET
+#define G2O_SE3_RANGE_OFFSET
 
 #include <Eigen/Geometry>
 #include <iostream>
@@ -70,9 +70,9 @@ namespace g2o
 
     private:
 
-        ParameterSE3Offset* offsetParam;
-
-        CacheSE3Offset* cache;
+        ParameterSE3Offset *_offsetFrom, *_offsetTo;
+        
+        CacheSE3Offset  *_cacheFrom, *_cacheTo;
 
         virtual bool resolveCaches();
     };
