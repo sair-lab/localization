@@ -47,6 +47,26 @@ Localization::Localization(ros::NodeHandle n)
 
     optimizer.setAlgorithm(optimizationsolver);
 
+    se3_offsets = std::vector<g2o::ParameterSE3Offset*>(3, new g2o::ParameterSE3Offset());
+    Eigen::Isometry3d pose = Eigen::Isometry3d::Identity();
+
+    // tf::Transform transform;
+    // tf::transformEigenToTF (pose, transform);
+
+
+    se3_offsets[0]->setOffset(pose);
+    pose(0,3) = -1;
+    se3_offsets[1]->setOffset(pose);
+    pose(0,3) = 1;
+    se3_offsets[2]->setOffset(pose);
+
+    for (unsigned int i=0; i<se3_offsets.size(); ++i)
+    {
+        se3_offsets[i]->setId(i);
+        optimizer.addParameter(se3_offsets[i]);   
+    }
+
+
     bool verbose_flag;
     if(n.param("optimizer/verbose", verbose_flag, false))
     {
@@ -241,8 +261,13 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
         auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, cov_requester);
 
-        optimizer.addEdge(edge_requester_range);
+        edge->setParameterId(0, se3_offsets[uwb->antenna]->id());
+        edge->setParameterId(1, se3_offsets[0]->id());
 
+        edge_requester_range->setParameterId(0, se3_offsets[0]->id());
+        edge_requester_range->setParameterId(1, se3_offsets[0]->id());
+
+        optimizer.addEdge(edge_requester_range);
         optimizer.addEdge(edge);
 
         ROS_INFO("added two requester range edge with id: <%d>;",uwb->responder_id);
@@ -378,9 +403,9 @@ inline g2o::EdgeSE3* Localization::create_se3_edge_from_twist(g2o::VertexSE3* ve
 }
 
 
-inline g2o::EdgeSE3Range* Localization::create_range_edge(g2o::VertexSE3* vertex1, g2o::VertexSE3* vertex2, double distance, double covariance)
+inline g2o::EdgeSE3RangeOffset* Localization::create_range_edge(g2o::VertexSE3* vertex1, g2o::VertexSE3* vertex2, double distance, double covariance)
 {
-    auto edge = new g2o::EdgeSE3Range();
+    auto edge = new g2o::EdgeSE3RangeOffset();
 
     edge->vertices()[0] = vertex1;
 

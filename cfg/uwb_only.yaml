@@ -1,7 +1,7 @@
 # parameters for robots
 robot:
-  trajectory_length: 100
-  maximum_velocity: 1.0
+  trajectory_length: 50
+  maximum_velocity: 3.0
 
 # parameters for g2o optimizer
 optimizer:
@@ -21,4 +21,4 @@ publish_flag:
 # fused pose topic frame
 frame:
   target: /uwb
-  source: /local_origin
+  source: /world

@@ -3,7 +3,7 @@
 
     <node pkg="localization" type="localization_node" name="localization_node" output="screen">
         <rosparam command="delete" param="topic" />
-        <rosparam file="$(find localization)/cfg/uwb_slam.yaml" command="load" />
+        <rosparam file="$(find localization)/cfg/uwb_only.yaml" command="load" />
         <param name="log/filename_prefix" value="$(find localization)/bag/real_time" />
     </node>
 

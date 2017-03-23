@@ -50,6 +50,7 @@
 #include <g2o/solvers/csparse/linear_solver_csparse.h>
 #include <g2o/types/slam3d/types_slam3d.h>
 #include "types_edge_se3range.h"
+#include "types_edge_se3range_offset.h"
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_datatypes.h>
 #include <tf_conversions/tf_eigen.h>
@@ -133,6 +134,10 @@ private:
 
     g2o::SparseOptimizer optimizer;
 
+    std::vector<g2o::ParameterSE3Offset*> se3_offsets;
+
+    // g2o::ParameterSE3Offset* zero_se3_offset = new g2o::ParameterSE3Offset();
+
     int iteration_max;
 
 // for debug
@@ -149,7 +154,7 @@ private:
 // for data convertion
     inline g2o::EdgeSE3* create_se3_edge_from_twist(g2o::VertexSE3*, g2o::VertexSE3*, geometry_msgs::TwistWithCovariance&, double);
 
-    inline g2o::EdgeSE3Range* create_range_edge(g2o::VertexSE3*, g2o::VertexSE3*, double, double);
+    inline g2o::EdgeSE3RangeOffset* create_range_edge(g2o::VertexSE3*, g2o::VertexSE3*, double, double);
 
     inline geometry_msgs::Twist pose2twist(geometry_msgs::Pose, geometry_msgs::Pose, double);
 

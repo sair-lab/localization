@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-    <arg name="dataset" value="slam_uwb_man"/>
+    <arg name="dataset" value="kinect_uwb_man/slam_uwb_man"/>
 
     <rosparam file="$(find uwb_driver)/cfg/anchor.yaml" command="load" />
 
