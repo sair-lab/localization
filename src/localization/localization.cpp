@@ -36,9 +36,6 @@ Localization::Localization(ros::NodeHandle n)
 
     path_optimized_pub = n.advertise<nav_msgs::Path>("optimized/path", 1);
 
-// for vicon
-    vicon_pub = n.advertise<geometry_msgs::PoseStamped>("vicon", 1);
-
 // For g2o optimizer
     solver = new Solver();
 
@@ -81,25 +78,17 @@ Localization::Localization(ros::NodeHandle n)
 
 // For UWB anchor parameters reading
     std::vector<int> nodesId;
-
     std::vector<double> nodesPos;
 
-    if(n.getParam("/uwb/nodesId", nodesId))
-        for (auto it:nodesId)
-            ROS_WARN("Get node ID: %d", it);
-    else
+    if(!n.getParam("/uwb/nodesId", nodesId))
         ROS_ERROR("Can't get parameter nodesId from UWB");
 
-    if(n.getParam("/uwb/nodesPos", nodesPos))
-        for(auto it:nodesPos)
-            ROS_WARN("Get node position: %4.2f", it);
-    else
+    if(!n.getParam("/uwb/nodesPos", nodesPos))
         ROS_ERROR("Can't get parameter nodesPos from UWB");
 
     self_id = nodesId.back();
-
     robots.emplace(self_id, Robot(self_id, false, trajectory_length, optimizer));
-    ROS_INFO("Init self robot ID: %d with moving option", self_id);
+    ROS_WARN("Init self robot ID: %d with moving option", self_id);
 
     for (size_t i = 0; i < nodesId.size()-1; ++i)
     {
@@ -109,7 +98,19 @@ Localization::Localization(ros::NodeHandle n)
         pose(1,3) = nodesPos[i*3+1];
         pose(2,3) = nodesPos[i*3+2];
         robots.at(nodesId[i]).init(optimizer, pose);
-        ROS_INFO("Init robot ID: %d with position (%.2f,%.2f,%.2f)", nodesId[i], pose(0,3), pose(1,3), pose(2,3));
+        ROS_WARN("Init robot ID: %d with position (%.2f,%.2f,%.2f)", nodesId[i], pose(0,3), pose(1,3), pose(2,3));
+    }
+
+    std::vector<double> antennaOffset;
+    if(n.getParam("/uwb/antennaOffset", antennaOffset))
+        ROS_WARN("Using %d antennas", antennaOffset.size()/3);
+    offsets = std::vector<Eigen::Isometry3d>(antennaOffset.size()/3, Eigen::Isometry3d::Identity());
+    for (size_t i = 0; i < antennaOffset.size()/3; ++i)
+    {
+        offsets[i](0,3) = antennaOffset[i*3];
+        offsets[i](1,3) = antennaOffset[i*3+1];
+        offsets[i](2,3) = antennaOffset[i*3+2];
+        ROS_WARN("Init antenna ID: %d with position (%.2f,%.2f,%.2f)", i+1,offsets[i](0,3), offsets[i](1,3), offsets[i](2,3));
     }
 
 // For debug
@@ -188,7 +189,6 @@ void Localization::publish()
         save_file(path->poses[trajectory_length/2], optimized_filename);        
     }
 
-
     if(publish_tf)
     {
         tf::poseMsgToTF(pose.pose, transform);
@@ -255,7 +255,8 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
         auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, distance_cov);
 
-        edge->setVertexOffset(0, offsets[uwb->antenna]);
+        if(uwb->antenna > 0)
+            edge->setVertexOffset(0, offsets[uwb->antenna-1]);
         
         optimizer.addEdge(edge);
 
@@ -263,7 +264,8 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
         optimizer.addEdge(edge_requester_range); 
 
-        ROS_INFO("added two requester range edge with id: <%d>;",uwb->responder_id);
+        ROS_INFO("added two requester range edge on id: <%d> with offsets %d <%.2f, %.2f, %.2f>;",uwb->responder_id, uwb->antenna-1, 
+            offsets[uwb->antenna-1](0,3), offsets[uwb->antenna-1](1,3), offsets[uwb->antenna-1](2,3));
     }
     else
     {
