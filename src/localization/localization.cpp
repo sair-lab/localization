@@ -56,8 +56,7 @@ Localization::Localization(ros::NodeHandle n)
     g2o::ParameterSE3Offset* cameraOffset = new g2o::ParameterSE3Offset;
     cameraOffset->setId(0);
     optimizer.addParameter(cameraOffset);
-    last_last_vertex->setEstimate(g2o::SE3Quat(Eigen::Quaterniond(1,0,0,0), Eigen::Vector3d(0,0,0)));
-
+    
     bool verbose_flag;
     if(n.param("optimizer/verbose", verbose_flag, false))
     {
@@ -185,11 +184,11 @@ void Localization::publish()
     }
 
 
-    if(publish_tf)
-    {
-        tf::poseMsgToTF(pose.pose, transform);
-        br.sendTransform(tf::StampedTransform(transform, pose.header.stamp, frame_source, frame_target));
-    }
+    // if(publish_tf)
+    // {
+    //     tf::poseMsgToTF(pose.pose, transform);
+    //     br.sendTransform(tf::StampedTransform(transform, pose.header.stamp, frame_source, frame_target));
+    // }
 }
 
 
@@ -281,11 +280,10 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
             ROS_INFO("added responder trajectory edge;");
         }
 
-        if (publish_range)
-        {
-            solve();
-            publish();
-        }
+   
+        solve();
+        publish();
+        
     }
 
 }
@@ -414,11 +412,9 @@ void Localization::addImuEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const se
 
         ROS_WARN("Localization: added range edge id: %d", uwb->header.seq);
    
-        if (publish_imu)
-        {
-            solve();
-            publish();
-        }
+        solve();
+        publish();
+        
     }
 }
 

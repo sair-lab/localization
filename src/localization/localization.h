@@ -136,8 +136,6 @@ private:
 
     Quaterniond last_rotation;
 
-    g2o::VertexSE3* last_last_vertex = new g2o::VertexSE3();
-
 // for g2o solver
     Solver *solver;
 

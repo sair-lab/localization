@@ -46,7 +46,7 @@ int main(int argc, char** argv)
 
     string pose_topic, range_topic, imu_topic, twist_topic;
 
-    ros::Subscriber pose_sub, range_sub, imu_sub, twist_sub, vicon_sub;
+    ros::Subscriber pose_sub, range_sub, imu_sub, twist_sub;
 
 
     if(n.getParam("topic/pose", pose_topic))
