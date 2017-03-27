@@ -26,8 +26,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef G2O_SBA_TYPES
-#define G2O_SBA_TYPES
+#ifndef G2O_SE3_RANGE
+#define G2O_SE3_RANGE
 
 #include <Eigen/Geometry>
 #include <iostream>
@@ -60,7 +60,7 @@ namespace g2o
 
             const VertexSE3* v2 = dynamic_cast<const VertexSE3*>(_vertices[1]);
 
-            Vector3D dt=v2->estimate().translation()-v1->estimate().translation();
+            Vector3D dt = (v1->estimate() * offset[0]).translation() - (v2->estimate() * offset[1]).translation();
 
             _error[0] = _measurement - dt.norm();
         }
@@ -75,7 +75,11 @@ namespace g2o
             return 1.;
         }
 
+        void setVertexOffset(int,  Eigen::Isometry3d&);
+
         virtual void initialEstimate(const OptimizableGraph::VertexSet& from_, OptimizableGraph::Vertex* to_);
+
+        std::vector<Eigen::Isometry3d> offset =  std::vector<Eigen::Isometry3d>(2, Eigen::Isometry3d::Identity());
     };
 }
 

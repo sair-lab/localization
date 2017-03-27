@@ -96,4 +96,9 @@ namespace g2o
         }
     }
 
+    void EdgeSE3Range::setVertexOffset(int vertex,  Eigen::Isometry3d& pose)
+    {
+        assert(vertex>=0&&vertex<=1);
+        offset[vertex] = pose;
+    }
 }

@@ -40,22 +40,28 @@ namespace g2o
 
     EdgeSE3RangeOffset::EdgeSE3RangeOffset():BaseBinaryEdge<1, double, VertexSE3, VertexSE3>()
     {
-        cache = 0;
+        _offsetFrom = 0; _offsetTo = 0;
 
-        offsetParam = 0;
+        _cacheFrom = 0; _cacheTo = 0;
 
-        resizeParameters(1);
+        resizeParameters(2);
 
-        installParameter(offsetParam, 0);
+        installParameter(_offsetFrom, 0);
+
+        installParameter(_offsetTo, 1);
     }  
+
 
     bool EdgeSE3RangeOffset::read(std::istream& is)
     {
-        int paramId;
-        
-        is >> paramId;
-        
-        if (!setParameterId(0, paramId))
+        int pidFrom, pidTo;
+
+        is >> pidFrom >> pidTo;
+
+        if (! setParameterId(0,pidFrom))
+            return false;
+
+        if (! setParameterId(1,pidTo))
             return false;
 
         double meas;
@@ -74,7 +80,9 @@ namespace g2o
 
     bool EdgeSE3RangeOffset::write(std::ostream& os) const
     {
-        os << offsetParam->id() << " ";
+        os << parameter(0)->id() << " ";
+        
+        os << parameter(1)->id() << " ";
 
         os << measurement() << " " << information()(0,0);
 
@@ -117,13 +125,7 @@ namespace g2o
 
     void EdgeSE3RangeOffset::computeError()
     {
-        // const VertexSE3* v1 = dynamic_cast<const VertexSE3*>(_vertices[0]);
-
-        const VertexSE3* v2 = dynamic_cast<const VertexSE3*>(_vertices[1]);
-
-        Vector3D dt = v2->estimate().translation() - cache->n2w().translation();
-
-        // Vector3D dt = v2->estimate().translation() - v1->estimate().translation();
+        Vector3D dt = _cacheFrom->n2w().translation() - _cacheTo->n2w().translation();
 
         _error[0] = _measurement - dt.norm();
     }
@@ -131,13 +133,18 @@ namespace g2o
 
     bool EdgeSE3RangeOffset::resolveCaches()
     {
+        assert(_offsetFrom && _offsetTo);
+
         ParameterVector pv(1);
 
-        pv[0] = offsetParam;
+        pv[0]= _offsetFrom;
 
-        resolveCache(cache, (OptimizableGraph::Vertex*)_vertices[0], "CACHE_SE3_OFFSET", pv);
+        resolveCache(_cacheFrom, (OptimizableGraph::Vertex*)_vertices[0], "CACHE_SE3_OFFSET", pv);
 
-        return cache != 0;
+        pv[0]= _offsetTo;
+
+        resolveCache(_cacheTo, (OptimizableGraph::Vertex*)_vertices[1], "CACHE_SE3_OFFSET", pv);
+
+        return (_cacheFrom && _cacheTo);
     }
-
 }

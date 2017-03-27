@@ -36,9 +36,6 @@ Localization::Localization(ros::NodeHandle n)
 
     path_optimized_pub = n.advertise<nav_msgs::Path>("optimized/path", 1);
 
-// for vicon
-    vicon_pub = n.advertise<geometry_msgs::PoseStamped>("vicon", 1);
-
 // For g2o optimizer
     solver = new Solver();
 
@@ -49,6 +46,10 @@ Localization::Localization(ros::NodeHandle n)
     optimizationsolver = new g2o::OptimizationAlgorithmLevenberg(se3blockSolver);
 
     optimizer.setAlgorithm(optimizationsolver);
+
+    offsets = std::vector<Eigen::Isometry3d>(3, Eigen::Isometry3d::Identity());
+    offsets[1](0,3)  = -1;
+    offsets[2](0,3)  = 1;
 
 // xu fang
     last_covariance_matrix =  Eigen::MatrixXd::Zero(3, 3);
@@ -76,25 +77,17 @@ Localization::Localization(ros::NodeHandle n)
 
 // For UWB anchor parameters reading
     std::vector<int> nodesId;
-
     std::vector<double> nodesPos;
 
-    if(n.getParam("/uwb/nodesId", nodesId))
-        for (auto it:nodesId)
-            ROS_WARN("Get node ID: %d", it);
-    else
+    if(!n.getParam("/uwb/nodesId", nodesId))
         ROS_ERROR("Can't get parameter nodesId from UWB");
 
-    if(n.getParam("/uwb/nodesPos", nodesPos))
-        for(auto it:nodesPos)
-            ROS_WARN("Get node position: %4.2f", it);
-    else
+    if(!n.getParam("/uwb/nodesPos", nodesPos))
         ROS_ERROR("Can't get parameter nodesPos from UWB");
 
     self_id = nodesId.back();
-
     robots.emplace(self_id, Robot(self_id, false, trajectory_length, optimizer));
-    ROS_INFO("Init self robot ID: %d with moving option", self_id);
+    ROS_WARN("Init self robot ID: %d with moving option", self_id);
 
     for (size_t i = 0; i < nodesId.size()-1; ++i)
     {
@@ -104,7 +97,19 @@ Localization::Localization(ros::NodeHandle n)
         pose(1,3) = nodesPos[i*3+1];
         pose(2,3) = nodesPos[i*3+2];
         robots.at(nodesId[i]).init(optimizer, pose);
-        ROS_INFO("Init robot ID: %d with position (%.2f,%.2f,%.2f)", nodesId[i], pose(0,3), pose(1,3), pose(2,3));
+        ROS_WARN("Init robot ID: %d with position (%.2f,%.2f,%.2f)", nodesId[i], pose(0,3), pose(1,3), pose(2,3));
+    }
+
+    std::vector<double> antennaOffset;
+    if(n.getParam("/uwb/antennaOffset", antennaOffset))
+        ROS_WARN("Using %d antennas", antennaOffset.size()/3);
+    offsets = std::vector<Eigen::Isometry3d>(antennaOffset.size()/3, Eigen::Isometry3d::Identity());
+    for (size_t i = 0; i < antennaOffset.size()/3; ++i)
+    {
+        offsets[i](0,3) = antennaOffset[i*3];
+        offsets[i](1,3) = antennaOffset[i*3+1];
+        offsets[i](2,3) = antennaOffset[i*3+2];
+        ROS_WARN("Init antenna ID: %d with position (%.2f,%.2f,%.2f)", i+1,offsets[i](0,3), offsets[i](1,3), offsets[i](2,3));
     }
 
 // For debug
@@ -183,12 +188,12 @@ void Localization::publish()
         save_file(path->poses[trajectory_length/2], optimized_filename);        
     }
 
+    if(publish_tf)
+    {
+        tf::poseMsgToTF(pose.pose, transform);
+        br.sendTransform(tf::StampedTransform(transform, pose.header.stamp, frame_source, frame_target));
+    }
 
-    // if(publish_tf)
-    // {
-    //     tf::poseMsgToTF(pose.pose, transform);
-    //     br.sendTransform(tf::StampedTransform(transform, pose.header.stamp, frame_source, frame_target));
-    // }
 }
 
 
@@ -233,59 +238,67 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 
 void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 {
-    if (publish_range)
+    double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
+    double dt_responder = uwb->header.stamp.toSec() - robots.at(uwb->responder_id).last_header().stamp.toSec();
+    double distance_cov = pow(uwb->distance_err, 2);
+    double cov_requester = pow(robot_max_velocity*dt_requester/3, 2); //3 sigma priciple
+
+    auto vertex_last_requester = robots.at(uwb->requester_id).last_vertex();
+    auto vertex_last_responder = robots.at(uwb->responder_id).last_vertex();
+    auto vertex_responder = robots.at(uwb->responder_id).new_vertex(sensor_type.range, uwb->header, optimizer);
+
+    auto frame_id = robots.at(uwb->requester_id).last_header().frame_id;
+
+    if(frame_id == uwb->header.frame_id || frame_id == "none")
+    {    
+        auto vertex_requester = robots.at(uwb->requester_id).new_vertex(sensor_type.range, uwb->header, optimizer);
+
+        auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, distance_cov);
+
+        if(uwb->antenna > 0)
+            edge->setVertexOffset(0, offsets[uwb->antenna-1]);
+        
+        optimizer.addEdge(edge);
+
+        auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, cov_requester);
+
+        optimizer.addEdge(edge_requester_range); 
+
+        ROS_INFO("added two requester range edge on id: <%d> with offsets %d <%.2f, %.2f, %.2f>;",uwb->responder_id, uwb->antenna-1, 
+            offsets[uwb->antenna-1](0,3), offsets[uwb->antenna-1](1,3), offsets[uwb->antenna-1](2,3));
+    }
+    else
     {
-        double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
-        double dt_responder = uwb->header.stamp.toSec() - robots.at(uwb->responder_id).last_header().stamp.toSec();
-        double distance_cov = pow(uwb->distance_err, 2);
-        double cov_requester = pow(robot_max_velocity*dt_requester/3, 2); //3 sigma priciple
+        auto edge = create_range_edge(vertex_last_requester, vertex_responder, uwb->distance, distance_cov + cov_requester);
 
-        auto vertex_last_requester = robots.at(uwb->requester_id).last_vertex();
-        auto vertex_last_responder = robots.at(uwb->responder_id).last_vertex();
-        auto vertex_responder = robots.at(uwb->responder_id).new_vertex(sensor_type.range, uwb->header, optimizer);
+        optimizer.addEdge(edge); // decrease computation
 
-        auto frame_id = robots.at(uwb->requester_id).last_header().frame_id;
+        ROS_INFO("added requester edge with id: <%d>", uwb->responder_id);
+    }
 
-        if(frame_id == uwb->header.frame_id || frame_id == "none")
-        {    
-            auto vertex_requester = robots.at(uwb->requester_id).new_vertex(sensor_type.range, uwb->header, optimizer);
+    if (!robots.at(uwb->responder_id).is_static())
+    {
+        double cov_responder = pow(robot_max_velocity*dt_responder/3, 2); //3 sigma priciple
 
-            auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, distance_cov);
+        auto edge_responder_range = create_range_edge(vertex_last_responder, vertex_responder, 0, cov_responder);
 
-            optimizer.addEdge(edge);
+        optimizer.addEdge(edge_responder_range);
 
-            auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, cov_requester);
-
-            optimizer.addEdge(edge_requester_range); 
-
-            ROS_INFO("added two requester range edge with id: <%d>;",uwb->responder_id);
-        }
-        else
-        {
-            auto edge = create_range_edge(vertex_last_requester, vertex_responder, uwb->distance, distance_cov + cov_requester);
-
-            optimizer.addEdge(edge); // decrease computation
-
-            ROS_INFO("added requester edge with id: <%d>", uwb->responder_id);
-        }
-
-        if (!robots.at(uwb->responder_id).is_static())
-        {
-            double cov_responder = pow(robot_max_velocity*dt_responder/3, 2); //3 sigma priciple
-
-            auto edge_responder_range = create_range_edge(vertex_last_responder, vertex_responder, 0, cov_responder);
-
-            optimizer.addEdge(edge_responder_range);
-
-            ROS_INFO("added responder trajectory edge;");
-        }
-
+<<<<<<< HEAD
    
         solve();
         publish();
         
+=======
+        ROS_INFO("added responder trajectory edge;");
+>>>>>>> 0e748314350e9dc9a4a5ffc1f6a713136f4068f6
     }
 
+    if (publish_range)
+    {
+        solve();
+        publish();
+    }
 }
 
 
@@ -315,11 +328,10 @@ void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped:
 
 void Localization::addImuEdge(const uwb_driver::UwbRange::ConstPtr& uwb,const sensor_msgs::Imu::ConstPtr& Imu_)
 {
+    // Fang Xu
     if (publish_imu)
     {
-    
         double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header(sensor_type.range).stamp.toSec();
-        
         auto vertex_last_requester = robots.at(uwb->requester_id).last_vertex(sensor_type.range);
 
         // requester to responder edge

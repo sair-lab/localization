@@ -50,6 +50,7 @@
 #include <g2o/solvers/csparse/linear_solver_csparse.h>
 #include <g2o/types/slam3d/types_slam3d.h>
 #include "types_edge_se3range.h"
+#include "types_edge_se3range_offset.h"
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_datatypes.h>
 #include <tf_conversions/tf_eigen.h>
@@ -115,11 +116,6 @@ private:
 
     ros::Publisher path_optimized_pub;
 
-// for vicon
-    ros::Publisher vicon_pub;
-
-    geometry_msgs::PoseStamped vicondata;
-
 // for robots
     map<unsigned char, Robot> robots;
 
@@ -144,6 +140,8 @@ private:
     g2o::OptimizationAlgorithmLevenberg *optimizationsolver;
 
     g2o::SparseOptimizer optimizer;
+
+    std::vector<Eigen::Isometry3d> offsets;
 
     int iteration_max;
 
