@@ -137,6 +137,12 @@ std_msgs::Header Robot::last_header()
 }
 
 
+void Robot::set_header(string frame_id)
+{
+    header[index].frame_id = frame_id;
+}
+
+
 geometry_msgs::PoseStamped Robot::current_pose()
 {
     auto vertex = last_vertex()->estimate();

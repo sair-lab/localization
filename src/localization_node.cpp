@@ -72,6 +72,7 @@ int main(int argc, char** argv)
         imu_sub = n.subscribe(imu_topic, 1, &Localization::addImuEdge, &localization);
         ROS_WARN("Subscribing to: %s", imu_topic.c_str());
     }
+    
 
     dynamic_reconfigure::Server<localization::localizationConfig> dr_srv;
 

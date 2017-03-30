@@ -47,6 +47,10 @@ Localization::Localization(ros::NodeHandle n)
 
     optimizer.setAlgorithm(optimizationsolver);
 
+    g2o::ParameterSE3Offset* zero_offset = new g2o::ParameterSE3Offset;
+    zero_offset->setId(0);
+    optimizer.addParameter(zero_offset);
+    
     bool verbose_flag;
     if(n.param("optimizer/verbose", verbose_flag, false))
     {
@@ -238,11 +242,12 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
     auto vertex_last_requester = robots.at(uwb->requester_id).last_vertex();
     auto vertex_last_responder = robots.at(uwb->responder_id).last_vertex();
     auto vertex_responder = robots.at(uwb->responder_id).new_vertex(sensor_type.range, uwb->header, optimizer);
-
+     
     auto frame_id = robots.at(uwb->requester_id).last_header().frame_id;
 
-    if(frame_id == uwb->header.frame_id || frame_id == "none")
+    if(frame_id == uwb->header.frame_id || frame_id == "none"|| frame_id == "/base_link")
     {    
+        
         auto vertex_requester = robots.at(uwb->requester_id).new_vertex(sensor_type.range, uwb->header, optimizer);
 
         auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, distance_cov);
@@ -279,6 +284,7 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
         ROS_INFO("added responder trajectory edge;");
     }
 
+        
     if (publish_range)
     {
         solve();
@@ -313,12 +319,42 @@ void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped:
 
 void Localization::addImuEdge(const sensor_msgs::Imu::ConstPtr& Imu_)
 {
+    if (robots.at(self_id).last_header().frame_id != Imu_->header.frame_id)
+    {
+        robots.at(self_id).set_header(Imu_->header.frame_id);
+
+        auto last_vertex = robots.at(self_id).last_vertex(sensor_type.range);
+
+        Eigen::Isometry3d current_pose = Eigen::Isometry3d::Identity();
+
+        current_pose.rotate(Quaterniond(Imu_->orientation.w, Imu_->orientation.x, Imu_->orientation.y, Imu_->orientation.z));
+
+        current_pose.translation() = last_vertex->estimate().translation();
+
+        last_vertex->setEstimate(current_pose);
+
+        Eigen::MatrixXd  information = Eigen::MatrixXd::Zero(6,6);
+        information(3,3)= 1e8; 
+        information(4,4)= 1e8;
+        information(5,5)= 1e8;// roll, pitch, yaw
+        
+        g2o::EdgeSE3Prior* edgeprior = new g2o::EdgeSE3Prior();
+        edgeprior->setInformation(information);
+        edgeprior->vertices()[0]= last_vertex; 
+        edgeprior->setMeasurement(current_pose); 
+        edgeprior->setParameterId(0,0);
+        optimizer.addEdge(edgeprior);
+
+        ROS_INFO("added IMU edge id: %d", Imu_->header.seq);
+    }
+
     if (publish_imu)
     {   
         solve();
         publish();
     }
 }
+
 
 
 void Localization::configCallback(localization::localizationConfig &config, uint32_t level)
