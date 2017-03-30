@@ -100,7 +100,7 @@ public:
 
     void addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&);
 
-    void addImuEdge(const uwb_driver::UwbRange::ConstPtr&, const sensor_msgs::Imu::ConstPtr&);
+    void addImuEdge(const sensor_msgs::Imu::ConstPtr&);
 
     void addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped::ConstPtr&);
 
@@ -127,10 +127,6 @@ private:
 
     int trajectory_length;
 
-// xu fang
-    Eigen::MatrixXd last_covariance_matrix;
-
-    Quaterniond last_rotation;
 
 // for g2o solver
     Solver *solver;

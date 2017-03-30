@@ -17,10 +17,11 @@ publish_flag:
   tf: true
   # publish estimation when the following topics are received.
   # topics available in {range, pose, twist, imu}. false in default
-  range: false
+  range: true
   imu: true
 
 # fused pose topic frame
 frame:
-  target: /move_base
-  source: /local_origin
+  target: /imu
+  # target: /uwb
+  source: /world

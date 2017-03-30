@@ -68,8 +68,11 @@ int main(int argc, char** argv)
 
     if(n.getParam("topic/imu", imu_topic))
     {
+        
+        imu_sub = n.subscribe(imu_topic, 1, &Localization::addImuEdge, &localization);
         ROS_WARN("Subscribing to: %s", imu_topic.c_str());
     }
+    
 
     // Xu Fang  
     // message_filters::Subscriber<uwb_driver::UwbRange> uwb_sub1(n, range_topic, 1);

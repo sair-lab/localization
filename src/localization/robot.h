@@ -92,6 +92,8 @@ public:
 
     std_msgs::Header last_header();
 
+    void set_header(string);
+
     nav_msgs::Path* vertices2path();
 
     geometry_msgs::PoseStamped current_pose();

@@ -1,7 +1,7 @@
 # parameters for robots
 robot:
   trajectory_length: 100
-  maximum_velocity: 2.0
+  maximum_velocity: 1.0
 
 # parameters for g2o optimizer
 optimizer:
@@ -17,7 +17,7 @@ publish_flag:
   # publish estimation when the following topics are received.
   # topics available in {range, pose, twist, imu}. false in default
   range: true
-
+  imu: false
 # fused pose topic frame
 frame:
   target: /uwb
