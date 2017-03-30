@@ -137,9 +137,9 @@ std_msgs::Header Robot::last_header()
 }
 
 
-void Robot::set_header(string frame_id)
+void Robot::append_last_header(string frame_id)
 {
-    header[index].frame_id = frame_id;
+    header[index].frame_id += ("-"+frame_id);
 }
 
 

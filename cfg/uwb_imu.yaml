@@ -1,7 +1,7 @@
 # parameters for robots
 robot:
   trajectory_length: 100
-  maximum_velocity: 1.0
+  maximum_velocity: 2.0
 
 # parameters for g2o optimizer
 optimizer:

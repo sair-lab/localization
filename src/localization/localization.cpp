@@ -245,9 +245,8 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
      
     auto frame_id = robots.at(uwb->requester_id).last_header().frame_id;
 
-    if(frame_id == uwb->header.frame_id || frame_id == "none"|| frame_id == "/base_link")
+    if( (frame_id.find(uwb->header.frame_id)!=string::npos) || frame_id == "none")
     {    
-        
         auto vertex_requester = robots.at(uwb->requester_id).new_vertex(sensor_type.range, uwb->header, optimizer);
 
         auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, distance_cov);
@@ -319,9 +318,9 @@ void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped:
 
 void Localization::addImuEdge(const sensor_msgs::Imu::ConstPtr& Imu_)
 {
-    if (robots.at(self_id).last_header().frame_id != Imu_->header.frame_id)
+    if (robots.at(self_id).last_header().frame_id.find(Imu_->header.frame_id) == string::npos)
     {
-        robots.at(self_id).set_header(Imu_->header.frame_id);
+        robots.at(self_id).append_last_header(Imu_->header.frame_id);
 
         auto last_vertex = robots.at(self_id).last_vertex(sensor_type.range);
 
@@ -334,9 +333,9 @@ void Localization::addImuEdge(const sensor_msgs::Imu::ConstPtr& Imu_)
         last_vertex->setEstimate(current_pose);
 
         Eigen::MatrixXd  information = Eigen::MatrixXd::Zero(6,6);
-        information(3,3)= 1e8; 
-        information(4,4)= 1e8;
-        information(5,5)= 1e8;// roll, pitch, yaw
+        information(3,3)= Imu_->orientation_covariance[0];
+        information(4,4)= Imu_->orientation_covariance[4];
+        information(5,5)= Imu_->orientation_covariance[8];// roll, pitch, yaw
         
         g2o::EdgeSE3Prior* edgeprior = new g2o::EdgeSE3Prior();
         edgeprior->setInformation(information);

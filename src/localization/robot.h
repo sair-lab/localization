@@ -92,7 +92,7 @@ public:
 
     std_msgs::Header last_header();
 
-    void set_header(string);
+    void append_last_header(string);
 
     nav_msgs::Path* vertices2path();
 
