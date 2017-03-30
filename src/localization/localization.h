@@ -116,6 +116,11 @@ private:
 
     ros::Publisher path_optimized_pub;
 
+// for vicon
+    ros::Publisher vicon_pub;
+
+    geometry_msgs::PoseStamped vicondata;
+
 // for robots
     map<unsigned char, Robot> robots;
 
@@ -141,7 +146,7 @@ private:
 
     g2o::SparseOptimizer optimizer;
 
-    std::vector<Eigen::Isometry3d> offsets;
+    std::vector<Eigen::Isometry3d> offsets = std::vector<Eigen::Isometry3d>(3, Eigen::Isometry3d::Identity());
 
     int iteration_max;
 

@@ -48,6 +48,7 @@ int main(int argc, char** argv)
 
     ros::Subscriber pose_sub, range_sub, imu_sub, twist_sub;
 
+
     if(n.getParam("topic/pose", pose_topic))
     {
         pose_sub = n.subscribe(pose_topic, 1000, &Localization::addPoseEdge, &localization);
