@@ -11,7 +11,8 @@ optimizer:
 # parameters for topic subscription
 topic:
   range: /uwb_endorange_info
-  imu: /raw_imu
+  # imu: /raw_imu
+  imu: /imu/data
 
 publish_flag:
   tf: true
