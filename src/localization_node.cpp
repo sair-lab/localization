@@ -69,15 +69,9 @@ int main(int argc, char** argv)
 
     if(n.getParam("topic/imu", imu_topic))
     {
+        imu_sub = n.subscribe(imu_topic, 1, &Localization::addImuEdge, &localization);
         ROS_WARN("Subscribing to: %s", imu_topic.c_str());
     }
-
-    // Xu Fang  
-    // message_filters::Subscriber<uwb_driver::UwbRange> uwb_sub1(n, range_topic, 1);
-    // message_filters::Subscriber<sensor_msgs::Imu> imu_sub1(n, imu_topic, 10);
-    // typedef sync_policies::ApproximateTime<uwb_driver::UwbRange, sensor_msgs::Imu> imu_uwbSyncPolicy;
-    // Synchronizer<imu_uwbSyncPolicy> sync(imu_uwbSyncPolicy(10), uwb_sub1, imu_sub1);
-    // sync.registerCallback(boost::bind(&Localization::addImuEdge, &localization, _1, _2));
 
     dynamic_reconfigure::Server<localization::localizationConfig> dr_srv;
 
