@@ -4,28 +4,28 @@
 
     <param name ="/use_sim_time" value="true"/>
 
-    <arg name="dataset" value="uwb_imu_circle"/>
+    <arg name="dataset" value="uwb31"/>
 
     <!-- <arg name="dataset" value="kinect_uwb_man/slam_uwb_man"/> -->
 
     <rosparam file="$(find uwb_driver)/cfg/anchor.yaml" command="load" />
 
-    <node name="rosbag_play" pkg="rosbag" type="play" output="screen" args="-s 10 --clock -l $(find localization)/bag/$(arg dataset).bag"/>
+    <node name="rosbag_play" pkg="rosbag" type="play" output="screen" args="-s 1 --clock -l $(find localization)/bag/$(arg dataset).bag"/>
   
     <node pkg="localization" type="localization_node" name="localization_node" output="screen">
         <rosparam command="delete" param="topic" />
         <rosparam file="$(find localization)/cfg/uwb_imu.yaml" command="load" />
         <param name="log/filename_prefix" value="$(find localization)/bag/$(arg dataset)" />
     </node>
-
+<!--
     <node pkg="hector_trajectory_server" type="hector_trajectory_server" name="localization_trajectory_server">
         <param name="/target_frame_name" value="vicon" />
         <param name="/source_frame_name" value="optimizer" />
         <param name="/trajectory_update_rate" value="20.0" />
         <param name="/trajectory_publish_rate" value="20.0" />
     </node>
-
-    <node pkg="tf" type="static_transform_publisher" name="vicon_to_uwb_tf" args="0 0 0.5 0 0 0 world vicon 20" />
+-->
+    <node pkg="tf" type="static_transform_publisher" name="vicon_to_uwb_tf" args="0 0 0.5 0 0 0 world /vicon_frame 20" />
 
 </launch>
 
