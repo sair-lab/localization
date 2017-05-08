@@ -28,6 +28,10 @@
 
 #ifndef LOCALIZATION_H
 #define LOCALIZATION_H
+
+#define TIME_DOMAIN
+//comment above line if you want to use uwb from timedomain
+
 #include <iostream>
 #include <sstream>
 #include <string.h>
@@ -57,6 +61,7 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/TwistWithCovarianceStamped.h>
 #include <uwb_driver/UwbRange.h>
+#include <bitcraze_lps_estimator/UwbRange.h>
 #include <sensor_msgs/Imu.h>
 #include <dynamic_reconfigure/server.h>
 #include <localization/localizationConfig.h>
@@ -96,8 +101,11 @@ public:
 
     void publish();
 
+#ifdef TIME_DOMAIN
     void addRangeEdge(const uwb_driver::UwbRange::ConstPtr&);
-
+#else
+    void addRangeEdge(const bitcraze_lps_estimator::UwbRange::ConstPtr&);
+#endif
     void addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&);
 
     void addImuEdge(const sensor_msgs::Imu::ConstPtr&);

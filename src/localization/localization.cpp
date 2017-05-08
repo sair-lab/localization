@@ -230,9 +230,11 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
         publish();
     }
 }
-
-
+#ifdef TIME_DOMAIN
 void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
+#else
+void Localization::addRangeEdge(const bitcraze_lps_estimator::UwbRange::ConstPtr& uwb)
+#endif
 {
     double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
     double dt_responder = uwb->header.stamp.toSec() - robots.at(uwb->responder_id).last_header().stamp.toSec();
@@ -260,8 +262,11 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
         optimizer.addEdge(edge_requester_range); 
 
-        ROS_INFO("added two requester range edge on id: <%d> with offsets %d <%.2f, %.2f, %.2f>;",uwb->responder_id, uwb->antenna-1, 
+        if(uwb->antenna > 0)
+            ROS_INFO("added two requester range edge on id: <%d> with offsets %d <%.2f, %.2f, %.2f>;",uwb->responder_id, uwb->antenna-1, 
             offsets[uwb->antenna-1](0,3), offsets[uwb->antenna-1](1,3), offsets[uwb->antenna-1](2,3));
+        else
+            ROS_INFO("added two requester range edge on id: <%d> ", uwb->responder_id);
     }
     else
     {
