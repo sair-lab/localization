@@ -5,7 +5,7 @@ robot:
 
 # parameters for g2o optimizer
 optimizer:
-  maximum_iteration: 20
+  maximum_iteration: 10
   verbose: false
 
 # parameters for topic subscription
