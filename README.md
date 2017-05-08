@@ -28,3 +28,12 @@ Download uwb_driver to your ros workspace and install its dependencies:
 
     git clone https://github.com/jeffsanc/uwb_driver.git
     sudo apt-get install ros-kinetic-serial
+
+New support for UWB from bitcrazy:
+
+    please find its driver on:
+    https://github.com/wang-chen/lps-ros
+    
+To use UWB from bitcrazy, comment the following line in the src/localization/localization.h
+
+    #define TIME_DOMAIN
