@@ -56,7 +56,9 @@
 #include <tf_conversions/tf_eigen.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/TwistWithCovarianceStamped.h>
-#include <uwb_driver/UwbRange.h>
+// #include <uwb_driver/UwbRange.h>
+#include <bitcraze_lps_estimator/UwbRange.h>
+#include <vicon_xb/viconPoseMsg.h>
 #include <sensor_msgs/Imu.h>
 #include <dynamic_reconfigure/server.h>
 #include <localization/localizationConfig.h>
@@ -96,7 +98,9 @@ public:
 
     void publish();
 
-    void addRangeEdge(const uwb_driver::UwbRange::ConstPtr&);
+    // void addRangeEdge(const uwb_driver::UwbRange::ConstPtr&);
+
+    void addRangeEdge(const bitcraze_lps_estimator::UwbRange::ConstPtr&);
 
     void addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&);
 
@@ -141,7 +145,7 @@ private:
     int iteration_max;
 
 // for debug
-    string realtime_filename, optimized_filename, name_prefix, frame_source, frame_target;
+    string realtime_filename, optimized_filename, vicon_filename, name_prefix, frame_source, frame_target;
 
     ofstream file;
 

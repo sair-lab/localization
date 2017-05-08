@@ -36,6 +36,54 @@
 using namespace std;
 using namespace message_filters;
 
+ros::Publisher vicon_pub;
+std::ofstream file1;
+std::ofstream file2;
+
+
+ void chatterCallback(const vicon_xb::viconPoseMsg::ConstPtr& msg)
+   {
+     
+    geometry_msgs::PoseStamped vicon;
+
+    vicon.header = msg->header;  
+    vicon.pose = msg->pose;
+    vicon_pub.publish(vicon);
+
+    // tf::poseMsgToTF(pose.pose, transform);
+    // br.sendTransform(tf::StampedTransform(transform, pose.header.stamp, frame_source, frame_target));
+
+    file1.open("/home/xufang/experiment_data/vicon_data.txt", ios::app);
+    file1<<boost::format("%.9f") % (vicon.header.stamp.toSec())<<" "
+        <<vicon.pose.position.x<<" "
+        <<vicon.pose.position.y<<" "
+        <<vicon.pose.position.z<<" "
+        <<vicon.pose.orientation.x<<" "
+        <<vicon.pose.orientation.y<<" "
+        <<vicon.pose.orientation.z<<" "
+        <<vicon.pose.orientation.w<<endl;
+    file1.close();
+
+
+   }  
+
+  void chatterCallback1(const geometry_msgs::PoseStamped::ConstPtr& pose_)
+   {
+     
+    geometry_msgs::PoseStamped pose(*pose_);
+
+    file2.open("/home/xufang/experiment_data/pose_data.txt",ios::app); 
+
+    file2<< pose.header.stamp <<" "<<pose.pose.position.x<<" "<<pose.pose.position.y<<" "<<pose.pose.position.z <<" "\
+        <<pose.pose.orientation.x<<" "<< pose.pose.orientation.y<<" " << pose.pose.orientation.z<<" "<<pose.pose.orientation.w\
+        <<endl; 
+    file2.close();
+
+   }  
+
+
+
+
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "ni_slam_node");
@@ -46,7 +94,9 @@ int main(int argc, char** argv)
 
     string pose_topic, range_topic, imu_topic, twist_topic;
 
-    ros::Subscriber pose_sub, range_sub, imu_sub, twist_sub;
+    ros::Subscriber pose_sub, range_sub, imu_sub, twist_sub , vicon_sub, estimate_sub;
+
+    vicon_pub = n.advertise<geometry_msgs::PoseStamped>("viconf", 10); 
 
 
     if(n.getParam("topic/pose", pose_topic))
@@ -72,7 +122,20 @@ int main(int argc, char** argv)
         imu_sub = n.subscribe(imu_topic, 1, &Localization::addImuEdge, &localization);
         ROS_WARN("Subscribing to: %s", imu_topic.c_str());
     }
+
     
+    vicon_sub = n.subscribe("/vicon_xb/viconPoseTopic", 10, chatterCallback);
+    estimate_sub = n.subscribe("/localization_node/realtime/pose", 10, chatterCallback1);
+
+    file1.open("/home/xufang/experiment_data/vicon_data.txt", ios::trunc|ios::out);
+    file1.close();
+
+    file2.open("/home/xufang/experiment_data/pose_data.txt", ios::trunc|ios::out);
+    file2.close();   
+
+    ROS_WARN("Loging to file: %s","vicon_data.txt");
+    ROS_WARN("Loging to file: %s","pose_data.txt");
+
 
     dynamic_reconfigure::Server<localization::localizationConfig> dr_srv;
 
@@ -86,3 +149,5 @@ int main(int argc, char** argv)
 
     return 0;
 }
+
+

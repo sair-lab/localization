@@ -1,16 +1,17 @@
 # parameters for robots
 robot:
-  trajectory_length: 100
-  maximum_velocity: 2.0
+  trajectory_length: 20
+  maximum_velocity: 3.0
 
 # parameters for g2o optimizer
 optimizer:
-  maximum_iteration: 20
+  maximum_iteration: 10
   verbose: false
 
 # parameters for topic subscription
 topic:
-  range: /uwb_endorange_info
+  range: /uwbrange
+  # range: /uwb_endorange_info
   # imu: /raw_imu
   imu: /imu/data
 

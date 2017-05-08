@@ -109,10 +109,10 @@ Localization::Localization(ros::NodeHandle n)
 
 
 // For Debug
-    if(n.getParam("log/filename_prefix", name_prefix))
-        set_file();
-    else
-        ROS_WARN("Won't save any log files.");
+    // if(n.getParam("log/filename_prefix", name_prefix))
+    //     set_file();
+    // else
+    //     ROS_WARN("Won't save any log files.");
 
     if(n.param<string>("frame/target", frame_target, "estimation"))
         ROS_WARN("Using topic target frame: %s", frame_target.c_str());
@@ -178,17 +178,18 @@ void Localization::publish()
 
     pose_optimized_pub.publish(path->poses[trajectory_length/2]);
 
-    if(flag_save_file)
-    {
-        save_file(pose, realtime_filename);
-        save_file(path->poses[trajectory_length/2], optimized_filename);        
-    }
+    // if(flag_save_file)
+    // {
+    //     save_file(pose, realtime_filename);
+    //     save_file(path->poses[trajectory_length/2], optimized_filename);        
+    // }
 
     if(publish_tf)
     {
         tf::poseMsgToTF(pose.pose, transform);
         br.sendTransform(tf::StampedTransform(transform, pose.header.stamp, frame_source, frame_target));
     }
+
 
 }
 
@@ -232,7 +233,7 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 }
 
 
-void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
+void Localization::addRangeEdge(const bitcraze_lps_estimator::UwbRange::ConstPtr& uwb)
 {
     double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
     double dt_responder = uwb->header.stamp.toSec() - robots.at(uwb->responder_id).last_header().stamp.toSec();
@@ -251,8 +252,8 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 
         auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->distance, distance_cov);
 
-        if(uwb->antenna > 0)
-            edge->setVertexOffset(0, offsets[uwb->antenna-1]);
+        // if(uwb->antenna > 0)
+        //     edge->setVertexOffset(0, offsets[uwb->antenna-1]);
         
         optimizer.addEdge(edge);
 
@@ -473,6 +474,7 @@ void Localization::set_file()
     strftime(s,30,"_%Y_%b_%d_%H_%M_%S.txt",&tim);
     realtime_filename = name_prefix+"_realtime" + string(s);
     optimized_filename = name_prefix+"_optimized" + string(s);
+    // vicon_filename = name_prefix+"_vicon" + string(s);
 
     file.open(realtime_filename.c_str(), ios::trunc|ios::out);
     file<<"# "<<"iteration_max:"<<iteration_max<<"\n";
