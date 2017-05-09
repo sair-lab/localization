@@ -1,0 +1,27 @@
+# parameters for robots
+robot:
+  trajectory_length: 12
+  maximum_velocity: 3.0
+
+# parameters for g2o optimizer
+optimizer:
+  maximum_iteration: 10
+  verbose: false
+
+# parameters for topic subscription
+topic:
+  range: /uwbrange
+  # imu: /raw_imu
+  imu: /imu/data
+
+publish_flag:
+  tf: true
+  # publish estimation when the following topics are received.
+  # topics available in {range, pose, twist, imu}. false in default
+  range: true
+  imu: false
+
+# fused pose topic frame
+frame:
+  target: /uwb_imu
+  source: /world

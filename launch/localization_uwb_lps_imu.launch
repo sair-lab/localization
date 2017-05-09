@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<launch>
+
+
+    <param name ="/use_sim_time" value="true"/>
+
+    <rosparam file="$(find bitcraze_lps_estimator)/cfg/anchor.yaml" command="load" />
+  
+    <node pkg="localization" type="localization_node" name="localization_node" output="screen">
+        <rosparam command="delete" param="topic" />
+        <rosparam file="$(find localization)/cfg/uwb_lps_imu.yaml" command="load" />
+        <!-- <param name="log/filename_prefix" value="$(find localization)/bag/$(arg dataset)" /> -->
+    </node>
+
+    <node pkg="hector_trajectory_server" type="hector_trajectory_server" name="localization_trajectory_server">
+        <param name="/target_frame_name" value="uwb" />
+        <param name="/source_frame_name" value="world" />
+        <param name="/trajectory_update_rate" value="20.0" />
+        <param name="/trajectory_publish_rate" value="20.0" />
+    </node>
+
+    <node pkg="tf" type="static_transform_publisher" name="vicon_to_uwb_tf" args="0 0 0 0 0 0 world vicon 20" />
+
+</launch>
+
+

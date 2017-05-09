@@ -60,8 +60,11 @@
 #include <tf_conversions/tf_eigen.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/TwistWithCovarianceStamped.h>
+#ifdef TIME_DOMAIN
 #include <uwb_driver/UwbRange.h>
+#else
 #include <bitcraze_lps_estimator/UwbRange.h>
+#endif
 #include <sensor_msgs/Imu.h>
 #include <dynamic_reconfigure/server.h>
 #include <localization/localizationConfig.h>
