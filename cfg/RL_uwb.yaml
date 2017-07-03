@@ -27,3 +27,6 @@ frame:
   target: /uwb_imu
   source: /world
 
+  RLtarget1: /uwb_1
+  RLtarget2: /uwb_2
+  RLtarget3: /uwb_3

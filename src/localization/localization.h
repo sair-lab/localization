@@ -28,6 +28,12 @@
 
 #ifndef LOCALIZATION_H
 #define LOCALIZATION_H
+
+#define TIME_DOMAIN
+//comment above line if you want to use uwb from timedomain
+
+#include <stdio.h>
+#include <stdlib.h>
 #include <iostream>
 #include <sstream>
 #include <string.h>
@@ -56,14 +62,26 @@
 #include <tf_conversions/tf_eigen.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/TwistWithCovarianceStamped.h>
-// #include <uwb_driver/UwbRange.h>
+
+#ifdef TIME_DOMAIN
+#include <uwb_driver/UwbRange.h>
+#else
 #include <bitcraze_lps_estimator/UwbRange.h>
+#endif
+
+#include <uwb_reloc/uwbTalkData.h>
+
 #include <vicon_xb/viconPoseMsg.h>
 #include <sensor_msgs/Imu.h>
 #include <dynamic_reconfigure/server.h>
 #include <localization/localizationConfig.h>
 #include <message_filters/subscriber.h>
 #include <std_msgs/Float64.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <ros/ros.h>
+
+#include <std_msgs/Header.h>
+
 #include "lib.h"
 #include "robot.h"
 
@@ -98,9 +116,14 @@ public:
 
     void publish();
 
-    // void addRangeEdge(const uwb_driver::UwbRange::ConstPtr&);
-
+    #ifdef TIME_DOMAIN
+    void addRangeEdge(const uwb_driver::UwbRange::ConstPtr&);
+#else
     void addRangeEdge(const bitcraze_lps_estimator::UwbRange::ConstPtr&);
+#endif
+
+    void addRLRangeEdge(const uwb_reloc::uwbTalkData::ConstPtr&);
+
 
     void addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&);
 
@@ -131,6 +154,19 @@ private:
 
     int trajectory_length;
 
+    std_msgs::Header RLheader;
+
+    
+    // RL parameter
+    std::vector<int> nodesId;
+    std::vector<double> nodesPos;
+    std::vector<string>  RLframe_target;
+    std::vector<tf::Transform> RLtransform;
+    std::vector<geometry_msgs::PoseStamped> robot_position;
+    std::vector<ros::Publisher> vicon_pub;
+    std::vector<Eigen::Vector3d> Robot_velocity;
+    std::ofstream file1,file2;
+
 // for g2o solver
     Solver *solver;
 
@@ -153,7 +189,7 @@ private:
 
     tf::TransformBroadcaster br;
 
-    tf::Transform transform;
+
 
 // for data convertion
     inline g2o::EdgeSE3* create_se3_edge_from_twist(g2o::VertexSE3*, g2o::VertexSE3*, geometry_msgs::TwistWithCovariance&, double);
