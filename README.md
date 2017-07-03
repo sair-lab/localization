@@ -1,6 +1,4 @@
 # localization
-Localization ROS Package by fusion from multi-sources (UWB, IMU, DVS, SLAM)
-
 Toturial (Only for ROS kinetic on Ubuntu 16.04)
 
 Install dependencies:
