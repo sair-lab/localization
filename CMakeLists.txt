@@ -128,6 +128,7 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/src/localization
 )
 
+add_definitions(-DTIME_DOMAIN)
 
 ###########
 ## Build ##

@@ -111,6 +111,8 @@ public:
 #endif
     void addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&);
 
+    void addLidarEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& pose_cov_);
+
     void addImuEdge(const sensor_msgs::Imu::ConstPtr&);
 
     void addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped::ConstPtr&);

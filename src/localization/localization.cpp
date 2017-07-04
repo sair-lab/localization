@@ -230,6 +230,7 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
         publish();
     }
 }
+
 #ifdef TIME_DOMAIN
 void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 #else
@@ -263,8 +264,8 @@ void Localization::addRangeEdge(const bitcraze_lps_estimator::UwbRange::ConstPtr
         optimizer.addEdge(edge_requester_range); 
 
         if(uwb->antenna > 0)
-            ROS_INFO("added two requester range edge on id: <%d> with offsets %d <%.2f, %.2f, %.2f>;",uwb->responder_id, uwb->antenna-1, 
-            offsets[uwb->antenna-1](0,3), offsets[uwb->antenna-1](1,3), offsets[uwb->antenna-1](2,3));
+            ROS_INFO("added two requester range edge on id: <%d> with offsets %d <%.2f, %.2f, %.2f>;",
+                uwb->responder_id, uwb->antenna-1, offsets[uwb->antenna-1](0,3), offsets[uwb->antenna-1](1,3), offsets[uwb->antenna-1](2,3));
         else
             ROS_INFO("added two requester range edge on id: <%d> ", uwb->responder_id);
     }
@@ -314,6 +315,43 @@ void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped:
     ROS_INFO("added twist edge id: %d", twist.header.seq);
 
     if (publish_twist)
+    {
+        solve();
+        publish();
+    }
+}
+
+
+void Localization::addLidarEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& pose_cov_)
+{
+    if (robots.at(self_id).last_header().frame_id.find(pose_cov_->header.frame_id) == string::npos)
+    {
+        robots.at(self_id).append_last_header(pose_cov_->header.frame_id);
+
+        auto last_vertex = robots.at(self_id).last_vertex(sensor_type.range);
+
+        Eigen::Isometry3d current_pose = Eigen::Isometry3d::Identity();
+
+        current_pose = last_vertex->estimate();
+
+        current_pose(2, 3) = pose_cov_->pose.pose.position.z;
+
+        last_vertex->setEstimate(current_pose);
+
+        Eigen::MatrixXd  information = Eigen::MatrixXd::Zero(6,6);
+        information(2,2)= 1/0.05;
+        
+        g2o::EdgeSE3Prior* edgeprior = new g2o::EdgeSE3Prior();
+        edgeprior->setInformation(information);
+        edgeprior->vertices()[0]= last_vertex; 
+        edgeprior->setMeasurement(current_pose); 
+        edgeprior->setParameterId(0,0);
+        optimizer.addEdge(edgeprior);
+
+        ROS_INFO("added lidar edge id: %d", pose_cov_->header.seq);
+    }
+
+    if (publish_pose)
     {
         solve();
         publish();
