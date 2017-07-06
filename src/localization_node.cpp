@@ -44,7 +44,7 @@ int main(int argc, char** argv)
 
     Localization localization(n);
 
-    string pose_topic, range_topic, imu_topic, twist_topic;
+    string pose_topic, range_topic, lidar_topic, imu_topic, twist_topic;
 
     ros::Subscriber pose_sub, range_sub, imu_sub, twist_sub;
 
@@ -65,6 +65,12 @@ int main(int argc, char** argv)
     {
         twist_sub = n.subscribe(twist_topic, 1, &Localization::addTwistEdge, &localization);
         ROS_WARN("Subscribing to: %s", twist_topic.c_str());
+    }
+
+    if(n.getParam("topic/lidar", lidar_topic))
+    {
+        twist_sub = n.subscribe(lidar_topic, 1, &Localization::addLidarEdge, &localization);
+        ROS_WARN("Subscribing to: %s", lidar_topic.c_str());
     }
 
     if(n.getParam("topic/imu", imu_topic))
