@@ -110,7 +110,10 @@ Localization::Localization(ros::NodeHandle n)
 
 // For Debug
     if(n.getParam("log/filename_prefix", name_prefix))
-        set_file();
+        if(antennaOffset.size() > 0)
+            set_file(antennaOffset);
+        else
+            set_file();
     else
         ROS_WARN("Won't save any log files.");
 
@@ -354,7 +357,7 @@ void Localization::addLidarEdge(const geometry_msgs::PoseWithCovarianceStamped::
         ROS_INFO("added lidar edge id: %d", pose_cov_->header.seq);
     }
 
-    if (publish_pose)
+    if (publish_lidar)
     {
         solve();
         publish();
