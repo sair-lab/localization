@@ -131,6 +131,9 @@ Localization::Localization(ros::NodeHandle n)
 
     if(n.param<bool>("publish_flag/twist", publish_twist, false))
         ROS_WARN("Using publish_flag/twist: %s", publish_twist ? "true":"false");
+	
+	if(n.param<bool>("publish_flag/lidar", publish_lidar, false))
+        ROS_WARN("Using publish_flag/lidar: %s", publish_lidar ? "true":"false");
 
     if(n.param<bool>("publish_flag/imu", publish_imu, false))
         ROS_WARN("Using publish_flag/imu: %s", publish_imu ? "true":"false");
@@ -264,8 +267,8 @@ void Localization::addRangeEdge(const bitcraze_lps_estimator::UwbRange::ConstPtr
         optimizer.addEdge(edge_requester_range); 
 
         if(uwb->antenna > 0)
-            ROS_INFO("added two requester range edge on id: <%d> with offsets %d <%.2f, %.2f, %.2f>;",
-                uwb->responder_id, uwb->antenna-1, offsets[uwb->antenna-1](0,3), offsets[uwb->antenna-1](1,3), offsets[uwb->antenna-1](2,3));
+            ROS_INFO("added two requester range edge on id: <%d> with offsets %d <%.2f, %.2f, %.2f> at %.3f;",
+                uwb->responder_id, uwb->antenna-1, offsets[uwb->antenna-1](0,3), offsets[uwb->antenna-1](1,3), offsets[uwb->antenna-1](2,3), dt_requester);
         else
             ROS_INFO("added two requester range edge on id: <%d> ", uwb->responder_id);
     }
@@ -527,6 +530,41 @@ void Localization::set_file()
     file<<"# "<<"iteration_max:"<<iteration_max<<"\n";
     file<<"# "<<"trajectory_length:"<<trajectory_length<<"\n";
     file<<"# "<<"maximum_velocity:"<<robot_max_velocity<<"\n";
+    file.close();
+
+    ROS_WARN("Loging to file: %s",realtime_filename.c_str());
+    ROS_WARN("Loging to file: %s",optimized_filename.c_str());
+}
+
+void Localization::set_file(std::vector<double> antennaOffset)
+{
+    flag_save_file = true;
+    char s[30];
+    struct tm tim;
+    time_t now;
+    now = time(NULL);
+    tim = *(localtime(&now));
+    strftime(s,30,"_%Y_%b_%d_%H_%M_%S.txt",&tim);
+    realtime_filename = name_prefix+"_realtime" + string(s);
+    optimized_filename = name_prefix+"_optimized" + string(s);
+
+    file.open(realtime_filename.c_str(), ios::trunc|ios::out);
+    file<<"# "<<"iteration_max:"<<iteration_max<<"\n";
+    file<<"# "<<"trajectory_length:"<<trajectory_length<<"\n";
+    file<<"# "<<"maximum_velocity:"<<robot_max_velocity<<"\n";
+    file.close();
+
+    file.open(optimized_filename.c_str(), ios::trunc|ios::out);
+    file<<"# "<<"iteration_max:"<<iteration_max<<"\n";
+    file<<"# "<<"trajectory_length:"<<trajectory_length<<"\n";
+    file<<"# "<<"maximum_velocity:"<<robot_max_velocity<<"\n";
+    file.close();
+
+    file.open(optimized_filename.c_str(), ios::trunc|ios::out);
+    file<<"# "<<"antenna offsets: ";
+    for(int i; i < antennaOffset.size() - 1; i++)
+        file << antennaOffset[i] << ",";
+    file << antennaOffset[antennaOffset.size()-1] << "\n";
     file.close();
 
     ROS_WARN("Loging to file: %s",realtime_filename.c_str());
