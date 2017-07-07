@@ -165,7 +165,7 @@ private:
 
     ofstream file;
 
-    bool flag_save_file, publish_tf, publish_range, publish_pose, publish_twist, publish_imu, publish_relative_range;
+    bool flag_save_file, publish_tf, publish_range, publish_pose, publish_twist, publish_lidar, publish_imu, publish_relative_range;
 
     tf::TransformBroadcaster br;
 
@@ -184,6 +184,7 @@ private:
 
 public:
     void set_file();
+    void set_file(std::vector<double> antennaOffset);
 
 };
 
