@@ -70,6 +70,7 @@
 #include <localization/localizationConfig.h>
 #include <message_filters/subscriber.h>
 #include <std_msgs/Float64.h>
+#include <uwb_reloc/uwbTalkData.h>
 #include "lib.h"
 #include "robot.h"
 
@@ -117,6 +118,8 @@ public:
 
     void addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped::ConstPtr&);
 
+    void addRLRangeEdge(const uwb_reloc::uwbTalkData::ConstPtr&);
+
     void configCallback(localization::localizationConfig&, uint32_t);
 
 private:
@@ -130,6 +133,10 @@ private:
     ros::Publisher path_optimized_pub;
 
 // for robots
+    std::vector<int> nodesId;
+
+    std::vector<double> nodesPos;
+
     map<unsigned char, Robot> robots;
 
     unsigned char self_id;
@@ -158,7 +165,7 @@ private:
 
     ofstream file;
 
-    bool flag_save_file, publish_tf, publish_range, publish_pose, publish_twist, publish_imu;
+    bool flag_save_file, publish_tf, publish_range, publish_pose, publish_twist, publish_imu, publish_relative_range;
 
     tf::TransformBroadcaster br;
 

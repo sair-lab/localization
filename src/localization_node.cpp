@@ -44,9 +44,9 @@ int main(int argc, char** argv)
 
     Localization localization(n);
 
-    string pose_topic, range_topic, lidar_topic, imu_topic, twist_topic;
+    string pose_topic, range_topic, lidar_topic, imu_topic, twist_topic, relative_topic;
 
-    ros::Subscriber pose_sub, range_sub, imu_sub, twist_sub;
+    ros::Subscriber pose_sub, range_sub, imu_sub, twist_sub, relative_sub;
 
 
     if(n.getParam("topic/pose", pose_topic))
@@ -78,7 +78,12 @@ int main(int argc, char** argv)
         imu_sub = n.subscribe(imu_topic, 1, &Localization::addImuEdge, &localization);
         ROS_WARN("Subscribing to: %s", imu_topic.c_str());
     }
-    
+
+    if(n.getParam("topic/relative_range", relative_topic))
+    {
+        relative_sub = n.subscribe(relative_topic, 1, &Localization::addRLRangeEdge, &localization);
+        ROS_WARN("Subscribing to: %s", relative_topic.c_str());
+    }
 
     dynamic_reconfigure::Server<localization::localizationConfig> dr_srv;
 

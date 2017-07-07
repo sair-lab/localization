@@ -67,7 +67,7 @@ public:
         Eigen::Isometry3d pose = Eigen::Isometry3d::Identity();
         pose(0,3) = 0; 
         pose(1,3) = 0; 
-        pose(2,3) = 2;
+        pose(2,3) = 0.87;
         init(optimizer, pose);
     }; 
     // only call this constructor without following an init()
