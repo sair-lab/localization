@@ -1,28 +1,26 @@
 # parameters for robots
 robot:
-<<<<<<< HEAD
   trajectory_length: 20
-=======
-  trajectory_length: 12
->>>>>>> 61533e0913366f15020efbf02043e0ff458e8891
-  maximum_velocity: 3.0
+  maximum_velocity: 2.0
 
 # parameters for g2o optimizer
 optimizer:
-  maximum_iteration: 10
+  maximum_iteration: 20
   verbose: false
 
 # parameters for topic subscription
 topic:
-  range: /uwbrange
+  # range: /uwbrange
   # range: /uwb_endorange_info
   # imu: /raw_imu
-  imu: /imu/data
+  # imu: /imu/data
+  relative_range: /uwb_talk
 
 publish_flag:
   tf: true
   # publish estimation when the following topics are received.
   # topics available in {range, pose, twist, imu}. false in default
+  relative_range: true
   range: true
   imu: false
 
@@ -30,3 +28,9 @@ publish_flag:
 frame:
   target: /uwb_imu
   source: /world
+
+# following frame names are only for relative localization
+# they change be deleted safely, then default names will be used
+  RLtarget1: /uwb_1
+  RLtarget2: /uwb_2
+  RLtarget3: /uwb_3

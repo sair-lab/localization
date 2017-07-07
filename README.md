@@ -1,6 +1,4 @@
 # localization
-Localization ROS Package by fusion from multi-sources (UWB, IMU, DVS, SLAM)
-
 Toturial (Only for ROS kinetic on Ubuntu 16.04)
 
 Install dependencies:
@@ -26,5 +24,14 @@ Install G2O from source. Download g2o to your non-ros source folder, make and in
  
 Download uwb_driver to your ros workspace and install its dependencies:
 
-    git clone https://github.com/jeffsanc/uwb_driver.git
+    git clone https://github.com/wang-chen/uwb_driver.git
     sudo apt-get install ros-kinetic-serial
+
+New support for UWB from bitcrazy:
+
+    please find its driver on:
+    https://github.com/wang-chen/lps-ros
+    
+To use UWB from bitcrazy, comment the following line in the src/localization/localization.h
+
+    #define TIME_DOMAIN

@@ -92,11 +92,15 @@ int main(int argc, char** argv)
 
     Localization localization(n);
 
-    string pose_topic, range_topic, imu_topic, twist_topic;
+    string pose_topic, range_topic, lidar_topic, imu_topic, twist_topic, relative_topic;
 
-    ros::Subscriber pose_sub, range_sub, imu_sub, twist_sub , vicon_sub, estimate_sub;
 
-    vicon_pub = n.advertise<geometry_msgs::PoseStamped>("viconf", 10); 
+    // ros::Subscriber pose_sub, range_sub, imu_sub, twist_sub , vicon_sub, estimate_sub;
+
+    // vicon_pub = n.advertise<geometry_msgs::PoseStamped>("viconf", 10); 
+
+    ros::Subscriber pose_sub, range_sub, imu_sub, twist_sub, relative_sub;
+
 
 
     if(n.getParam("topic/pose", pose_topic))
@@ -117,24 +121,37 @@ int main(int argc, char** argv)
         ROS_WARN("Subscribing to: %s", twist_topic.c_str());
     }
 
+    if(n.getParam("topic/lidar", lidar_topic))
+    {
+        twist_sub = n.subscribe(lidar_topic, 1, &Localization::addLidarEdge, &localization);
+        ROS_WARN("Subscribing to: %s", lidar_topic.c_str());
+    }
+
     if(n.getParam("topic/imu", imu_topic))
     {
         imu_sub = n.subscribe(imu_topic, 1, &Localization::addImuEdge, &localization);
         ROS_WARN("Subscribing to: %s", imu_topic.c_str());
     }
 
+
     
-    vicon_sub = n.subscribe("/vicon_xb/viconPoseTopic", 10, chatterCallback);
-    estimate_sub = n.subscribe("/localization_node/realtime/pose", 10, chatterCallback1);
+    // vicon_sub = n.subscribe("/vicon_xb/viconPoseTopic", 10, chatterCallback);
+    // estimate_sub = n.subscribe("/localization_node/realtime/pose", 10, chatterCallback1);
 
-    file1.open("/home/xufang/experiment_data/vicon_data.txt", ios::trunc|ios::out);
-    file1.close();
+    // file1.open("/home/xufang/experiment_data/vicon_data.txt", ios::trunc|ios::out);
+    // file1.close();
 
-    file2.open("/home/xufang/experiment_data/pose_data.txt", ios::trunc|ios::out);
-    file2.close();   
+    // file2.open("/home/xufang/experiment_data/pose_data.txt", ios::trunc|ios::out);
+    // file2.close();   
 
-    ROS_WARN("Loging to file: %s","vicon_data.txt");
-    ROS_WARN("Loging to file: %s","pose_data.txt");
+    // ROS_WARN("Loging to file: %s","vicon_data.txt");
+    // ROS_WARN("Loging to file: %s","pose_data.txt");
+
+    if(n.getParam("topic/relative_range", relative_topic))
+    {
+        relative_sub = n.subscribe(relative_topic, 1, &Localization::addRLRangeEdge, &localization);
+        ROS_WARN("Subscribing to: %s", relative_topic.c_str());
+    }
 
 
     dynamic_reconfigure::Server<localization::localizationConfig> dr_srv;

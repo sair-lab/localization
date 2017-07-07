@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<launch>
+
+
+    <param name ="/use_sim_time" value="true"/>
+
+    <arg name="dataset" value="test2/u0_talk"/>
+
+    <rosparam file="$(find uwb_driver)/cfg/relative.yaml" command="load" />
+
+    <node name="rosbag_play" pkg="rosbag" type="play" output="screen" args="-s 80 -l --clock $(find localization)/bag/$(arg dataset).bag"/>
+  
+    <node pkg="localization" type="localization_node" name="localization_node" output="screen">
+        <rosparam command="delete" param="topic" />
+        <rosparam file="$(find localization)/cfg/RL_uwb.yaml" command="load" />
+        <param name="log/filename_prefix" value="$(find localization)/bag/$(arg dataset)" />
+    </node>
+
+    <node pkg="hector_trajectory_server" type="hector_trajectory_server" name="localization_trajectory_server">
+        <param name="/target_frame_name" value="vicon" />
+        <param name="/source_frame_name" value="optimizer" />
+        <param name="/trajectory_update_rate" value="20.0" />
+        <param name="/trajectory_publish_rate" value="20.0" />
+    </node>
+
+    <!-- <node pkg="tf" type="static_transform_publisher" name="vicon_to_uwb_tf" args="0 0 0 0 0 0 world /vicon_frame 20" /> -->
+
+</launch>
+
+

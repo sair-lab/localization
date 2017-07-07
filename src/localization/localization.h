@@ -28,6 +28,10 @@
 
 #ifndef LOCALIZATION_H
 #define LOCALIZATION_H
+
+// #define TIME_DOMAIN
+//comment above line if you want to use uwb from timedomain
+
 #include <iostream>
 #include <sstream>
 #include <string.h>
@@ -56,14 +60,20 @@
 #include <tf_conversions/tf_eigen.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/TwistWithCovarianceStamped.h>
-// #include <uwb_driver/UwbRange.h>
-#include <bitcraze_lps_estimator/UwbRange.h>
 #include <vicon_xb/viconPoseMsg.h>
+
+#ifdef TIME_DOMAIN
+#include <uwb_driver/UwbRange.h>
+#else
+#include <bitcraze_lps_estimator/UwbRange.h>
+#endif
+
 #include <sensor_msgs/Imu.h>
 #include <dynamic_reconfigure/server.h>
 #include <localization/localizationConfig.h>
 #include <message_filters/subscriber.h>
 #include <std_msgs/Float64.h>
+#include <uwb_reloc/uwbTalkData.h>
 #include "lib.h"
 #include "robot.h"
 
@@ -98,15 +108,22 @@ public:
 
     void publish();
 
-    // void addRangeEdge(const uwb_driver::UwbRange::ConstPtr&);
 
+#ifdef TIME_DOMAIN
+    void addRangeEdge(const uwb_driver::UwbRange::ConstPtr&);
+#else
     void addRangeEdge(const bitcraze_lps_estimator::UwbRange::ConstPtr&);
+#endif
 
     void addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&);
+
+    void addLidarEdge(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& pose_cov_);
 
     void addImuEdge(const sensor_msgs::Imu::ConstPtr&);
 
     void addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped::ConstPtr&);
+
+    void addRLRangeEdge(const uwb_reloc::uwbTalkData::ConstPtr&);
 
     void configCallback(localization::localizationConfig&, uint32_t);
 
@@ -121,6 +138,10 @@ private:
     ros::Publisher path_optimized_pub;
 
 // for robots
+    std::vector<int> nodesId;
+
+    std::vector<double> nodesPos;
+
     map<unsigned char, Robot> robots;
 
     unsigned char self_id;
@@ -149,7 +170,7 @@ private:
 
     ofstream file;
 
-    bool flag_save_file, publish_tf, publish_range, publish_pose, publish_twist, publish_imu;
+    bool flag_save_file, publish_tf, publish_range, publish_pose, publish_twist, publish_lidar, publish_imu, publish_relative_range;
 
     tf::TransformBroadcaster br;
 
@@ -168,6 +189,7 @@ private:
 
 public:
     void set_file();
+    void set_file(std::vector<double> antennaOffset);
 
 };
 
