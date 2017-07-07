@@ -153,16 +153,12 @@ private:
     g2o::VertexSE3* key_vertex;
 
     int trajectory_length;
-
-    std_msgs::Header RLheader;
-
     
     // RL parameter
     std::vector<int> nodesId;
     std::vector<double> nodesPos;
     std::vector<string>  RLframe_target;
     std::vector<tf::Transform> RLtransform;
-    std::vector<geometry_msgs::PoseStamped> robot_position;
     std::vector<ros::Publisher> vicon_pub;
     std::vector<Eigen::Vector3d> Robot_velocity;
     std::ofstream file1,file2;

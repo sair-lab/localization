@@ -79,7 +79,6 @@ Localization::Localization(ros::NodeHandle n)
 // relative localization parameter
     RLtransform = std::vector<tf::Transform>(nodesId.size(),tf::Transform()) ;
     RLframe_target = std::vector<string>(nodesId.size(),string()) ;
-    robot_position = std::vector<geometry_msgs::PoseStamped>(nodesId.size(),geometry_msgs::PoseStamped());
     vicon_pub = std::vector<ros::Publisher>(nodesId.size(),ros::Publisher());
     Robot_velocity = std::vector<Eigen::Vector3d>(nodesId.size(),Eigen::Vector3d());
 
@@ -304,7 +303,7 @@ void Localization::addRangeEdge(const bitcraze_lps_estimator::UwbRange::ConstPtr
 
 void Localization::addRLRangeEdge(const uwb_reloc::uwbTalkData::ConstPtr& uwb)
 {
-
+    std_msgs::Header RLheader;
     RLheader.stamp  = uwb->time_stamp;
     RLheader.frame_id = "uwb";
 
@@ -324,9 +323,6 @@ void Localization::addRLRangeEdge(const uwb_reloc::uwbTalkData::ConstPtr& uwb)
     auto edge = create_range_edge(vertex_requester, vertex_responder, uwb->d, distance_cov);   
     optimizer.addEdge(edge);
 
-    // auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, cov_requester);
-    // optimizer.addEdge(edge_requester_range); 
-
     if (!robots.at(uwb->rspdrId).is_static())
     {
         auto edge_responder_range = create_range_edge(vertex_last_responder, vertex_responder, 0, cov_responder);
@@ -334,18 +330,7 @@ void Localization::addRLRangeEdge(const uwb_reloc::uwbTalkData::ConstPtr& uwb)
         ROS_INFO("added responder trajectory edge;");
     }
 
-
-    // using velocity infornation
-    for(size_t i = 0; i < nodesId.size(); ++i)
-    {
-        if (uwb->rqstrId == i)
-        {   
-            Robot_velocity[i] = Eigen::Vector3d(uwb->rqstr_vx,uwb->rqstr_vy,uwb->rqstr_vz);
-        }
-    }
-
-
-    // add  EdgeSE3 using velocity information
+    // add EdgeSE3 using velocity information
     if (!robots.at(uwb->rqstrId).is_static())
     {
         g2o::EdgeSE3 *edge_requester = new g2o::EdgeSE3();
@@ -353,8 +338,9 @@ void Localization::addRLRangeEdge(const uwb_reloc::uwbTalkData::ConstPtr& uwb)
         edge_requester->vertices()[1] = vertex_requester;
 
         Eigen::Isometry3d measurement;
-        measurement.setIdentity();
-        measurement.translate(g2o::Vector3D(Robot_velocity[uwb->rqstrId][0]*dt_requester, Robot_velocity[uwb->rqstrId][1]*dt_requester, Robot_velocity[uwb->rqstrId][2]*dt_requester));
+        measurement.setIdentity();        
+        measurement.translate(dt_requester*g2o::Vector3D(uwb->rqstr_vx, uwb->rqstr_vy, uwb->rqstr_vz));
+
         edge_requester->setMeasurement(measurement);
 
         Eigen::MatrixXd requester_SE3information = MatrixXd::Zero(6,6);
@@ -364,35 +350,7 @@ void Localization::addRLRangeEdge(const uwb_reloc::uwbTalkData::ConstPtr& uwb)
 
         edge_requester->setInformation(requester_SE3information);
         optimizer.addEdge(edge_requester);
-
-        // cout << "current" << '\n' << measurement.matrix() << endl;
     }
-
-    
-    // if (!robots.at(uwb->rspdrId).is_static())
-    // {
-        
-    //     g2o::EdgeSE3 *edge_responder = new g2o::EdgeSE3();
-    //     edge_responder->vertices()[0] = vertex_last_responder;
-    //     edge_responder->vertices()[1] = vertex_responder;
-
-    //     Eigen::Isometry3d measurement;
-    //     measurement.setIdentity();
-    //     measurement.translate(g2o::Vector3D(Robot_velocity[uwb->rspdrId][0]*dt_responder, Robot_velocity[uwb->rspdrId][1]*dt_responder, Robot_velocity[uwb->rspdrId][2]*dt_responder));
-    //     edge_responder->setMeasurement(measurement);
-
-    //     Eigen::MatrixXd responder_SE3information = MatrixXd::Zero(6,6);
-    //     responder_SE3information(0,0) = 1.0/cov_responder;
-    //     responder_SE3information(1,1) = 1.0/cov_responder;
-    //     responder_SE3information(2,2) = 1.0/cov_responder;
-
-    //     edge_responder->setInformation(responder_SE3information);
-    //     optimizer.addEdge(edge_responder);
-
-    //     ROS_INFO("added responder trajectory edge;");
-
-    // }
-
 
     if (publish_range)
     {
@@ -400,71 +358,64 @@ void Localization::addRLRangeEdge(const uwb_reloc::uwbTalkData::ConstPtr& uwb)
         publish();
     }
 
-
-    
     // publish ground truth
-    for(size_t i = 0; i < nodesId.size(); ++i)
-    {
-        if (uwb->rqstrId == i)
-        {
-            robot_position[i].header = RLheader;
-            robot_position[i].header.frame_id = frame_source;
-            robot_position[i].pose.position.x = uwb->rqstr_x;
-            robot_position[i].pose.position.y = uwb->rqstr_y;
-            robot_position[i].pose.position.z = uwb->rqstr_z;
-            vicon_pub[i].publish(robot_position[i]); 
-        }
-
-    }
-
-    // relative comparison 
-    auto robot1_pose = robots.at(uwb->selfId).current_pose();
-    auto robot2_pose = robots.at(uwb->rqstrId).current_pose();
-
-    auto Ground_x = uwb->self_x - uwb->rqstr_x;
-    auto Ground_y = uwb->self_y - uwb->rqstr_y;
-    auto Ground_z = uwb->self_z - uwb->rqstr_z;
-
-    auto RL_x = robot1_pose.pose.position.x - robot2_pose.pose.position.x;
-    auto RL_y = robot1_pose.pose.position.y - robot2_pose.pose.position.y;
-    auto RL_z = robot1_pose.pose.position.z - robot2_pose.pose.position.z;
+    geometry_msgs::PoseStamped robot_position;
+    robot_position.header = RLheader;
+    robot_position.header.frame_id = frame_source;
+    robot_position.pose.position.x = uwb->rqstr_x;
+    robot_position.pose.position.y = uwb->rqstr_y;
+    robot_position.pose.position.z = uwb->rqstr_z;
+    vicon_pub[uwb->rqstrId].publish(robot_position); 
 
 
-    // ROS_INFO("RL estimation error in x for ID %d and ID %d is %f:",uwb->selfId,uwb->rqstrId,Ground_x - RL_x );
+    // // relative comparison 
+    // auto robot1_pose = robots.at(uwb->selfId).current_pose();
+    // auto robot2_pose = robots.at(uwb->rqstrId).current_pose();
 
-    if (uwb->rqstrId == (uwb->selfId+1)%3)
-    {
+    // auto Ground_x = uwb->self_x - uwb->rqstr_x;
+    // auto Ground_y = uwb->self_y - uwb->rqstr_y;
+    // auto Ground_z = uwb->self_z - uwb->rqstr_z;
 
-        cout<< "data1" << '\n' << (uwb->selfId+1)%3 <<endl;
-        file1.open("/home/xufang/experiment_data/RL_data1.txt", ios::app);
-        file1<<boost::format("%.9f") % (RLheader.stamp.toSec())<<" "
-            <<Ground_x - RL_x<<" "
-            <<Ground_y - RL_y<<" "
-            <<Ground_z - RL_z<<" "
-            <<sqrt(pow(Ground_x,2)+pow(Ground_y,2)+pow(Ground_z,2))<<" "
-            <<sqrt(pow(RL_x,2)+pow(RL_y,2)+pow(RL_z,2))<<" "
-            <<endl;
-        file1.close();
-
-    }
+    // auto RL_x = robot1_pose.pose.position.x - robot2_pose.pose.position.x;
+    // auto RL_y = robot1_pose.pose.position.y - robot2_pose.pose.position.y;
+    // auto RL_z = robot1_pose.pose.position.z - robot2_pose.pose.position.z;
 
 
-    if (uwb->rqstrId == (uwb->selfId+2)%3)
-    {
+    // // ROS_INFO("RL estimation error in x for ID %d and ID %d is %f:",uwb->selfId,uwb->rqstrId,Ground_x - RL_x );
 
-        cout<< "data2" << '\n' << (uwb->selfId+2)%3 <<endl;
+    // if (uwb->rqstrId == (uwb->selfId+1)%3)
+    // {
 
-        file2.open("/home/xufang/experiment_data/RL_data2.txt", ios::app);
-        file2<<boost::format("%.9f") % (RLheader.stamp.toSec())<<" "
-            <<Ground_x - RL_x<<" "
-            <<Ground_y - RL_y<<" "
-            <<Ground_z - RL_z<<" "
-            <<sqrt(pow(Ground_x,2)+pow(Ground_y,2)+pow(Ground_z,2))<<" "
-            <<sqrt(pow(RL_x,2)+pow(RL_y,2)+pow(RL_z,2))<<" "
-            <<endl;
-        file2.close();
+    //     cout<< "data1" << '\n' << (uwb->selfId+1)%3 <<endl;
+    //     file1.open("/home/xufang/experiment_data/RL_data1.txt", ios::app);
+    //     file1<<boost::format("%.9f") % (RLheader.stamp.toSec())<<" "
+    //         <<Ground_x - RL_x<<" "
+    //         <<Ground_y - RL_y<<" "
+    //         <<Ground_z - RL_z<<" "
+    //         <<sqrt(pow(Ground_x,2)+pow(Ground_y,2)+pow(Ground_z,2))<<" "
+    //         <<sqrt(pow(RL_x,2)+pow(RL_y,2)+pow(RL_z,2))<<" "
+    //         <<endl;
+    //     file1.close();
 
-    }
+    // }
+
+
+    // if (uwb->rqstrId == (uwb->selfId+2)%3)
+    // {
+
+    //     cout<< "data2" << '\n' << (uwb->selfId+2)%3 <<endl;
+
+    //     file2.open("/home/xufang/experiment_data/RL_data2.txt", ios::app);
+    //     file2<<boost::format("%.9f") % (RLheader.stamp.toSec())<<" "
+    //         <<Ground_x - RL_x<<" "
+    //         <<Ground_y - RL_y<<" "
+    //         <<Ground_z - RL_z<<" "
+    //         <<sqrt(pow(Ground_x,2)+pow(Ground_y,2)+pow(Ground_z,2))<<" "
+    //         <<sqrt(pow(RL_x,2)+pow(RL_y,2)+pow(RL_z,2))<<" "
+    //         <<endl;
+    //     file2.close();
+
+    // }
 
 }
 

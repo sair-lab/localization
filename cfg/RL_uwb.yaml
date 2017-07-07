@@ -22,11 +22,16 @@ publish_flag:
   range: true
   imu: false
 
+# change to false, if you don't want to enable relative localization
+RL_enable: true
+
 # fused pose topic frame
 frame:
   target: /uwb_imu
   source: /world
 
+# following frame names are only for relative localization
+# they change be deleted safely, then default names will be used
   RLtarget1: /uwb_1
   RLtarget2: /uwb_2
   RLtarget3: /uwb_3
