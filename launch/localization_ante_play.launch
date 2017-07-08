@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+
+	<param name="use_sim_time" value="true" />
+    <node name="loc_play" pkg="rosbag" type="play" output="screen" args="-s 10 -l $(find localization)/bag/uwb_ante_imu_2017-07-08-08-45-14.bag"/>
+	<include file="$(find vicon_xb)/launch/vicon_local_tf.launch"/>
+
+</launch>
+
+

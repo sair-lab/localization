@@ -1,10 +1,22 @@
 <?xml version="1.0"?>
 <launch>
 
-    <node pkg="localization" type="localization_node" name="localization_node" output="screen">
+    <include file="$(find vicon_xb)/launch/vicon_xb.launch"/>
+	
+	<include file="$(find uwb2px4)/launch/uwb2px4.launch"/>
+	
+	<include file="$(find myahrs_driver)/launch/myahrs_driver.launch"/>
+	
+	<!-- <include file="$(find uwb_driver)/launch/uwb_driver.launch"/> -->
+	
+	<include file="$(find vcviz)/launch/vcviz.launch"/>
+
+    <node respawn="true" pkg="localization" type="localization_node" name="localization_node" output="screen">
         <rosparam command="delete" param="topic" />
         <rosparam file="$(find localization)/cfg/uwb_imu_lidar.yaml" command="load" />
         <param name="log/filename_prefix" value="$(find localization)/bag/real_time" />
     </node>
+	
+	<!-- <node name="localization_record" pkg="rosbag" type="record" args="-o $(find localization)/bag/uwb_ante /uwb_endorange_info /vicon_xb/viconPoseTopic /lidar_px4 /imu/data /lidar_lite /localization_node/realtime/pose"/> -->
 
 </launch>

@@ -1,7 +1,7 @@
 # parameters for robots
 robot:
   trajectory_length: 20
-  maximum_velocity: 5.0
+  maximum_velocity: 10.0
 
 # parameters for g2o optimizer
 optimizer:
@@ -11,7 +11,7 @@ optimizer:
 # parameters for topic subscription
 topic:
   range: /uwb_endorange_info
-  lidar: /lidar_lite
+  lidar: /lidar_px4
   imu: /imu/data
 
 publish_flag:
@@ -19,7 +19,7 @@ publish_flag:
   # publish estimation when the following topics are received.
   # topics available in {range, pose, twist, imu}. false in default
   range: true
-  #  imu: false
+  imu: false
 
 # fused pose topic frame
 frame:

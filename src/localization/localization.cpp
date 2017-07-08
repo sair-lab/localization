@@ -382,9 +382,9 @@ void Localization::addImuEdge(const sensor_msgs::Imu::ConstPtr& Imu_)
         last_vertex->setEstimate(current_pose);
 
         Eigen::MatrixXd  information = Eigen::MatrixXd::Zero(6,6);
-        information(3,3)= 1.0/Imu_->orientation_covariance[0];
-        information(4,4)= 1.0/Imu_->orientation_covariance[4];
-        information(5,5)= 1.0/Imu_->orientation_covariance[8];// roll, pitch, yaw
+        information(3,3)= 1e12;
+        information(4,4)= 1e12;
+        information(5,5)= 1e12;// roll, pitch, yaw
         
         g2o::EdgeSE3Prior* edgeprior = new g2o::EdgeSE3Prior();
         edgeprior->setInformation(information);
