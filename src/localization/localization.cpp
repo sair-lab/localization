@@ -36,6 +36,8 @@ Localization::Localization(ros::NodeHandle n)
 
     path_optimized_pub = n.advertise<nav_msgs::Path>("optimized/path", 1);
 
+    RL_pub = n.advertise<localization::RelativeInfoStamped>("RL_info", 10); 
+
 // For g2o optimizer
     solver = new Solver();
 
@@ -390,6 +392,23 @@ void Localization::addRLRangeEdge(const uwb_reloc::uwbTalkData::ConstPtr& uwb)
         solve();
         publish();
     }
+
+
+    localization::RelativeInfoStamped RL_info;
+    
+    auto robot1_pose = robots.at(uwb->selfId).current_pose();
+    auto robot2_pose = robots.at(uwb->rqstrId).current_pose();
+
+    RL_info.header = RLheader;
+    RL_info.rqstrId = uwb->rqstrId;
+    RL_info.rspdrId = uwb->rspdrId;
+    RL_info.rlpos_RqstToRspdr.x = robot1_pose.pose.position.x - robot2_pose.pose.position.x;
+    RL_info.rlpos_RqstToRspdr.y = robot1_pose.pose.position.y - robot2_pose.pose.position.y;
+    RL_info.rlpos_RqstToRspdr.z = robot1_pose.pose.position.z - robot2_pose.pose.position.z;
+
+    RL_pub.publish(RL_info);
+
+
 }
 
 

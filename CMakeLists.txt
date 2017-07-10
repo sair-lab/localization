@@ -61,6 +61,7 @@ find_package(Cholmod REQUIRED)
 add_message_files(
   FILES
   UwbData.msg
+  RelativeInfoStamped.msg
   # Message2.msg
 )
 

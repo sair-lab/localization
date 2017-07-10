@@ -68,6 +68,7 @@
 #include <bitcraze_lps_estimator/UwbRange.h>
 #endif
 
+#include <localization/RelativeInfoStamped.h>
 #include <sensor_msgs/Imu.h>
 #include <dynamic_reconfigure/server.h>
 #include <localization/localizationConfig.h>
@@ -136,6 +137,8 @@ private:
     ros::Publisher pose_optimized_pub;
 
     ros::Publisher path_optimized_pub;
+
+    ros::Publisher RL_pub;
 
 // for robots
     std::vector<int> nodesId;
