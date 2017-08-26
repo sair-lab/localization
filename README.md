@@ -32,6 +32,6 @@ New support for UWB from bitcrazy:
     please find its driver on:
     https://github.com/wang-chen/lps-ros
     
-To use UWB from bitcrazy, comment the following line in the src/localization/localization.h
+To use UWB from bitcrazy, comment the following line in the CMakeLists.txt
 
-    #define TIME_DOMAIN
+    add_definitions(-DTIME_DOMAIN)
