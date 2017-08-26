@@ -70,7 +70,9 @@
 #include <localization/localizationConfig.h>
 #include <message_filters/subscriber.h>
 #include <std_msgs/Float64.h>
+#ifdef RELATIVE_LOCALIZATION
 #include <uwb_reloc/uwbTalkData.h>
+#endif
 #include "lib.h"
 #include "robot.h"
 
@@ -117,9 +119,9 @@ public:
     void addImuEdge(const sensor_msgs::Imu::ConstPtr&);
 
     void addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped::ConstPtr&);
-
+#ifdef RELATIVE_LOCALIZATION
     void addRLRangeEdge(const uwb_reloc::uwbTalkData::ConstPtr&);
-
+#endif
     void configCallback(localization::localizationConfig&, uint32_t);
 
 private:

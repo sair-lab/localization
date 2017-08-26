@@ -325,6 +325,7 @@ void Localization::addRangeEdge(const bitcraze_lps_estimator::UwbRange::ConstPtr
     }
 }
 
+#ifdef RELATIVE_LOCALIZATION
 void Localization::addRLRangeEdge(const uwb_reloc::uwbTalkData::ConstPtr& uwb)
 {
     std_msgs::Header RLheader;
@@ -382,7 +383,7 @@ void Localization::addRLRangeEdge(const uwb_reloc::uwbTalkData::ConstPtr& uwb)
         publish();
     }
 }
-
+#endif
 
 void Localization::addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped::ConstPtr& twist_)
 {

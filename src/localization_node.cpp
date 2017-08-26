@@ -79,11 +79,13 @@ int main(int argc, char** argv)
         ROS_WARN("Subscribing to: %s", imu_topic.c_str());
     }
 
+#ifdef RELATIVE_LOCALIZATION
     if(n.getParam("topic/relative_range", relative_topic))
     {
         relative_sub = n.subscribe(relative_topic, 1, &Localization::addRLRangeEdge, &localization);
         ROS_WARN("Subscribing to: %s", relative_topic.c_str());
     }
+#endif
 
     dynamic_reconfigure::Server<localization::localizationConfig> dr_srv;
 

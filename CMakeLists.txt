@@ -131,6 +131,10 @@ include_directories(
 # Uncomment this definition to use decawave's uwb radios
 add_definitions(-DTIME_DOMAIN)
 
+# Uncomment this definition to enable relative localization
+add_definitions(-DRELATIVE_LOCALIZATION)
+
+
 # Uncomment these definitions to compile and run without the vectorization error (not neccessary on actual flight test)
 #add_definitions(-DEIGEN_DONT_VECTORIZE -DEIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT)
 
