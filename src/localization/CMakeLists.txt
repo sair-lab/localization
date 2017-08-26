@@ -1,4 +1,4 @@
-ADD_LIBRARY(localization SHARED
+ADD_LIBRARY(localization STATIC
 	${G2O_LIB_TYPE}
   	localization.h
   	localization.cpp

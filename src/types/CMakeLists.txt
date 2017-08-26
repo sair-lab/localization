@@ -1,4 +1,4 @@
-ADD_LIBRARY(types_edge_se3range SHARED
+ADD_LIBRARY(types_edge_se3range STATIC
 	${G2O_LIB_TYPE}
  	types_edge_se3range.cpp
  	types_edge_se3range_offset.cpp

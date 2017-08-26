@@ -101,4 +101,15 @@ namespace g2o
         assert(vertex>=0&&vertex<=1);
         offset[vertex] = pose;
     }
+
+    void EdgeSE3Range::computeError()
+    {
+        const VertexSE3* v1 = dynamic_cast<const VertexSE3*>(_vertices[0]);
+
+        const VertexSE3* v2 = dynamic_cast<const VertexSE3*>(_vertices[1]);
+
+        Vector3D dt = (v1->estimate() * offset[0]).translation() - (v2->estimate() * offset[1]).translation();
+
+        _error[0] = _measurement - dt.norm();
+    }
 }
