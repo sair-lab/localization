@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<launch>
+
+    <param name ="/use_sim_time" value="true"/>
+
+    <arg name="dataset" value="realtime"/>
+
+    <rosparam file="$(find uwb_driver)/cfg/relative.yaml" command="load" />
+
+
+    <arg name="uav_name" default="uav_0"/>
+    <arg name="uav_id" default="0"/>
+
+    <arg name="delta_t" default="0.1"/>
+    <arg name="epsilon_1" default="0.0"/>
+    <arg name="epsilon_2" default="0.07"/>
+    <arg name="kappa" default="0.1"/>
+
+    <arg name="delta_t_est" default="0.04"/>
+
+    <arg name="uniform_formation" default="true"/>
+    <arg name="uniform_distance" default="3.0"/>
+
+    <arg name="topic_pub_vel_cmd_common" default="/common/velocity"/>
+    <arg name="topic_sub_states" default="scan"/>
+
+    <rosparam param="/$(arg uav_name)/uwb_reloc_talk_node/mobsId"> [200, 201, 202]</rosparam>
+    <rosparam param="/$(arg uav_name)/uwb_reloc_algo_node/albega"> [1.0, 0.0, 200]</rosparam>
+
+    <!-- UWB Communication -->
+    <node ns="$(arg uav_name)" respawn="true" pkg="uwb_reloc" type="uwb_talk_node" 
+        name="uwb_reloc_talk_node">
+        <!-- configuration for the node -->
+        <param name="nodeRate" type="int" value="50"/>
+        <param name="restEnable" type="bool" value="true"/>
+        <param name="ignrTimeoutUwbInit" type="bool" value="true"/>
+        <param name="allZZero" type="bool" value="true"/>
+        <param name="useViconVelocity" type="bool" value="false"/>
+
+        <!-- configuration for the p4xx -->
+        <param name="p4xxInterfaceChoice" type="int" value="1"/>
+        <param name="p4xxSerialPort" type="string" value="200" />
+        <param name="mode" type="int" value="0" />
+        <param name="autoConfig" type="bool" value="false" />
+        <param name="forceId" type="bool" value="true" />
+        <param name="smFileName" value="/home/ubuntu/slotmaps/smrl3/200.csv" />
+        <param name="rqstDataSize" type="int" value="16" />
+        <param name="rspdDataSize" type="int" value="0" />
+
+        <!-- configuration for fcc -->
+        <param name="fccSerialPort" type="string" value="/dev/uwb" />
+        <param name="fccBaudrate" type="int" value="921600" />
+
+        <!-- configuration for comm. health -->
+        <param name="logEnable" type="bool" value="true" />
+        <param name="logInput" type="bool" value="true" />
+        <param name="logOutput" type="bool" value="true" />
+        <param name="syncFCC" type="bool" value="true" />
+
+        <param name="topic_uwbTalkPub" type="string" value="/$(arg uav_name)/uwb_talk" />
+        <param name="topic_px4VelSub" type="string" value="/$(arg uav_name)/temp/estimate/velocity" />
+        <param name="topic_px4PosSub" type="string" value="/$(arg uav_name)/estimate/position" />
+    </node>
+
+
+  
+    <node pkg="localization" type="localization_node" name="localization_node" output="screen">
+        <rosparam command="delete" param="topic" />
+        <rosparam file="$(find localization)/cfg/RL_uwb.yaml" command="load" />
+        <param name="log/filename_prefix" value="$(find localization)/bag/$(arg dataset)" />
+    </node>
+
+    <node pkg="hector_trajectory_server" type="hector_trajectory_server" name="localization_trajectory_server">
+        <param name="/target_frame_name" value="vicon" />
+        <param name="/source_frame_name" value="optimizer" />
+        <param name="/trajectory_update_rate" value="20.0" />
+        <param name="/trajectory_publish_rate" value="20.0" />
+    </node>
+
+    <!-- <node pkg="tf" type="static_transform_publisher" name="vicon_to_uwb_tf" args="0 0 0 0 0 0 world /vicon_frame 20" /> -->
+
+</launch>
+
+
