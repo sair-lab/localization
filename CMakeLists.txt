@@ -136,7 +136,7 @@ add_definitions(-DRELATIVE_LOCALIZATION)
 
 
 # Uncomment these definitions to compile and run without the vectorization error (not neccessary on actual flight test)
-#add_definitions(-DEIGEN_DONT_VECTORIZE -DEIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT)
+add_definitions(-DEIGEN_DONT_VECTORIZE -DEIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT)
 
 ###########
 ## Build ##
