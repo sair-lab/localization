@@ -78,6 +78,7 @@ Localization::Localization(ros::NodeHandle n)
     self_id = nodesId.back();
     ROS_WARN("Init self robot ID: %d with moving option", self_id);
 
+
     for (size_t i = 0; i < nodesId.size(); ++i)
     {
         if(n.hasParam("topic/relative_range")||self_id==nodesId[i])
@@ -219,6 +220,7 @@ void Localization::publish()
 
     }
 
+
 }
 
 
@@ -267,6 +269,7 @@ void Localization::addRangeEdge(const bitcraze_lps_estimator::UwbRange::ConstPtr
 #endif
 {
     double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
+
     double dt_responder = uwb->header.stamp.toSec() - robots.at(uwb->responder_id).last_header().stamp.toSec();
     double distance_cov = pow(uwb->distance_err, 2);
     double cov_requester = pow(robot_max_velocity*dt_requester/3, 2); //3 sigma priciple

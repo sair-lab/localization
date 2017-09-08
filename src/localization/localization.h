@@ -60,6 +60,8 @@
 #include <tf_conversions/tf_eigen.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/TwistWithCovarianceStamped.h>
+#include <geometry_msgs/Vector3.h>
+#include <vicon_xb/viconPoseMsg.h>
 #ifdef TIME_DOMAIN
 #include <uwb_driver/UwbRange.h>
 #else
@@ -119,6 +121,7 @@ public:
     void addImuEdge(const sensor_msgs::Imu::ConstPtr&);
 
     void addTwistEdge(const geometry_msgs::TwistWithCovarianceStamped::ConstPtr&);
+
 #ifdef RELATIVE_LOCALIZATION
     void addRLRangeEdge(const uwb_reloc::uwbTalkData::ConstPtr&);
 #endif
@@ -148,6 +151,7 @@ private:
     g2o::VertexSE3* key_vertex;
 
     int trajectory_length;
+
 
 // for g2o solver
     Solver *solver;
