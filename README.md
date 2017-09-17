@@ -20,6 +20,7 @@ Install G2O from source. Download g2o to your non-ros source folder, make and in
     git clone https://github.com/RainerKuemmerle/g2o
 
 Please checkout the following commit in June for compatibility.
+
     cd g2o ; git checkout deafc01ee8315b9405351fb145238c5d62f82dc7
     mkdir build ; cd build
     cmake .. ; make -j4
