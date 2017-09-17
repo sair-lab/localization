@@ -18,8 +18,11 @@ Install dependencies:
 Install G2O from source. Download g2o to your non-ros source folder, make and install:
   
     git clone https://github.com/RainerKuemmerle/g2o
-    cd g2o & mkdir build & cd build
-    cmake .. & make -j4
+
+Please checkout the following commit in June for compatibility.
+    cd g2o ; git checkout deafc01ee8315b9405351fb145238c5d62f82dc7
+    mkdir build ; cd build
+    cmake .. ; make -j4
     sudo make install
  
 Download uwb_driver to your ros workspace and install its dependencies:
