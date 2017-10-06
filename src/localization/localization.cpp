@@ -247,7 +247,7 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
 
     edge->setInformation(covariance.inverse());
 
-    edge->setRobustKernel(new g2o::RobustKernelHuber());
+    edge->setRobustKernel(new g2o::RobustKernelCauchy());
 
     optimizer.addEdge(edge);
 
@@ -549,7 +549,7 @@ inline g2o::EdgeSE3* Localization::create_se3_edge_from_twist(g2o::VertexSE3* ve
 
     edge->setInformation(covariance.inverse());
 
-    edge->setRobustKernel(new g2o::RobustKernelHuber());
+    edge->setRobustKernel(new g2o::RobustKernelCauchy());
 
     return edge;
 }
@@ -571,7 +571,7 @@ inline g2o::EdgeSE3Range* Localization::create_range_edge(g2o::VertexSE3* vertex
 
     edge->setInformation(covariance_matrix.inverse());
 
-    edge->setRobustKernel(new g2o::RobustKernelPseudoHuber());
+    edge->setRobustKernel(new g2o::RobustKernelCauchy());
 
     return edge;
 }
