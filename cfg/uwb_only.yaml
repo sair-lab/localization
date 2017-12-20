@@ -20,5 +20,5 @@ publish_flag:
 
 # fused pose topic frame
 frame:
-  target: /uwb
+  target: /uwb_localization
   source: /world
