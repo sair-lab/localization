@@ -36,6 +36,8 @@ Localization::Localization(ros::NodeHandle n)
 
     path_optimized_pub = n.advertise<nav_msgs::Path>("optimized/path", 1);
 
+    number_measurements = 0;
+
 // For g2o optimizer
     solver = new Solver();
 
@@ -170,6 +172,14 @@ void Localization::solve()
 
     ROS_INFO("Graph optimized with error: %f", optimizer.chi2());
 
+    g2o::SparseBlockMatrix<MatrixXd> spinv;
+
+    if(optimizer.computeMarginals(spinv, robots.at(self_id).last_vertex()))
+        cout<<spinv.block(0,0)<<endl;    
+    else
+        cout<<"can't compute"<<endl;
+
+
     timer.toc();
 }
 
@@ -266,6 +276,8 @@ void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 void Localization::addRangeEdge(const bitcraze_lps_estimator::UwbRange::ConstPtr& uwb)
 #endif
 {
+    ++number_measurements;
+
     double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
     double dt_responder = uwb->header.stamp.toSec() - robots.at(uwb->responder_id).last_header().stamp.toSec();
     double distance_cov = pow(uwb->distance_err, 2);
@@ -318,7 +330,7 @@ void Localization::addRangeEdge(const bitcraze_lps_estimator::UwbRange::ConstPtr
         ROS_INFO("added responder trajectory edge;");
     }
         
-    if (publish_range)
+    if (publish_range && number_measurements > trajectory_length)
     {
         solve();
         publish();
@@ -646,7 +658,7 @@ void Localization::set_file(std::vector<double> antennaOffset)
 
     file.open(optimized_filename.c_str(), ios::trunc|ios::out);
     file<<"# "<<"antenna offsets: ";
-    for(int i; i < antennaOffset.size() - 1; i++)
+    for(unsigned int i = 0; i < antennaOffset.size() - 1; i++)
         file << antennaOffset[i] << ",";
     file << antennaOffset[antennaOffset.size()-1] << "\n";
     file.close();

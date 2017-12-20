@@ -13,6 +13,7 @@ ADD_DEPENDENCIES(localization ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPOR
 TARGET_LINK_LIBRARIES(localization
 	${catkin_LIBRARIES}
 	${CHOLMOD_LIBRARIES}
+	${CSPARSE_LIBRARIES}
 	types_edge_se3range
 	g2o_core
 	g2o_types_slam3d

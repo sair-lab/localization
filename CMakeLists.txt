@@ -27,6 +27,8 @@ find_package(Boost REQUIRED COMPONENTS system)
 find_package(G2O REQUIRED)
 find_package(Eigen3 3.2 REQUIRED)
 find_package(Cholmod REQUIRED)
+find_package(CSPARSE REQUIRED)
+
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed

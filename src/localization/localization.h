@@ -81,6 +81,8 @@ using namespace std;
 typedef g2o::BlockSolver_6_3 SE3BlockSolver;
 
 typedef g2o::LinearSolverCholmod<SE3BlockSolver::PoseMatrixType> Solver;
+// typedef g2o::LinearSolverCSparse<SE3BlockSolver::PoseMatrixType> Solver;
+
 
 int test();
 
@@ -148,6 +150,8 @@ private:
     g2o::VertexSE3* key_vertex;
 
     int trajectory_length;
+
+    int number_measurements;
 
 // for g2o solver
     Solver *solver;
