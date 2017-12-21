@@ -1,11 +1,12 @@
 # parameters for robots
 robot:
-  trajectory_length: 15
+  trajectory_length: 4
   maximum_velocity: 3.0
+  distance_outlier: 1.0
 
 # parameters for g2o optimizer
 optimizer:
-  maximum_iteration: 12
+  maximum_iteration: 10
   verbose: false
 
 # parameters for topic subscription

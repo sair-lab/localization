@@ -70,6 +70,10 @@ Localization::Localization(ros::NodeHandle n)
     if(n.param("robot/maximum_velocity", robot_max_velocity, 1.0))
         ROS_WARN("Using robot maximum_velocity: %fm/s", robot_max_velocity);
 
+    if(n.param("robot/distance_outlier", distance_outlier, 1.0))
+        ROS_WARN("Using uwb outlier rejection distance: %fm", distance_outlier);
+
+
 // For UWB initial position parameters reading
     if(!n.getParam("/uwb/nodesId", nodesId))
         ROS_ERROR("Can't get parameter nodesId from UWB");
@@ -174,10 +178,10 @@ void Localization::solve()
 
     g2o::SparseBlockMatrix<MatrixXd> spinv;
 
-    if(optimizer.computeMarginals(spinv, robots.at(self_id).last_vertex()))
-        cout<<spinv.block(0,0)<<endl;    
-    else
-        cout<<"can't compute"<<endl;
+    // if(optimizer.computeMarginals(spinv, robots.at(self_id).last_vertex()))
+    //     cout<<spinv.block(0,0)<<endl;    
+    // else
+    //     cout<<"can't compute"<<endl;
 
 
     timer.toc();
@@ -277,6 +281,15 @@ void Localization::addRangeEdge(const bitcraze_lps_estimator::UwbRange::ConstPtr
 #endif
 {
     ++number_measurements;
+
+    double distance_estimation= (robots.at(uwb->requester_id).last_vertex()->estimate().translation() -
+                                 robots.at(uwb->responder_id).last_vertex()->estimate().translation()).norm();
+
+    if (number_measurements > trajectory_length && abs(distance_estimation-uwb->distance) > distance_outlier)
+    {
+        ROS_WARN("Reject outlier from ID: %d with measurement: %f", uwb->responder_id, uwb->distance);
+        return;
+    }
 
     double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
     double dt_responder = uwb->header.stamp.toSec() - robots.at(uwb->responder_id).last_header().stamp.toSec();

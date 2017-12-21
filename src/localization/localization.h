@@ -153,6 +153,8 @@ private:
 
     int number_measurements;
 
+    double distance_outlier;
+
 // for g2o solver
     Solver *solver;
 
