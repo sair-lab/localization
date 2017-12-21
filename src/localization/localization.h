@@ -155,6 +155,8 @@ private:
 
     double distance_outlier;
 
+    double minimum_optimize_error;
+
 // for g2o solver
     Solver *solver;
 

@@ -63,6 +63,9 @@ Localization::Localization(ros::NodeHandle n)
     if(n.param("optimizer/maximum_iteration", iteration_max, 20))
         ROS_WARN("Using optimizer maximum iteration: %d", iteration_max);
 
+    if(n.param("optimizer/minimum_optimize_error", minimum_optimize_error, 1000.0))
+        ROS_WARN("Will skip estimation if optimization error is larger than: %f", minimum_optimize_error);
+
 // For robots
     if(n.getParam("robot/trajectory_length", trajectory_length))
         ROS_WARN("Using robot trajectory_length: %d", trajectory_length);
@@ -174,15 +177,12 @@ void Localization::solve()
     //         }
     // }
 
-    ROS_INFO("Graph optimized with error: %f", optimizer.chi2());
-
-    g2o::SparseBlockMatrix<MatrixXd> spinv;
+    // g2o::SparseBlockMatrix<MatrixXd> spinv;
 
     // if(optimizer.computeMarginals(spinv, robots.at(self_id).last_vertex()))
     //     cout<<spinv.block(0,0)<<endl;    
     // else
     //     cout<<"can't compute"<<endl;
-
 
     timer.toc();
 }
@@ -190,6 +190,16 @@ void Localization::solve()
 
 void Localization::publish()
 {
+    double error = optimizer.chi2();
+
+    if (error < minimum_optimize_error)
+        ROS_INFO("Graph optimized with error: %f ", error);
+    else
+    {
+        ROS_WARN("Skip optimization with error: %f ", error);
+        return;
+    }
+
     auto pose = robots.at(self_id).current_pose();
 
     pose.header.frame_id = frame_source;
@@ -287,7 +297,7 @@ void Localization::addRangeEdge(const bitcraze_lps_estimator::UwbRange::ConstPtr
 
     if (number_measurements > trajectory_length && abs(distance_estimation-uwb->distance) > distance_outlier)
     {
-        ROS_WARN("Reject outlier from ID: %d with measurement: %f", uwb->responder_id, uwb->distance);
+        ROS_WARN("Reject ID: %d measurement: %fm", uwb->responder_id, uwb->distance);
         return;
     }
 
