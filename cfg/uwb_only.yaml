@@ -1,6 +1,6 @@
 # parameters for robots
 robot:
-  trajectory_length: 4
+  trajectory_length: 12
   maximum_velocity: 3.0
   distance_outlier: 1.0
 
