@@ -38,6 +38,7 @@ Localization::Localization(ros::NodeHandle n)
 
     number_measurements = 0;
 
+
 // For g2o optimizer
     solver = new Solver();
 
@@ -177,12 +178,14 @@ void Localization::solve()
     //         }
     // }
 
-    // g2o::SparseBlockMatrix<MatrixXd> spinv;
+    ROS_INFO("Graph optimized with error: %f", optimizer.chi2());
 
-    // if(optimizer.computeMarginals(spinv, robots.at(self_id).last_vertex()))
-    //     cout<<spinv.block(0,0)<<endl;    
-    // else
-    //     cout<<"can't compute"<<endl;
+    g2o::SparseBlockMatrix<MatrixXd> spinv;
+
+    if(optimizer.computeMarginals(spinv, robots.at(self_id).last_vertex()))
+        cout<<spinv.block(0,0)<<endl;    
+    else
+        cout<<"can't compute"<<endl;
 
     timer.toc();
 }
@@ -199,6 +202,7 @@ void Localization::publish()
         ROS_WARN("Skip optimization with error: %f ", error);
         return;
     }
+    
 
     auto pose = robots.at(self_id).current_pose();
 
@@ -284,12 +288,17 @@ void Localization::addPoseEdge(const geometry_msgs::PoseWithCovarianceStamped::C
     }
 }
 
+
+
+
+
 #ifdef TIME_DOMAIN
 void Localization::addRangeEdge(const uwb_driver::UwbRange::ConstPtr& uwb)
 #else
 void Localization::addRangeEdge(const bitcraze_lps_estimator::UwbRange::ConstPtr& uwb)
 #endif
 {
+
     ++number_measurements;
 
     double distance_estimation= (robots.at(uwb->requester_id).last_vertex()->estimate().translation() -

@@ -4,13 +4,14 @@
 
     <param name ="/use_sim_time" value="true"/>
 
-    <arg name="dataset" value="uwb31"/>
+    <!-- <arg name="dataset" value="uwb31"/> -->
+    <arg name="dataset" value="st/3"/>
 
     <!-- <arg name="dataset" value="kinect_uwb_man/slam_uwb_man"/> -->
 
-    <rosparam file="$(find uwb_driver)/cfg/anchor_old.yaml" command="load" />
+    <rosparam file="$(find uwb_driver)/cfg/anchor_st.yaml" command="load" />
 
-    <node name="rosbag_play" pkg="rosbag" type="play" output="screen" args=" --clock $(find localization)/bag/$(arg dataset).bag"/>
+    <node name="rosbag_play" pkg="rosbag" type="play" output="screen" args="-s 730 --clock $(find localization)/bag/$(arg dataset).bag"/>
   
     <node pkg="localization" type="localization_node" name="localization_node" output="screen">
         <rosparam command="delete" param="topic" />
