@@ -13,7 +13,7 @@ optimizer:
 
 # parameters for topic subscription
 topic:
-  range: /lpsrange
+  range: /uwb_endorange_info
 
 publish_flag:
   tf: true

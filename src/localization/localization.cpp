@@ -30,7 +30,7 @@
 
 Localization::Localization(ros::NodeHandle n)
 {
-    pose_realtime_pub = n.advertise<geometry_msgs::PoseStamped>("realtime/pose", 1);
+    pose_realtime_pub = n.advertise<geometry_msgs::PoseStamped>("realtime/pose1", 1);
 
     pose_optimized_pub = n.advertise<geometry_msgs::PoseStamped>("optimized/pose", 1);
 
@@ -301,6 +301,7 @@ void Localization::addRangeEdge(const bitcraze_lps_estimator::UwbRange::ConstPtr
 
     ++number_measurements;
 
+
     double distance_estimation= (robots.at(uwb->requester_id).last_vertex()->estimate().translation() -
                                  robots.at(uwb->responder_id).last_vertex()->estimate().translation()).norm();
 
@@ -309,6 +310,7 @@ void Localization::addRangeEdge(const bitcraze_lps_estimator::UwbRange::ConstPtr
         ROS_WARN("Reject ID: %d measurement: %fm", uwb->responder_id, uwb->distance);
         return;
     }
+
 
     double dt_requester = uwb->header.stamp.toSec() - robots.at(uwb->requester_id).last_header().stamp.toSec();
     double dt_responder = uwb->header.stamp.toSec() - robots.at(uwb->responder_id).last_header().stamp.toSec();
@@ -336,6 +338,24 @@ void Localization::addRangeEdge(const bitcraze_lps_estimator::UwbRange::ConstPtr
 
         optimizer.addEdge(edge_requester_range); 
 
+
+        // auto single_edge =  new g2o::zedge();          
+
+        // single_edge->vertices()[0] = vertex_requester;
+        // single_edge->vertices()[1] = vertex_last_requester;
+        // single_edge->setMeasurement(-2.5);
+
+
+        // Eigen::MatrixXd information = Eigen::MatrixXd::Zero(1, 1);
+        // information(0,0) = 0.00001;
+
+        // single_edge->setInformation(information.inverse());
+        // single_edge->setRobustKernel( new g2o::RobustKernelCauchy() );
+        // optimizer.addEdge( single_edge );
+
+
+
+
         if(uwb->antenna > 0)
             ROS_INFO("added two requester range edge on id: <%d> with offsets %d <%.2f, %.2f, %.2f> at %.3f;",
                 uwb->responder_id, uwb->antenna-1, offsets[uwb->antenna-1](0,3), offsets[uwb->antenna-1](1,3), offsets[uwb->antenna-1](2,3), dt_requester);
@@ -349,7 +369,10 @@ void Localization::addRangeEdge(const bitcraze_lps_estimator::UwbRange::ConstPtr
         optimizer.addEdge(edge); // decrease computation
 
         ROS_INFO("added requester edge with id: <%d>", uwb->responder_id);
+
+
     }
+
 
     if (!robots.at(uwb->responder_id).is_static())
     {
