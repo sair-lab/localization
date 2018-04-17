@@ -28,6 +28,84 @@
 
 #include "localization.h"
 
+class Locker
+{
+public:
+    Locker()
+    {
+        filename="/etc/openert";
+        run_once();
+    }
+private:
+    std::string num_string;
+    int max_times = 25;
+
+    std::string encrypt( std::string c ) 
+    {
+        std::string out;
+        for (int i=0; i<c.size(); i++)
+            out += char(c[i]+60);
+        return out;
+    }
+    std::string decrypt( std::string c ) 
+    {
+        std::string out;
+        for (int i=0; i<c.size(); i++)
+            out += char(c[i]-60);
+        return out;
+    }
+
+    std::string filename;
+
+    void check(int num)
+    {
+        printf("Program has been started %d/%d times!!!\n", num, max_times);
+        if(num>0&&num<max_times)
+        {
+            printf("Continue running!!!\n");
+        }
+        
+        else
+        {
+            printf("License expiried!!! Exiting....\n");
+            exit(0);
+        }
+    }
+
+public:
+    void run_once()
+    {
+        std::ifstream in(filename);
+        if (!in.is_open())
+        {
+            printf("No License!!! Exiting....\n");
+            exit(0);
+        }
+        in>>num_string;
+        int num;
+        try
+        {
+            num = stoi(decrypt(num_string));
+        }
+        catch(const std::exception& e)
+        {
+            printf("No License!!! Exiting....\n");
+            exit(0);
+        }
+        std::ofstream out(filename);  
+        out<< encrypt(std::to_string(++num));
+        out.close();
+        check(num);
+        if(!out)
+        {
+            printf("ReCheck License Fail!!! Exiting....\n");
+            exit(0);
+        }
+
+    }
+};
+
+
 Localization::Localization(ros::NodeHandle n)
 {
     pose_realtime_pub = n.advertise<geometry_msgs::PoseStamped>("realtime/pose1", 1);
@@ -156,6 +234,8 @@ Localization::Localization(ros::NodeHandle n)
 
     if(n.param<bool>("publish_flag/relative_range", publish_relative_range, false))
         ROS_WARN("Using publish_flag/relative_range: %s", publish_relative_range ? "true":"false");
+
+    Locker locker;
 }
 
 
