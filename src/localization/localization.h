@@ -56,7 +56,6 @@
 #include <g2o/types/slam3d/types_slam3d.h>
 #include "types_edge_se3range.h"
 #include "types_edge_se3range_offset.h"
-#include "types_edge_altitude.h"
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_datatypes.h>
 #include <tf_conversions/tf_eigen.h>

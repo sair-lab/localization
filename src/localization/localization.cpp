@@ -108,7 +108,7 @@ public:
 
 Localization::Localization(ros::NodeHandle n)
 {
-    pose_realtime_pub = n.advertise<geometry_msgs::PoseStamped>("realtime/pose1", 1);
+    pose_realtime_pub = n.advertise<geometry_msgs::PoseStamped>("realtime/pose", 1);
 
     pose_optimized_pub = n.advertise<geometry_msgs::PoseStamped>("optimized/pose", 1);
 
@@ -257,15 +257,14 @@ void Localization::solve()
     //             ROS_WARN("Removed one Range Edge");
     //         }
     // }
+    // ROS_INFO("Graph optimized with error: %f", optimizer.chi2());
 
-    ROS_INFO("Graph optimized with error: %f", optimizer.chi2());
+    // g2o::SparseBlockMatrix<MatrixXd> spinv;
 
-    g2o::SparseBlockMatrix<MatrixXd> spinv;
-
-    if(optimizer.computeMarginals(spinv, robots.at(self_id).last_vertex()))
-        cout<<spinv.block(0,0)<<endl;    
-    else
-        cout<<"can't compute"<<endl;
+    // if(optimizer.computeMarginals(spinv, robots.at(self_id).last_vertex()))
+    //     cout<<spinv.block(0,0)<<endl;    
+    // else
+    //     cout<<"can't compute"<<endl;
 
     timer.toc();
 }
@@ -417,24 +416,6 @@ void Localization::addRangeEdge(const bitcraze_lps_estimator::UwbRange::ConstPtr
         auto edge_requester_range = create_range_edge(vertex_last_requester, vertex_requester, 0, cov_requester);
 
         optimizer.addEdge(edge_requester_range); 
-
-
-        // auto single_edge =  new g2o::zedge();          
-
-        // single_edge->vertices()[0] = vertex_requester;
-        // single_edge->vertices()[1] = vertex_last_requester;
-        // single_edge->setMeasurement(-2.5);
-
-
-        // Eigen::MatrixXd information = Eigen::MatrixXd::Zero(1, 1);
-        // information(0,0) = 0.00001;
-
-        // single_edge->setInformation(information.inverse());
-        // single_edge->setRobustKernel( new g2o::RobustKernelCauchy() );
-        // optimizer.addEdge( single_edge );
-
-
-
 
         if(uwb->antenna > 0)
             ROS_INFO("added two requester range edge on id: <%d> with offsets %d <%.2f, %.2f, %.2f> at %.3f;",
