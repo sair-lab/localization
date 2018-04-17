@@ -152,6 +152,10 @@ add_executable(localization_node
     src/localization_node.cpp
 )
 
+add_executable(file_node
+    src/register.cpp
+)
+
 add_dependencies(localization_node 
     ${${PROJECT_NAME}_EXPORTED_TARGETS}
     ${catkin_EXPORTED_TARGETS}
