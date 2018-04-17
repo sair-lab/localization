@@ -21,7 +21,7 @@ public:
 				system(("sudo touch "+filename+"&& sudo chmod 666 "+filename+"&& echo \"ll\">> "+filename).c_str());
 			    printf("Register Done!!!\n");
 			}
-			catch(const std::exception& e)
+			catch(...)
 			{
 				printf("Cannot register! Contact NTU IOT Lab!\n");
 				exit(0);
