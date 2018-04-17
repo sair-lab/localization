@@ -38,7 +38,7 @@ public:
     }
 private:
     std::string num_string;
-    int max_times = 25;
+    int max_times = 200;
 
     std::string encrypt( std::string c ) 
     {

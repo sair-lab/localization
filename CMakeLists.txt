@@ -152,7 +152,7 @@ add_executable(localization_node
     src/localization_node.cpp
 )
 
-add_executable(file_node
+add_executable(register_node
     src/register.cpp
 )
 

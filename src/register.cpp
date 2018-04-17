@@ -18,9 +18,7 @@ public:
     	{
     		try
     		{
-				system(("sudo touch "+filename).c_str());
-				system(("sudo chmod 666 "+filename).c_str());
-				system(("echo \"ll\">> "+filename).c_str());
+				system(("sudo touch "+filename+"&& sudo chmod 666 "+filename+"&& echo \"ll\">> "+filename).c_str());
 			    printf("Register Done!!!\n");
 			}
 			catch(const std::exception& e)
