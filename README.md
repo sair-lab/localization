@@ -1,5 +1,9 @@
 # localization
-Toturial (Only for ROS kinetic on Ubuntu 16.04)
+
+Localization ROS Package for fusion from multi-sensor (UWB, IMU, Optical Flow, and Visual SLAM)
+
+# Usage
+    Only tested with ROS kinetic on Ubuntu 16.04
 
 Install dependencies:
 
@@ -19,7 +23,7 @@ Install G2O from source. Download g2o to your non-ros source folder, make and in
   
     git clone https://github.com/RainerKuemmerle/g2o
 
-Please checkout the following commit in June for compatibility.
+Please checkout the following commit for compatibility.
 
     cd g2o ; git checkout deafc01ee8315b9405351fb145238c5d62f82dc7
     mkdir build ; cd build
@@ -39,3 +43,32 @@ New support for UWB from bitcrazy:
 To use UWB from bitcrazy, comment the following line in the CMakeLists.txt
 
     add_definitions(-DTIME_DOMAIN)
+    
+# If you are interested in this work, you may cite:
+
+    @inproceedings{wang2018graph,
+      title={{Graph Optimization Approach to Localization with Range Measurements}},
+      author={Fang, Xu and Wang, Chen and Nguyen, Thien-Minh and Xie, Lihua},
+      journal={arXiv preprint arXiv:1802.10276},
+      year={2018},
+      month=feb
+    }
+    
+    @inproceedings{wang:iros2017,
+      author = {Wang, Chen and Zhang, Handuo and  Nguyen, Thien-Minh and Xie, Lihua},
+      title = {{Ultra-Wideband Aided Fast Localization and Mapping System}},
+      booktitle={IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
+      year = {2017},
+      pages={1602--1609},
+      month = sep
+    }
+    
+    @inproceedings{wang2018correlation,
+      title={{Correlation Flow: Robust Optical Flow using Kernel Cross-Correlators}},
+      author={Wang, Chen and Ji, Tete and Nguyen, Thien-Minh and Xie, Lihua},
+      booktitle={International Conference on Robotics and Automation (ICRA)},
+      year={2018},
+      pages = {836--841},
+      organization={IEEE},
+      month = may
+    }
