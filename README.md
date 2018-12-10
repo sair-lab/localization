@@ -46,7 +46,7 @@ To use UWB from bitcrazy, comment the following line in the CMakeLists.txt
     
 # If you are interested in this work, you may cite:
 
-    @inproceedings{wang2018graph,
+    @article{wang2018graph,
       title={{Graph Optimization Approach to Localization with Range Measurements}},
       author={Fang, Xu and Wang, Chen and Nguyen, Thien-Minh and Xie, Lihua},
       journal={arXiv preprint arXiv:1802.10276},
