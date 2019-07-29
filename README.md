@@ -5,8 +5,8 @@ Localization ROS package for range sensors, i.e. ultra wide-band (UWB).
 This repo also provides sensor fusion for multi-source, e.g. Optical Flow and Visual SLAM.
 
 # Preparation
-    Only verified with ROS kinetic on Ubuntu 16.04.
-    
+    System higher than Ubuntu 16.04 (with ROS).
+
 Install dependencies:
 
     sudo apt-get update
