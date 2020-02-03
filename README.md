@@ -86,21 +86,11 @@ To use UWB from bitcrazy, comment the following line in the CMakeLists.txt
       organization={IEEE}
     }
     
-    @inproceedings{wang:iros2017,
-      author = {Wang, Chen and Zhang, Handuo and  Nguyen, Thien-Minh and Xie, Lihua},
-      title = {{Ultra-Wideband Aided Fast Localization and Mapping System}},
+    @inproceedings{wang2017ultra,
+      title={Ultra-Wideband Aided Fast Localization and Mapping System},
+      author={Wang, Chen and Zhang, Handuo and Nguyen, Thien-Minh and Xie, Lihua},
       booktitle={IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
-      year = {2017},
       pages={1602--1609},
-      month = sep
-    }
-    
-    @inproceedings{wang2018correlation,
-      title={{Correlation Flow: Robust Optical Flow using Kernel Cross-Correlators}},
-      author={Wang, Chen and Ji, Tete and Nguyen, Thien-Minh and Xie, Lihua},
-      booktitle={International Conference on Robotics and Automation (ICRA)},
-      year={2018},
-      pages = {836--841},
-      organization={IEEE},
-      month = may
+      year={2017},
+      organization={IEEE}
     }
