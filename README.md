@@ -70,12 +70,20 @@ To use UWB from bitcrazy, comment the following line in the CMakeLists.txt
     
 # If you are interested in this work, you may cite:
 
-    @article{wang2018graph,
-      title={{Graph Optimization Approach to Localization with Range Measurements}},
+    @article{fang2020graph,
+      title={Graph Optimization Approach to Range-based Localization},
       author={Fang, Xu and Wang, Chen and Nguyen, Thien-Minh and Xie, Lihua},
-      journal={arXiv preprint arXiv:1802.10276},
+      journal={IEEE Transactions on Systems, Man and Cybernetics: Systems},
+      year={2020}
+    }
+    
+    @inproceedings{fang2018model,
+      title={Model-free approach for sensor network localization with noisy distance measurement},
+      author={Fang, Xu and Wang, Chen and Nguyen, Thien-Minh and Xie, Lihua},
+      booktitle={2018 15th International Conference on Control, Automation, Robotics and Vision (ICARCV)},
+      pages={1973--1978},
       year={2018},
-      month=feb
+      organization={IEEE}
     }
     
     @inproceedings{wang:iros2017,
