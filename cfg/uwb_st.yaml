@@ -1,13 +1,13 @@
 # parameters for robots
 robot:
-  trajectory_length: 10
-  maximum_velocity: 5.0
-  distance_outlier: 1
+  trajectory_length: 20
+  maximum_velocity: 10
+  distance_outlier: 5
 
 # parameters for g2o optimizer
 optimizer:
-  maximum_iteration: 10
-  minimum_optimize_error: 2000
+  maximum_iteration: 20
+  minimum_optimize_error: 10000
   # if the optimization error is larger than this value, that estimation will be skipped
   verbose: false
 
